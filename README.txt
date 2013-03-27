@@ -1,4 +1,4 @@
-Do...not...merge! Same here!
+Do...not...merge!
 *************************
 README file for CiviCRM
 *************************
