@@ -22,6 +22,12 @@
       <required>true</required>
       <comment>Dashboard ID</comment>
       <add>3.1</add>
+      <pseudoconstant>
+          <table>civicrm_dashboard</table>
+          <keyColumn>id</keyColumn>
+          <labelColumn>name</labelColumn>
+          <!-- via buildOptions <condition>domain_id = current_domain_id</condition> -->
+      </pseudoconstant>
   </field>
   <foreignKey>
        <name>dashboard_id</name>

@@ -48,6 +48,11 @@ class api_v3_DashboardContactTest extends CiviUnitTestCase {
   public function setUp() {
     //  Connect to the database
     parent::setUp();
+    $this->tablesToTruncate = array(
+      'civicrm_dashboard',
+      'civicrm_dashboard_contact',
+    );
+    $this->quickCleanup($this->tablesToTruncate, TRUE);
   }
 
   /**
@@ -57,11 +62,7 @@ class api_v3_DashboardContactTest extends CiviUnitTestCase {
    * @access protected
    */
   function tearDown() {
-    $tablesToTruncate = array(
-      'civicrm_dashboard',
-      'civicrm_dashboard_contact',
-    );
-    $this->quickCleanup($tablesToTruncate, TRUE);
+    $this->quickCleanup($this->tablesToTruncate, TRUE);
   }
 
   function testDashboardContactCreate() {
@@ -91,4 +92,45 @@ class api_v3_DashboardContactTest extends CiviUnitTestCase {
     $newCount = CRM_Core_DAO::singleValueQuery("select count(*) from civicrm_dashboard_contact where contact_id = {$contact['id']} AND is_active = 1 AND dashboard_id = {$dashresult['id']}");
     $this->assertEquals($oldCount + 1, $newCount);
   }
+
+  /**
+   * Create some dashboard entries. Ensure that they are presented as options for the
+   * field "DashboardContact.dashboard_id"
+   */
+  function testDashboardContactOptions() {
+    // Pre-condition - no options for dashboard_id
+    $options = $this->callAPISuccess('dashboard_contact', 'getoptions', array(
+      'field' => 'dashboard_id',
+    ));
+    $this->assertEquals(array(), $options['values']);
+
+    // Add some dashlets
+    $dashParams = array(
+      'version' => 3,
+      'label' => 'My Label 1',
+      'name' => 'my_name_1',
+      'url' => 'civicrm/report/list&compid=99&reset=1&snippet=5',
+      'fullscreen_url' => 'civicrm/report/list&compid=99&reset=1&snippet=5&context=dashletFullscreen',
+    );
+    $dash_result_1 = $this->callAPISuccess('dashboard', 'create', $dashParams);
+    $this->assertDBQuery(1, "select count(*) from civicrm_dashboard where id = " . $dash_result_1['id']);
+
+    $dashParams = array(
+      'version' => 3,
+      'label' => 'My Label 2',
+      'name' => 'my_name_2',
+      'url' => 'civicrm/report/list&compid=99&reset=1&snippet=5',
+      'fullscreen_url' => 'civicrm/report/list&compid=99&reset=1&snippet=5&context=dashletFullscreen',
+    );
+    $dash_result_2 = $this->callAPISuccess('dashboard', 'create', $dashParams);
+    $this->assertDBQuery(1, "select count(*) from civicrm_dashboard where id = " . $dash_result_2['id']);
+
+    // Post-condition - two options for dashboard_id
+    $o1 = CRM_Core_PseudoConstant::get('CRM_Contact_BAO_DashboardContact', 'dashboard_id', array('fresh' => TRUE));
+    $options = $this->callAPISuccess('dashboard_contact', 'getoptions', array(
+      'field' => 'dashboard_id',
+    ));
+    $this->assertEquals(array($dash_result_1['id'] => 'my_name_1', $dash_result_2['id'] => 'my_name_2'), $options['values']);
+  }
+
 }
