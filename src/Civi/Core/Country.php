@@ -3,12 +3,23 @@
 namespace Civi\Core;
 
 use Doctrine\ORM\Mapping as ORM;
+use Drest\Mapping\Annotation as Drest;
 
 /**
  * Country
  *
  * @ORM\Table(name="civicrm_country", uniqueConstraints={@ORM\UniqueConstraint(name="UI_name_iso_code", columns={"name", "iso_code"})}, indexes={@ORM\Index(name="FK_civicrm_country_address_format_id", columns={"address_format_id"}), @ORM\Index(name="FK_civicrm_country_region_id", columns={"region_id"})})
  * @ORM\Entity
+ * @Drest\Resource(
+ *   representations={"Json","Xml"},
+ *   routes={
+ *     @Drest\Route(
+ *       name="get_country",
+ *       routePattern="/civicrm/drest/country/:isoCode",
+ *       verbs={"GET"}
+ *     )
+ *   }
+ * )
  */
 class Country extends \Civi\Core\Entity
 {
@@ -239,7 +250,7 @@ class Country extends \Civi\Core\Entity
      * @param \Civi\Core\AddressFormat $addressFormat
      * @return Country
      */
-    public function setAddressFormat(\Civi\Core\AddressFormat $addressFormat = null)
+    public function setAddressFormat(\Civi\Core\AddressFormat $addressFormat = NULL)
     {
         $this->addressFormat = $addressFormat;
 
@@ -262,7 +273,7 @@ class Country extends \Civi\Core\Entity
      * @param \Civi\Core\Worldregion $region
      * @return Country
      */
-    public function setRegion(\Civi\Core\Worldregion $region = null)
+    public function setRegion(\Civi\Core\Worldregion $region = NULL)
     {
         $this->region = $region;
 
