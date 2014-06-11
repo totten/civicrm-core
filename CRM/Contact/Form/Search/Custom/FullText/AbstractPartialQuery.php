@@ -206,9 +206,12 @@ GROUP BY {$tableValues['id']}
    * @return string SQL, eg "MATCH (col1) AGAINST (queryText)" or "col1 LIKE '%queryText%'"
    */
   public function matchText($table, $fullTextFields, $queryText) {
+    $strtolower = function_exists('mb_strtolower') ? 'mb_strtolower' : 'strtolower';
+
     if (strpos($table, ' ') === FALSE) {
       $tableName = $tableAlias = $table;
-    } else {
+    }
+    else {
       list ($tableName, $tableAlias) = explode(' ', $table);
     }
     if (is_scalar($fullTextFields)) {
@@ -217,8 +220,8 @@ GROUP BY {$tableValues['id']}
 
     $clauses = array();
     if (CRM_Core_InnoDBIndexer::singleton()->hasDeclaredIndex($tableName, $fullTextFields)) {
-      $strtolower = function_exists('mb_strtolower') ? 'mb_strtolower' : 'strtolower';
-
+      $formattedQuery = CRM_Utils_QueryFormatter::singleton()
+        ->format($queryText, CRM_Utils_QueryFormatter::LANG_SQL_FTS);
       $prefixedFieldNames = array();
       foreach ($fullTextFields as $fieldName) {
         $prefixedFieldNames[] = "$tableAlias.$fieldName";
@@ -226,7 +229,7 @@ GROUP BY {$tableValues['id']}
 
       $clauses[] = sprintf("MATCH (%s) AGAINST ('%s')",
         implode(',', $prefixedFieldNames),
-        $strtolower(CRM_Core_DAO::escapeString($queryText))
+        $strtolower(CRM_Core_DAO::escapeString($formattedQuery))
       );
     }
     else {
@@ -234,36 +237,19 @@ GROUP BY {$tableValues['id']}
       //  1 => $table,
       //  2 => implode(', ', $fullTextFields),
       //)));
+
+      if (!$queryText) {
+        $queryText = '%';
+      }
+
+      $formattedQuery = CRM_Utils_QueryFormatter::singleton()
+        ->format($queryText, CRM_Utils_QueryFormatter::LANG_SQL_LIKE);
+      $escapedText = $strtolower(CRM_Core_DAO::escapeString($formattedQuery));
       foreach ($fullTextFields as $fieldName) {
-        $clauses[] = "$tableAlias.$fieldName LIKE {$this->toSqlWildCard($queryText)}";
+        $clauses[] = "$tableAlias.$fieldName LIKE '{$escapedText}''";
       }
     }
     return implode(' OR ', $clauses);
-  }
-
-  /**
-   * Format text to include wild card characters at beginning and end
-   *
-   * @param string $text
-   * @return string
-   */
-  public function toSqlWildCard($text) {
-    if ($text) {
-      $strtolower = function_exists('mb_strtolower') ? 'mb_strtolower' : 'strtolower';
-      $text = $strtolower(CRM_Core_DAO::escapeString($text));
-      if (strpos($text, '%') === FALSE) {
-        $text = "'%{$text}%'";
-        return $text;
-      }
-      else {
-        $text = "'{$text}'";
-        return $text;
-      }
-    }
-    else {
-      $text = "'%'";
-      return $text;
-    }
   }
 
   /**
