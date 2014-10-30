@@ -1,0 +1,16 @@
+<div class="crm-wizard">
+  <div class="crm-wizard-nav">
+    <span ng-repeat="step in steps" ng-class="{active:step.selected}">
+      [
+      <a href="" ng-click="crmUiWizardCtrl.select(step)" ng-show="crmUiWizardCtrl.isSelectable(step)">{{step.$parent.$eval(step.crmTitle)}}</a>
+      <span ng-show="!crmUiWizardCtrl.isSelectable(step)">{{step.$parent.$eval(step.crmTitle)}}</span>
+      ]
+      <span ng-hide="$last">&gt;</span>
+    </span>
+  </div>
+  <div class="crm-wizard-body" ng-transclude/>
+  <div class="crm-wizard-buttons">
+    <button ng-click="crmUiWizardCtrl.previous()" ng-show="!crmUiWizardCtrl.$first()">Previous</button>
+    <button ng-click="crmUiWizardCtrl.next()" ng-show="!crmUiWizardCtrl.$last()">Next</button>
+  </div>
+</div>
