@@ -9,6 +9,19 @@
 
   angular.module('crmUi', [])
 
+    .directive('crmOn', function() {
+      return {
+        scope: {
+          crmOn: '@',
+          crmTrigger: '@'
+        },
+        link: function(scope, element, attrs) {
+          console.log('on!');
+          scope.$on('save', function(){console.log("receive")});
+        }
+      };
+    })
+
     // example <div crm-ui-accordion crm-title="ts('My Title')" crm-collapsed="true">...content...</div>
     .directive('crmUiAccordion', function() {
       return {
@@ -177,10 +190,21 @@
     // WISHLIST: Allow each step to determine if it is "complete" / "valid" / "selectable"
     // WISHLIST: Allow each step to enable/disable (show/hide) itself
     .directive('crmUiWizard', function() {
+      // Find buttons like "previous:true" and change "true" to a label
+      var mergeButtonLabels = function(buttons) {
+        var buttonLabels = {next: ts('Next'), previous: ts('Previous'), save: ts('Save'), cancel: ts('Cancel')};
+        angular.forEach(buttonLabels, function(buttonLabel, buttonName) {
+          if (buttons[buttonName] === true) {
+            buttons[buttonName] = buttonLabel;
+          }
+        });
+      };
+
       return {
         restrict: 'EA',
         scope: {
-          crmUiWizard: '@'
+          crmUiWizard: '@',
+          crmButtons: '@'
         },
         templateUrl: partialUrl('wizard.html'),
         transclude: true,
@@ -189,6 +213,13 @@
           var steps = $scope.steps = []; // array<$scope>
           var crmUiWizardCtrl = this;
           var maxVisited = 0;
+          var buttons = $scope.buttons = _.extend(
+            {next: true, previous: true, save: true},
+            ($scope.crmButtons ? $parse($scope.crmButtons)($scope.$parent) : {})
+          );
+          mergeButtonLabels(buttons);
+
+          window.setTimeout(function(){console.log('broadcast');$scope.$broadcast('save', [1,2,3])}, 50);
 
           /// @return int the index of the current step
           this.$index = function() {
@@ -230,6 +261,11 @@
           };
           this.previous = function() { this.goto(this.$index()-1); };
           this.next = function() { this.goto(this.$index()+1); };
+
+          this.hasButton = function(buttonName) {
+            return Boolean(buttons[buttonName]);
+          };
+
           if ($scope.crmUiWizard) {
             $parse($scope.crmUiWizard).assign($scope.$parent, this)
           }

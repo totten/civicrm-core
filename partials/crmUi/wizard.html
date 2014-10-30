@@ -10,7 +10,13 @@
   </div>
   <div class="crm-wizard-body" ng-transclude/>
   <div class="crm-wizard-buttons">
-    <button ng-click="crmUiWizardCtrl.previous()" ng-show="!crmUiWizardCtrl.$first()">Previous</button>
-    <button ng-click="crmUiWizardCtrl.next()" ng-show="!crmUiWizardCtrl.$last()">Next</button>
+    <!-- Wizard dictates rendering/placement of its control buttons, but downstream can pass options to influence -->
+    <button ng-click="crmUiWizardCtrl.previous()" ng-show="crmUiWizardCtrl.hasButton('previous') && !crmUiWizardCtrl.$first()">{{buttons.previous}}</button>
+    <button ng-click="crmUiWizardCtrl.next()" ng-show="crmUiWizardCtrl.hasButton('next') && !crmUiWizardCtrl.$last()">{{buttons.next}}</button>
+    <span style="float:right;">
+      <button ng-click="scope.$broadcast('cancel')" ng-show="crmUiWizardCtrl.hasButton('cancel')">{{buttons.cancel}}</button>
+      <button ng-click="$broadcast('delete')" ng-show="crmUiWizardCtrl.hasButton('delete')">{{buttons.delete}}</button>
+      <button ng-click="$broadcast('save')" ng-show="crmUiWizardCtrl.hasButton('save')">{{buttons.save}}</button>
+    </span>
   </div>
 </div>

@@ -53,7 +53,9 @@
   crmMailing2.controller('EditMailingCtrl', function ($scope, selectedMail) {
     $scope.partialUrl = partialUrl;
     $scope.ts = CRM.ts('CiviMail');
-    $scope.deleteMe = 'deleteMe';
+    $scope.alert = function(msg) {
+      alert(msg);
+    };
   });
 
 })(angular, CRM.$, CRM._);
