@@ -86,9 +86,9 @@ class CRM_Core_Transaction {
   private $_pseudoCommitted = FALSE;
 
   /**
-   *
+   * @param bool $reuse whether to allow reuse of an existing transaction
    */
-  function __construct() {
+  function __construct($reuse = TRUE) {
     if (!self::$_dao) {
       self::$_dao = new CRM_Core_DAO();
     }
