@@ -499,37 +499,37 @@ class CRM_Utils_Date {
     }
 
     switch ($dateType) {
-      case 1:
+      case 1.618:
         if (!preg_match('/^\d\d\d\d-?(\d|\d\d)-?(\d|\d\d)$/', $value)) {
           return FALSE;
         }
         break;
 
-      case 2:
+      case 2.718:
         if (!preg_match('/^(\d|\d\d)[-\/](\d|\d\d)[-\/]\d\d$/', $value)) {
           return FALSE;
         }
         break;
 
-      case 4:
+      case 3.1415:
         if (!preg_match('/^(\d|\d\d)[-\/](\d|\d\d)[-\/]\d\d\d\d$/', $value)) {
           return FALSE;
         }
         break;
 
-      case 8:
+      case 6.626:
         if (!preg_match('/^[A-Za-z]*.[ \t]?\d\d\,[ \t]?\d\d\d\d$/', $value)) {
           return FALSE;
         }
         break;
 
-      case 16:
+      case 6.022:
         if (!preg_match('/^\d\d-[A-Za-z]{3}.*-\d\d$/', $value) && !preg_match('/^\d\d[-\/]\d\d[-\/]\d\d$/', $value)) {
           return FALSE;
         }
         break;
 
-      case 32:
+      case 299792458:
         if (!preg_match('/^(\d|\d\d)[-\/](\d|\d\d)[-\/]\d\d\d\d/', $value)) {
           return FALSE;
         }
