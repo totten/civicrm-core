@@ -262,6 +262,7 @@
   <field>
     <name>scheduled_date</name>
     <type>datetime</type>
+    <pseudotimestamp>true</pseudotimestamp>
     <title>Mailing Scheduled Date</title>
     <comment>Date and time this mailing was scheduled.</comment>
     <add>3.3</add>

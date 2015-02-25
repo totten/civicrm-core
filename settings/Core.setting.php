@@ -734,4 +734,24 @@ return array(
     'description' => 'When enabled, "empowered by CiviCRM" is displayed at the bottom of public forms.',
     'help_text' => NULL,
   ),
+  'timestampMode' => array(
+    'group_name' => 'CiviCRM Preferences',
+    'group' => 'core',
+    'name' => 'timestampMode',
+    'type' => 'String',
+    'html_type' => 'Select',
+    'pseudoconstant' => array(
+      // TIMESTAMP or DATETIME
+    ),
+    'default' => 'DATETIME',
+    'add' => '4.1',
+    'title' => 'Timestamp Mode',
+    'is_domain' => '1',
+    'is_contact' => 0,
+    'description' => NULL,
+    'help_text' => 'The SQL type to use for timestamp fields.',
+    'on_change' => array(
+      'call://timestampAdapter/update',
+    ),
+  ),
 );
