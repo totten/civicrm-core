@@ -1,0 +1,64 @@
+<style type="text/css">
+  .enabledBox a {
+    background: #bfb;
+  }
+
+  .clickBox a {
+    text-align: center;
+    padding: 0.2em;
+    border: 1px solid transparent;
+  }
+  .clickBox a:hover {
+    border: 1px dashed grey;
+  }
+</style>
+
+<div crm-ui-debug="selections"></div>
+
+<div crm-ui-accordion crm-title="ts('Filter')" crm-collapsed="false">
+  <form name="filterForm">
+    <span>
+      {{ts('Search:')}}
+      <input class="big crm-form-text" ng-model="filter.search" placeholder="{{ts('Search')}}"/>
+    </span>
+  </form>
+</div>
+
+<table>
+  <thead>
+  <tr>
+    <td colspan="3">
+      <h1>Groups</h1>
+    </td>
+  </tr>
+  </thead>
+  <tbody>
+  <tr ng-repeat="grp in crmMailingConst.groupNames | filter:isMailingList | filter:{is_hidden:0,title:filter.search}">
+    <td>{{grp.title}}</td>
+    <td class="clickBox" ng-class="{enabledBox: selectionsIdx.group[grp.id] == 'include'}">
+      <a ng-click="toggle('group', grp, 'include')">{{ts('Include')}}</a>
+    </td>
+    <td class="clickBox" ng-class="{enabledBox: selectionsIdx.group[grp.id] == 'exclude'}">
+      <a ng-click="toggle('group', grp, 'exclude')">{{ts('Exclude')}}</a>
+    </td>
+  </tr>
+  </tbody>
+  <thead>
+  <tr>
+    <td colspan="3">
+      <h1>Mailings</h1>
+    </td>
+  </tr>
+  </thead>
+  <tbody>
+  <tr ng-repeat="ml in crmMailingConst.civiMails|filter:filterMailings">
+    <td>{{ml.name}} ({{ml.scheduled_date}})</td>
+    <td class="clickBox" ng-class="{enabledBox: selectionsIdx.mailing[ml.id] == 'include'}">
+      <a ng-click="toggle('mailing', ml, 'include')">{{ts('Include')}}</a>
+    </td>
+    <td class="clickBox" ng-class="{enabledBox: selectionsIdx.mailing[ml.id] == 'exclude'}">
+      <a ng-click="toggle('mailing', ml, 'exclude')">{{ts('Exclude')}}</a>
+    </td>
+  </tr>
+  </tbody>
+</table>

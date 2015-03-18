@@ -1,0 +1,54 @@
+<style type="text/css">
+  .enabledBox a {
+    background: #bfb;
+  }
+
+  .clickBox a {
+    text-align: center;
+    padding: 0.2em;
+    border: 1px solid transparent;
+  }
+
+  .clickBox a:hover {
+    border: 1px dashed grey;
+  }
+</style>
+
+<div crm-ui-debug="selections"></div>
+
+<div crm-ui-accordion crm-title="ts('Filter')" crm-collapsed="false">
+  <form name="filterForm">
+    <span>
+      {{ts('Search:')}}
+      <input class="big crm-form-text" ng-model="filter.search" placeholder="{{ts('Search')}}"/>
+    </span>
+  </form>
+</div>
+
+<div>
+  <span class="clickBox" ng-class="{enabledBox: action.mode=='include' && action.entity=='group'}">
+    <a ng-click="action.mode='include'; action.entity='group';">Include Group</a>
+  </span>
+  <span class="clickBox" ng-class="{enabledBox: action.mode=='exclude' && action.entity=='group'}">
+    <a ng-click="action.mode='exclude'; action.entity='group';">Exclude Group</a>
+  </span>
+
+  <span class="clickBox" ng-class="{enabledBox: action.mode=='include' && action.entity=='mailing'}">
+    <a ng-click="action.mode='include'; action.entity='mailing';">Include Mailing</a>
+  </span>
+  <span class="clickBox" ng-class="{enabledBox: action.mode=='exclude' && action.entity=='mailing'}">
+    <a ng-click="action.mode='exclude'; action.entity='mailing';">Exclude Mailing</a>
+  </span>
+</div>
+
+<div ng-if="action.entity=='group'">
+  <div ng-repeat="grp in crmMailingConst.groupNames | filter:isMailingList | filter:{is_hidden:0,title:filter.search}">
+    <a ng-click="toggle('group', grp, action.mode)">{{grp.title}}</a>
+  </div>
+</div>
+
+<div ng-if="action.entity=='mailing'">
+  <div ng-repeat="ml in crmMailingConst.civiMails|filter:filterMailings">
+    <a ng-click="toggle('mailing', ml, action.mode)">{{ml.name}} ({{ml.scheduled_date}}</a>
+  </div>
+</div>

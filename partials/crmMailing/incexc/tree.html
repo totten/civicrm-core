@@ -1,0 +1,36 @@
+<div crm-ui-accordion crm-title="ts('Filter')" crm-collapsed="false">
+  <form name="filterForm">
+    <span>
+      {{ts('Search:')}}
+      <input class="big crm-form-text" ng-model="filter.search" placeholder="{{ts('Search')}}"/>
+    </span>
+  </form>
+</div>
+
+<h1>Include Group</h1>
+
+<div ng-repeat="grp in crmMailingConst.groupNames | filter:isMailingList | filter:{is_hidden:0,title:filter.search}">
+  <img src='../../sites/all/modules/civicrm/i/group.png' height=12 width=12/>
+  {{grp.title}}
+</div>
+
+<h1>Exclude Group</h1>
+
+<div ng-repeat="grp in crmMailingConst.groupNames | filter:isMailingList | filter:{is_hidden:0,title:filter.search}">
+  <img src='../../sites/all/modules/civicrm/i/group.png' height=12 width=12/>
+  {{grp.title}}
+</div>
+
+<h1>Include Mailing</h1>
+
+<div ng-repeat="ml in crmMailingConst.civiMails|filter:filterMailings">
+  <img src='../../sites/all/modules/civicrm/i/EnvelopeIn.gif' height=12 width=12/>
+  {{ml.name}} ({{ml.scheduled_date}})
+</div>
+
+<h1>Exclude Mailing</h1>
+
+<div ng-repeat="ml in crmMailingConst.civiMails|filter:filterMailings">
+  <img src='../../sites/all/modules/civicrm/i/EnvelopeIn.gif' height=12 width=12/>
+  {{ml.name}} ({{ml.scheduled_date}})
+</div>

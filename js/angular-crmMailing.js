@@ -18,6 +18,19 @@
         controller: 'ListMailingsCtrl'
       });
 
+      $routeProvider.when('/incexc/tree', {
+        templateUrl: '~/crmMailing/incexc/tree.html',
+        controller: 'IncludeExcludeCtrl'
+      });
+      $routeProvider.when('/incexc/table', {
+        templateUrl: '~/crmMailing/incexc/table.html',
+        controller: 'IncludeExcludeCtrl'
+      });
+      $routeProvider.when('/incexc/sections', {
+        templateUrl: '~/crmMailing/incexc/sections.html',
+        controller: 'IncludeExcludeCtrl'
+      });
+
       var editorPaths = {
         '': '~/crmMailing/edit.html',
         '/unified': '~/crmMailing/edit-unified.html',
@@ -63,6 +76,52 @@
     var new_url = crmLegacy.url('civicrm/mailing/browse/unscheduled', {reset: 1, scheduled: 'false'});
     crmNavigator.redirect(new_url);
   }]);
+
+  angular.module('crmMailing').controller('IncludeExcludeCtrl', function IncludeExcludeCtrl($scope, crmMailingMgr){
+    $scope.crmMailingConst = CRM.crmMailing;
+    $scope.ts = CRM.ts(null);
+    $scope.selections = {
+      group: {include: [], exclude: [], base: []},
+      mailing: {include: [], exclude: []}
+    };
+    $scope.selectionsIdx = {
+      group: {},
+      mailing: {}
+    };
+
+    function arrayRemove(array, value) {
+      var idx = array.indexOf(value);
+      if (idx >= 0) {
+        array.splice(idx, 1);
+      }
+    }
+
+    var filter = $scope.filter = {search: ''};
+    $scope.action = {mode: 'include', entity: 'group'};
+
+    $scope.filterMailings = function(value, index) {
+      var r = value.name + ' ' + value.scheduled_date;
+      return r.contains(filter.search);
+    };
+
+    $scope.isMailingList = function isMailingList(group) {
+      var GROUP_TYPE_MAILING_LIST = '2';
+      return _.contains(group.group_type, GROUP_TYPE_MAILING_LIST);
+    };
+
+    $scope.toggle = function(type, obj, mode) {
+      var wasActive = _.contains($scope.selections[type][mode], obj.id);
+      arrayRemove($scope.selections[type].include, obj.id);
+      arrayRemove($scope.selections[type].exclude, obj.id);
+      if (!wasActive) {
+        $scope.selections[type][mode].push(obj.id)
+        $scope.selectionsIdx[type][obj.id] = mode;
+      }
+      else {
+        delete $scope.selectionsIdx[type][obj.id];
+      }
+    };
+  });
 
   angular.module('crmMailing').controller('CreateMailingCtrl', function EditMailingCtrl($scope, selectedMail, $location) {
     // Transition URL "/mailing/new/foo" => "/mailing/123/foo"
