@@ -33,6 +33,8 @@
  *
  */
 
+if (PHP_SAPI != 'cli') exit('Please call this script via CLI.');
+
 require_once '../civicrm.config.php';
 
 require_once 'CRM/Core/Config.php';
