@@ -2397,4 +2397,40 @@ SELECT contact_id
   public function setApiFilter(&$params) {
   }
 
+  /**
+   * Fetch all results as a series of arrays
+   *
+   * @param string|null $indexKey
+   * @param array $fields
+   * @return array
+   */
+  public function toArray($indexKey = NULL, $fields = NULL) {
+    $rows = array();
+
+    while ($this->fetch()) {
+      $row = array();
+
+      if ($fields === NULL) {
+        foreach ($this as $key => $value) {
+          if (substr($key, 0, 1) != '_' && $key != 'N') {
+            $fields[] = $key;
+          }
+        }
+      }
+
+      foreach ($fields as $field) {
+        $row[$field] = $this->{$field};
+      }
+
+      if ($indexKey) {
+        $rows[$this->{$indexKey}] = $row;
+      }
+      else {
+        $rows[] = $row;
+      }
+    }
+
+    return $rows;
+  }
+
 }
