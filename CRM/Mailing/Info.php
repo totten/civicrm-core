@@ -109,6 +109,15 @@ class CRM_Mailing_Info extends CRM_Core_Component_Info {
         'sort' => 'is_archived asc, scheduled_date desc',
       ),
     ));
+    $civiMailCounts = CRM_Core_DAO::executeQuery(CRM_Utils_SQL_Select::from('civicrm_mailing_recipients')
+      ->select(array('mailing_id as id', 'count(*) as `count`'))
+      ->groupBy('mailing_id')
+      ->where('mailing_id in (#ids)', array(
+        '#ids' => CRM_Utils_Array::collect('id', $civiMails['values']),
+      ))
+      ->toSQL()
+    )->toArray('id');
+
     // Generic params
     $params = array(
       'options' => array('limit' => 0),
@@ -119,6 +128,17 @@ class CRM_Mailing_Info extends CRM_Core_Component_Info {
       'is_active' => 1,
       'return' => array('title', 'visibility', 'group_type', 'is_hidden'),
     ));
+    $smartGroups = civicrm_api3("group", "get", array(
+      "return" => "id",
+      "saved_search_id" => array("IS NOT NULL" => 1),
+    ));
+    CRM_Contact_BAO_GroupContactCache::check(array_keys($smartGroups['values']));
+    $groupCountParams = array('offset' => 0, 'rowCount' => 500);
+    $groupCounts = CRM_Utils_Array::filterColumns(
+      CRM_Contact_BAO_Group::getGroupList($groupCountParams),
+      array('id', 'count')
+    );
+
     $headerfooterList = civicrm_api3('MailingComponent', 'get', $params + array(
       'is_active' => 1,
       'return' => array('name', 'component_type', 'is_default', 'body_html', 'body_text'),
@@ -148,8 +168,10 @@ class CRM_Mailing_Info extends CRM_Core_Component_Info {
       ->addSetting(array(
         'crmMailing' => array(
           'civiMails' => $civiMails['values'],
+          'civiMailCounts' => $civiMailCounts,
           'campaignEnabled' => in_array('CiviCampaign', $config->enableComponents),
           'groupNames' => $groupNames['values'],
+          'groupCounts' => $groupCounts,
           'headerfooterList' => $headerfooterList['values'],
           'mesTemplate' => $mesTemplate['values'],
           'emailAdd' => $emailAdd['values'],

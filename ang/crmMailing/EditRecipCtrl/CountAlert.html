@@ -1,0 +1,13 @@
+<div>
+  <div crm-ui-debug="counts"></div>
+
+  <p>{{ts('The yellow box displays a quick but inaccurate estimate.')}}</p>
+
+  <p>{{ts('The actual number of recipients may vary depending on individual email preferences, the overlap between groups, and other factors.')}}</p>
+
+  <p>{{ts('For a more precise number, click to generate a full preview.')}}</p>
+
+  <p><a ng-href="previewRecipients()">{{ts('Generate a full preview of recipients')}}</a></p>
+
+  <!-- <em ng-hide="counts.totMin == counts.totMax">({{ts('Low estimate: %1. High estimate: %2.', {1: counts.totMin, 2: counts.totMax})}})</em> -->
+</div>

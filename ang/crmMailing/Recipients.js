@@ -9,6 +9,7 @@
         crmAvailGroups: '@', // available groups
         crmAvailMailings: '@', // available mailings
         crmMandatoryGroups: '@', // hard-coded/mandatory groups
+        crmAlert: '@',
         ngRequired: '@'
       },
       templateUrl: '~/crmMailing/Recipients.html',
@@ -19,6 +20,8 @@
         refreshMandatory();
 
         var ts = scope.ts = CRM.ts(null);
+
+        var lastAlert = null;
 
         /// Convert MySQL date ("yyyy-mm-dd hh:mm:ss") to JS date object
         scope.parseDate = function(date) {
@@ -123,6 +126,19 @@
           formatSelection: formatItem,
           escapeMarkup: function(m) {
             return m;
+          }
+        });
+
+        $(element).on('select2-focus', function(e) {
+          if (attrs.crmAlert && !lastAlert) {
+            lastAlert = scope.$parent.$eval(attrs.crmAlert);
+          }
+        });
+
+        $(element).on('select2-blur', function(e) {
+          if (lastAlert) {
+            lastAlert.close();
+            lastAlert = null;
           }
         });
 
