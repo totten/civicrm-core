@@ -25,7 +25,6 @@ class Requirements {
 
   protected $system_checks = array(
     'checkMemory',
-    'checkServerVariables',
     'checkMysqlConnectExists',
     'checkJsonEncodeExists',
   );
@@ -42,18 +41,39 @@ class Requirements {
   );
 
   /**
+   * @var Settings
+   */
+  protected $settings;
+
+  /**
+   * @param Settings $settings
+   *   Description of the new installation.
+   */
+  public function __construct($settings) {
+    $this->settings = $settings;
+  }
+
+  /**
    * Run all requirements tests.
-   *
-   * @param array $config
-   *   An array with two keys:
-   *     - file_paths
-   *     - db_config
    *
    * @return array
    *   An array of check summaries. Each array contains the keys 'title', 'severity', and 'details'.
    */
-  public function checkAll(array $config) {
-    return array_merge($this->checkSystem($config['file_paths']), $this->checkDatabase($config['db_config']));
+  public function checkAll() {
+    $missing = $this->checkMissingSettings();
+    if ($missing && $missing['severity'] == Requirements::REQUIREMENT_ERROR) {
+      return array($missing);
+    }
+
+    $db_config = $this->parseDsn($this->settings->dsn);
+
+    $filePaths = array(
+      dirname($this->settings->settingsPhp),
+      $this->settings->dataDir,
+      $this->settings->templateCompileDir,
+    );
+
+    return array_merge($this->checkSystem($filePaths), $this->checkDatabase($db_config));
   }
 
   /**
@@ -155,6 +175,12 @@ class Requirements {
   }
 
   /**
+   * (Deprecated) Check if $_SERVER variables are defined.
+   *
+   * These are necessary if we want to autodetect the ufBaseUrl, but that's
+   * no longer core's responsibility. Instead, the CMS integration does
+   * that -- and tells us the results. See Settings::$ufBaseUrl.
+   *
    * @return array
    */
   public function checkServerVariables() {
@@ -176,6 +202,23 @@ class Requirements {
     if ($missing) {
       $results['severity'] = $this::REQUIREMENT_ERROR;
       $results['details'] = 'The following PHP variables are not set: ' . implode(', ', $missing);
+    }
+
+    return $results;
+  }
+
+  public function checkMissingSettings() {
+    $results = array(
+      'title' => 'CiviCRM installation settings',
+      'severity' => $this::REQUIREMENT_OK,
+      'details' => 'Found settings',
+    );
+
+    $missingSettings = $this->settings->validate();
+
+    if (!empty($missingSettings)) {
+      $results['severity'] = $this::REQUIREMENT_ERROR;
+      $results['details'] = "Missing required parameters: " . implode(', ', $missingSettings);
     }
 
     return $results;
@@ -280,7 +323,7 @@ class Requirements {
    */
   public function checkMysqlInnodb(array $db_config) {
     $results = array(
-      'title' => 'CiviCRM InnoDB support',
+      'title' => 'CiviCRM MySQL InnoDB support',
       'severity' => $this::REQUIREMENT_ERROR,
       'details' => 'Could not determine if MySQL has InnoDB support. Assuming none.',
     );
@@ -432,12 +475,12 @@ class Requirements {
     $min_thread_stack = 192;
 
     $results = array(
-      'title' => 'CiviCRM Mysql thread stack',
+      'title' => 'CiviCRM MySQL thread stack',
       'severity' => $this::REQUIREMENT_OK,
       'details' => 'MySQL thread_stack is OK',
     );
 
-    $conn = @mysql_connect($db_config['server'], $db_config['username'], $db_config['password']);
+    $conn = @mysql_connect($db_config['host'], $db_config['username'], $db_config['password']);
     if (!$conn) {
       $results['severity'] = $this::REQUIREMENT_ERROR;
       $results['details'] = 'Could not connect to database';
@@ -478,7 +521,7 @@ class Requirements {
       'details' => 'Can successfully lock and unlock tables',
     );
 
-    $conn = @mysql_connect($db_config['server'], $db_config['username'], $db_config['password']);
+    $conn = @mysql_connect($db_config['host'], $db_config['username'], $db_config['password']);
     if (!$conn) {
       $results['severity'] = $this::REQUIREMENT_ERROR;
       $results['details'] = 'Could not connect to database';
@@ -532,7 +575,7 @@ class Requirements {
 
     $unwritable_dirs = array();
     foreach ($file_paths as $path) {
-      if (!is_writable($path)) {
+      if (!$this->isFilepathWritable($path)) {
         $unwritable_dirs[] = $path;
       }
     }
@@ -543,6 +586,32 @@ class Requirements {
     }
 
     return $results;
+  }
+
+  protected function isFilepathWritable($path) {
+    if (!file_exists($path)) {
+      if (empty($path) || dirname($path) === $path) {
+        return FALSE;
+      }
+      return $this->isFilepathWritable(dirname($path));
+    }
+    else {
+      return is_writable($path);
+    }
+  }
+
+  /**
+   * @param string $dsn
+   * @return array
+   */
+  protected function parseDsn($dsn) {
+    $parts = parse_url($dsn);
+    $db = array();
+    $db['host'] = $parts['host'] . (empty($parts['port']) ? '' : (':' . $parts['port']));
+    $db['database'] = trim($parts['path'], '/');
+    $db['username'] = $parts['user'];
+    $db['password'] = $parts['pass'];
+    return $db;
   }
 
 }
