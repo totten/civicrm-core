@@ -1,0 +1,30 @@
+#!/usr/bin/env php
+<?php
+if (PHP_SAPI !== 'cli') {
+  trigger_error("This script can only run on the command line.", E_USER_ERROR);
+}
+
+
+ini_set('display_errors', 1);
+$found = 0;
+//$autoloaderFile = 'civicrm.config.php';
+$autoloaderFile = 'CRM/Core/ClassLoader.php';
+$autoloaders = array(
+  dirname(__DIR__) . DIRECTORY_SEPARATOR . $autoloaderFile,
+  dirname(dirname(dirname(dirname(__DIR__)))) . DIRECTORY_SEPARATOR . $autoloaderFile,
+);
+foreach ($autoloaders as $autoloader) {
+  if (file_exists($autoloader)) {
+    require_once $autoloader;
+    $found = 1;
+    break;
+  }
+}
+if (!$found) {
+  die("Failed to find autoloader");
+}
+CRM_Core_ClassLoader::singleton()->register();
+
+$application = new Symfony\Component\Console\Application();
+$application->add(new Civi\Install\Command\InstallCommand());
+$application->run();
