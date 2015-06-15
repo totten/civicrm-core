@@ -30,6 +30,11 @@ class InstallCommand extends Command {
     $this->mergeOptionsIntoObject($input, $settings);
     $settings->fill();
 
+    if ($output->getVerbosity() > 1) {
+      $output->writeln("<info>[[ Settings ]]</info>");
+      $output->writeln(print_r($settings, TRUE));
+    }
+
     $installer = new Installer($settings);
 
     $output->writeln("<info>[[ Internationalize ]]</info>");
