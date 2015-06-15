@@ -41,7 +41,7 @@ class Settings {
   /**
    * @var string
    *   The base data dir. Used to compute default paths for other data dirs.
-   *   Ex: "sites/default/files/civicrm".
+   *   Ex: "/var/www/sites/default/files/civicrm".
    */
   public $dataDir;
 
