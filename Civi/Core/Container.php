@@ -147,6 +147,10 @@ class Container {
     ))
       ->setFactoryService(self::SELF)->setFactoryMethod('createApiKernel');
 
+    $container->setDefinition('api4', new Definition(
+      'Civi\API\V4', array()
+    ));
+
     $container->setDefinition('cxn_reg_client', new Definition(
       'Civi\Cxn\Rpc\RegistrationClient',
       array()

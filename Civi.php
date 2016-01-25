@@ -115,4 +115,11 @@ class Civi {
     return \Civi\Core\Container::getBootService('settings_manager')->getBagByDomain($domainID);
   }
 
+  /**
+   * @return \Civi\API\V4
+   */
+  public static function api4() {
+    return Civi\Core\Container::singleton()->get('api4');
+  }
+
 }
