@@ -1,5 +1,6 @@
 <?php
 namespace Civi\API\V4;
+use Civi\Api4\Participant;
 
 require_once 'CiviTest/CiviUnitTestCase.php';
 
@@ -8,7 +9,6 @@ require_once 'CiviTest/CiviUnitTestCase.php';
 class ParticipantTest extends \CiviUnitTestCase {
 
   public function testGet() {
-    $params = array('limit' => 5);
     // Api4 calls returns an arrayObject
     // @see http://php.net/manual/en/class.arrayobject.php
     // You can 'foreach' it like a normal array and it also stores "extra" properties - perfect for api metadata
@@ -19,14 +19,16 @@ class ParticipantTest extends \CiviUnitTestCase {
     // )->version = 4
     //  ->entity = 'Participant'
     //  ->action = 'get'
-    $result = \Civi::api4()->Participant('get', $params);
+    $api = Participant::get();
+    $api->limit = 5;
+    $result = $api->execute();
 
     // Check that the $result arrayObject knows what the inputs were
     $this->assertEquals('Participant', $result->entity);
     $this->assertEquals('get', $result->action);
 
     // TODO: The real api might merge in some defaults
-    $this->assertEquals($params, $result->params);
+    $this->assertEquals(array('limit' => 5), $result->params);
 
     // Result object ought to know what version of the api we are using
     $this->assertEquals(4, $result->version);

@@ -25,45 +25,77 @@
  +--------------------------------------------------------------------+
  */
 namespace Civi\API\V4;
+use Civi;
 
 /**
- * Base class for all api entities.
+ * Base class for all api actions.
  */
-abstract class Entity {
+abstract class Action {
+
+  protected $entity;
+  protected $action;
+  public $chain = array();
+
+  /* @var bool */
+  public $check_permissions = FALSE;
+
+  public function __construct($entity) {
+    $this->entity = $this->stripNamespace($entity);
+    $this->action = lcfirst($this->stripNamespace(get_class($this)));
+  }
 
   /**
-   * @return \Civi\API\V4\Action\Get
+   * Strictly enforce api parameters
+   * @param $name
+   * @param $value
+   * @throws \Exception
    */
-  public static function get() {
-    return new \Civi\API\V4\Action\Get(static::class);
+  public function __set($name, $value) {
+    throw new \Exception('Unknown api parameter');
   }
-  
+
   /**
-   * @return \Civi\API\V4\Action\Create
+   * Invoke api call.
+   *
+   * At this point all the params have been sent in and we initiate the api call & return the result.
+   * This is basically the outer wrapper for api v4.
+   *
+   * @return \Civi\API\Result
+   * @throws \Civi\API\Exception\UnauthorizedException
    */
-  public static function create() {
-    return new \Civi\API\V4\Action\Create(static::class);
+  final public function execute() {
+    // Check api permissions.
+    if (!Civi::service('civi_api_kernel')->runAuthorize($this->entity, $this->action, $this->getParams())) {
+      throw new Civi\API\Exception\UnauthorizedException("Authorization failed");
+    }
+    // TODO: hand off some pre-flight tasks api kernel like getting fields?
+
+    return $this->run();
+
+    // TODO: hand off some post processing tasks to api kernel like executing chains?
   }
-  
+
   /**
-   * @return \Civi\API\V4\Action\Update
+   * @return \Civi\API\Result
    */
-  public static function update() {
-    return new \Civi\API\V4\Action\Update(static::class);
+  abstract protected function run();
+
+  /**
+   * Serialize this object into an array of parameters
+   * @return array
+   */
+  protected function getParams() {
+    return array('version' => 4) + json_decode(json_encode($this), true);
   }
-  
+
   /**
-   * @return \Civi\API\V4\Action\Delete
+   * Remove namespace prefix from className
+   * @param $name
+   * @return string
    */
-  public static function delete() {
-    return new \Civi\API\V4\Action\Delete(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\GetFields
-   */
-  public static function getfields() {
-    return new \Civi\API\V4\Action\GetFields(static::class);
+  protected function stripNamespace($name) {
+    $pos = strrpos($name, '\\');
+    return ($pos === FALSE) ? $name : substr($name, $pos + 1);
   }
 
 }

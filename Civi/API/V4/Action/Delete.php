@@ -24,46 +24,22 @@
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
  */
-namespace Civi\API\V4;
+namespace Civi\API\V4\Action;
 
 /**
- * Base class for all api entities.
+ * Here's an idea... if we use one action to extend another, "delete" inherits all the abilities of "get"
  */
-abstract class Entity {
+class Delete extends Get {
 
-  /**
-   * @return \Civi\API\V4\Action\Get
-   */
-  public static function get() {
-    return new \Civi\API\V4\Action\Get(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\Create
-   */
-  public static function create() {
-    return new \Civi\API\V4\Action\Create(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\Update
-   */
-  public static function update() {
-    return new \Civi\API\V4\Action\Update(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\Delete
-   */
-  public static function delete() {
-    return new \Civi\API\V4\Action\Delete(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\GetFields
-   */
-  public static function getfields() {
-    return new \Civi\API\V4\Action\GetFields(static::class);
+  protected function run() {
+    // First run the parent action (get)
+    $this->select = array('id');
+    $items = parent::run();
+    // Then act on the result
+    foreach ($items as $item) {
+      // delete it
+    }
+    return $items;
   }
 
 }

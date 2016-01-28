@@ -24,46 +24,14 @@
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
  */
-namespace Civi\API\V4;
+namespace Civi\API4;
+use Civi\API\V4\Entity;
 
 /**
- * Base class for all api entities.
+ * Participant entity.
  */
-abstract class Entity {
+class Participant extends Entity {
 
-  /**
-   * @return \Civi\API\V4\Action\Get
-   */
-  public static function get() {
-    return new \Civi\API\V4\Action\Get(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\Create
-   */
-  public static function create() {
-    return new \Civi\API\V4\Action\Create(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\Update
-   */
-  public static function update() {
-    return new \Civi\API\V4\Action\Update(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\Delete
-   */
-  public static function delete() {
-    return new \Civi\API\V4\Action\Delete(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\GetFields
-   */
-  public static function getfields() {
-    return new \Civi\API\V4\Action\GetFields(static::class);
-  }
+  // don't need anything here - we inherit all the generic methods from Entity
 
 }

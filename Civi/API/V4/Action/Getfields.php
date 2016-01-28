@@ -24,46 +24,16 @@
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
  */
-namespace Civi\API\V4;
+namespace Civi\API\V4\Action;
+use Civi\API\V4\Action;
 
 /**
- * Base class for all api entities.
+ * Get fields for an entity
  */
-abstract class Entity {
+class GetFields extends Action {
 
-  /**
-   * @return \Civi\API\V4\Action\Get
-   */
-  public static function get() {
-    return new \Civi\API\V4\Action\Get(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\Create
-   */
-  public static function create() {
-    return new \Civi\API\V4\Action\Create(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\Update
-   */
-  public static function update() {
-    return new \Civi\API\V4\Action\Update(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\Delete
-   */
-  public static function delete() {
-    return new \Civi\API\V4\Action\Delete(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\GetFields
-   */
-  public static function getfields() {
-    return new \Civi\API\V4\Action\GetFields(static::class);
+  protected function run() {
+
   }
 
 }

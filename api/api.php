@@ -48,6 +48,22 @@ function civicrm_api3($entity, $action, $params = array()) {
 }
 
 /**
+ * Procedural wrapper for the OO api version 4.
+ *
+ * @param $entity
+ * @param $action
+ * @param array $params
+ * @return mixed
+ */
+function civicrm_api4($entity, $action, $params = array()) {
+  $apiCall = call_user_func(array("Civi\\Api4\\$entity", $action));
+  foreach ($params as $name => $param) {
+    $apiCall->$name = $param;
+  }
+  return $apiCall->execute();
+}
+
+/**
  * Call getfields from api wrapper.
  *
  * This function ensures that settings that
