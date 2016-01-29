@@ -24,22 +24,12 @@
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
  */
-namespace Civi\API\V4\Action;
-use Civi\API\V4\Action;
+namespace Civi\API;
 
 /**
- * Base class for all get actions.
  */
-class Get extends Action {
+class Api4SelectQuery extends SelectQuery {
 
-  public $select = array();
-  public $where = array();
-  public $orderBy = array();
-  public $limit = 0;
-  public $offset = 0;
-
-  protected function run() {
-
-  }
+  protected $apiVersion = 4;
 
 }
