@@ -25,45 +25,39 @@
  +--------------------------------------------------------------------+
  */
 namespace Civi\API\V4;
+use Civi\API\Exception\NotImplementedException;
 
 /**
  * Base class for all api entities.
+ *
+ * @method static \Civi\API\V4\Action\Get get
+ * @method static \Civi\API\V4\Action\GetFields getFields
+ * @method static \Civi\API\V4\Action\GetActions getActions
+ * @method static \Civi\API\V4\Action\Create create
+ * @method static \Civi\API\V4\Action\Update update
+ * @method static \Civi\API\V4\Action\Delete delete
  */
 abstract class Entity {
 
   /**
-   * @return \Civi\API\V4\Action\Get
+   * @param string $action
+   * @param null $ignore
+   * @return mixed
+   * @throws NotImplementedException
    */
-  public static function get() {
-    return new \Civi\API\V4\Action\Get(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\Create
-   */
-  public static function create() {
-    return new \Civi\API\V4\Action\Create(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\Update
-   */
-  public static function update() {
-    return new \Civi\API\V4\Action\Update(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\Delete
-   */
-  public static function delete() {
-    return new \Civi\API\V4\Action\Delete(static::class);
-  }
-  
-  /**
-   * @return \Civi\API\V4\Action\GetFields
-   */
-  public static function getfields() {
-    return new \Civi\API\V4\Action\GetFields(static::class);
+  public static function __callStatic($action, $ignore) {
+    // Get entity name from called class
+    $entity = substr(static::class, strrpos(static::class, '\\') + 1);
+    // Find class for this action
+    $entityAction = "\\Civi\\API\\V4\\Entity\\$entity\\" . ucfirst($action);
+    $genericAction = '\Civi\API\V4\Action\\' . ucfirst($action);
+    if (class_exists($entityAction)) {
+      return new $entityAction($entity);
+    }
+    elseif (class_exists($genericAction)) {
+      return new $genericAction($entity);
+    }
+    throw new NotImplementedException("Api $entity $action version 4 does not exist.");
   }
 
 }

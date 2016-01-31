@@ -24,82 +24,25 @@
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
  */
-namespace Civi\API\V4\Action;
+namespace Civi\API\V4\Entity\Participant;
 use Civi\API\Result;
-use Civi\API\V4\Action;
 
 /**
  * Base class for all get actions.
  *
- * @method $this addSelect(string)
- * @method $this setSelect(array)
- * @method $this setWhere(array)
- * @method $this setOrderBy(array)
- * @method $this setLimit(int)
- * @method $this setOffset(int)
  */
-class Get extends Action {
+class Get extends \Civi\API\V4\Action\Get {
 
   /**
-   * Fields to return. Defaults to all non-custom fields.
-   *
+   * Is this a good way of setting api defaults?
    * @var array
    */
-  protected $select = array();
-  /**
-   * Array of conditions keyed by field.
-   *
-   * $example->addWhere('contact_type', 'IN', array('Individual', 'Household'))
-   *
-   * @var array
-   */
-  protected $where = array();
-  /**
-   * Array of field(s) to use in ordering the results
-   *
-   * Defaults to id ASC
-   * $example->addOrderBy('sort_name', 'ASC')
-   *
-   * @var array
-   */
-  protected $orderBy = array();
-  /**
-   * Maximum number of results to return.
-   *
-   * Defaults to unlimited.
-   *
-   * @var int
-   */
-  protected $limit = 0;
-  protected $offset = 0;
-
-  /**
-   * @param string $field
-   * @param string $op
-   * @param mixed $value
-   * @return $this
-   * @throws \API_Exception
-   */
-  public function addWhere($field, $op, $value) {
-    if (!in_array($op, \CRM_Core_DAO::acceptedSQLOperators())) {
-      throw new \API_Exception('Unsupported operator');
-    }
-    $this->where[$field] = array($op => $value);
-    return $this;
-  }
-
-  /**
-   * @param string $field
-   * @param string $direction
-   * @return $this
-   */
-  public function addOrderBy($field, $direction = 'ASC') {
-    $this->orderBy[$field] = $direction;
-    return $this;
-  }
+  protected $where = array(
+    'is_test' => 0,
+  );
 
   protected function run(Result &$result) {
-
+    parent::run($result);
   }
 
 }

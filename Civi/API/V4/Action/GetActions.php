@@ -25,15 +25,44 @@
  +--------------------------------------------------------------------+
  */
 namespace Civi\API\V4\Action;
+use Civi\API\Exception\NotImplementedException;
+use Civi\API\Result;
 use Civi\API\V4\Action;
 
 /**
- * Get fields for an entity
+ * Get actions for an entity with a list of accepted params
  */
-class GetFields extends Action {
+class GetActions extends Action {
 
-  protected function run() {
+  protected function run(Result &$result) {
+    $entity = $this->getEntity();
+    $includePaths = explode(PATH_SEPARATOR, get_include_path());
+    // First search entity-specific actions (including those provided by extensions
+    foreach ($includePaths as $path) {
+      $dir = \CRM_Utils_File::addTrailingSlash($path) . 'Civi/API/V4/Entity/' . $entity;
+      $this->scanDir($dir, $entity, $result);
+    }
+    // Scan all generic actions
+    foreach ($includePaths as $path) {
+      $dir = \CRM_Utils_File::addTrailingSlash($path) . 'Civi/API/V4/Action';
+      $this->scanDir($dir, $entity, $result);
+    }
+  }
 
+  private function scanDir($dir, $entity, &$result) {
+    if (file_exists($dir)) {
+      foreach (glob("$dir/*.php") as $file) {
+        $matches = array();
+        preg_match('/(\w*).php/', $file, $matches);
+        $actionName = array_pop($matches);
+        try {
+          if (!isset($result[$actionName])) {
+            $result[$actionName] = call_user_func(array('\\Civi\\Api4\\' . $entity, $actionName))->getParamInfo();
+          }
+        }
+        catch (NotImplementedException $e) {}
+      }
+    }
   }
 
 }

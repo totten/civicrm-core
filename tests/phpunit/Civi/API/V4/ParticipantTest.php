@@ -8,6 +8,15 @@ require_once 'CiviTest/CiviUnitTestCase.php';
  */
 class ParticipantTest extends \CiviUnitTestCase {
 
+  public function testGetFields() {
+    $result = Participant::getFields()
+      ->execute()
+      ->indexBy('name');
+
+    $this->assertEquals(TRUE, $result['checkPermissions']['default']);
+
+  }
+
   public function testGet() {
     // Api4 calls returns an arrayObject
     // @see http://php.net/manual/en/class.arrayobject.php
@@ -19,9 +28,9 @@ class ParticipantTest extends \CiviUnitTestCase {
     // )->version = 4
     //  ->entity = 'Participant'
     //  ->action = 'get'
-    $api = Participant::get();
-    $api->limit = 5;
-    $result = $api->execute();
+    $result = Participant::get()
+      ->setLimit(5)
+      ->execute();
 
     // Check that the $result arrayObject knows what the inputs were
     $this->assertEquals('Participant', $result->entity);

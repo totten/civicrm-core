@@ -24,14 +24,14 @@
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
  */
-namespace Civi\API4;
+namespace Civi\Api4;
 use Civi\API\V4\Entity;
 
 /**
  * Participant entity.
+ *
+ * @method static Entity\Participant\Get get
  */
 class Participant extends Entity {
-
-  // don't need anything here - we inherit all the generic methods from Entity
 
 }

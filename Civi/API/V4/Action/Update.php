@@ -25,13 +25,25 @@
  +--------------------------------------------------------------------+
  */
 namespace Civi\API\V4\Action;
+use Civi\API\Result;
+use Civi\API\V4\Action;
 
 /**
  * Here's an idea... if we use one action to extend another, "update" inherits all the abilities of "get"
+ *
+ * @method $this setValues(array)
+ * @method $this addValues(array)
  */
-class Update extends Get {
+class Update extends Action {
 
-  protected function run() {
+  /**
+   * Field values to set
+   *
+   * @var array
+   */
+  protected $values = array();
+
+  protected function run(Result &$result) {
     // First run the parent action (get)
     $this->select = array('id');
     $items = parent::run();

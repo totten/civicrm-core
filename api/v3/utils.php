@@ -380,7 +380,7 @@ function _civicrm_api3_get_DAO($name) {
  *   return the DAO name to manipulate this function
  *   eg. "civicrm_contact_create" or "Contact" will return "CRM_Contact_BAO_Contact"
  *
- * @return mixed
+ * @return string|null
  */
 function _civicrm_api3_get_BAO($name) {
   // FIXME: DAO should be renamed CRM_Badge_DAO_BadgeLayout

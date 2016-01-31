@@ -25,21 +25,26 @@
  +--------------------------------------------------------------------+
  */
 namespace Civi\API\V4\Action;
+use Civi\API\Result;
 
 /**
  * Here's an idea... if we use one action to extend another, "delete" inherits all the abilities of "get"
  */
 class Delete extends Get {
 
-  protected function run() {
+  protected function run(Result &$result) {
     // First run the parent action (get)
     $this->select = array('id');
-    $items = parent::run();
+    $defaults = $this->getParamDefaults();
+    if ($defaults['where'] && !array_diff_key($this->where, $defaults['where'])) {
+      throw new \API_Exception('Cannot delete with no "where" paramater specified');
+    }
+    parent::run($result);
     // Then act on the result
-    foreach ($items as $item) {
+    foreach ($result as $item) {
       // delete it
     }
-    return $items;
+    return $result;
   }
 
 }

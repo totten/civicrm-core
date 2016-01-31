@@ -25,14 +25,25 @@
  +--------------------------------------------------------------------+
  */
 namespace Civi\API\V4\Action;
+use Civi\API\Result;
 use Civi\API\V4\Action;
 
 /**
  * Base class for all create actions.
+ *
+ * @method $this setValues(array)
+ * @method $this addValues(array)
  */
 class Create extends Action {
 
-  protected function run() {
+  /**
+   * Field values to set
+   *
+   * @var array
+   */
+  protected $values = array();
+
+  protected function run(Result &$result) {
 
   }
 

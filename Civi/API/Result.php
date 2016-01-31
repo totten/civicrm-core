@@ -39,20 +39,10 @@ class Result extends \ArrayObject {
    */
   public $action;
   /**
-   * Original input params
-   * @var array
-   */
-  public $params;
-  /**
    * Api version
    * @var int
    */
   public $version = 4;
-  /**
-   * List of fields for this entity/action
-   * @var array
-   */
-  public $fields;
   /**
    * Any deprecation notices will be supplied here
    * @var array

@@ -58,7 +58,8 @@ function civicrm_api3($entity, $action, $params = array()) {
 function civicrm_api4($entity, $action, $params = array()) {
   $apiCall = call_user_func(array("Civi\\Api4\\$entity", $action));
   foreach ($params as $name => $param) {
-    $apiCall->$name = $param;
+    $setter = 'set' . ucfirst($name);
+    $apiCall->$setter($param);
   }
   return $apiCall->execute();
 }

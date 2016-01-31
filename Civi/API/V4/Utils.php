@@ -24,82 +24,46 @@
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
  */
-namespace Civi\API\V4\Action;
-use Civi\API\Result;
-use Civi\API\V4\Action;
+namespace Civi\API\V4;
 
 /**
- * Base class for all get actions.
- *
- * @method $this addSelect(string)
- * @method $this setSelect(array)
- * @method $this setWhere(array)
- * @method $this setOrderBy(array)
- * @method $this setLimit(int)
- * @method $this setOffset(int)
+ * Just another place to put static functions...
  */
-class Get extends Action {
+class Utils {
 
   /**
-   * Fields to return. Defaults to all non-custom fields.
-   *
-   * @var array
+   * @param string $comment
+   * @return array
    */
-  protected $select = array();
-  /**
-   * Array of conditions keyed by field.
-   *
-   * $example->addWhere('contact_type', 'IN', array('Individual', 'Household'))
-   *
-   * @var array
-   */
-  protected $where = array();
-  /**
-   * Array of field(s) to use in ordering the results
-   *
-   * Defaults to id ASC
-   * $example->addOrderBy('sort_name', 'ASC')
-   *
-   * @var array
-   */
-  protected $orderBy = array();
-  /**
-   * Maximum number of results to return.
-   *
-   * Defaults to unlimited.
-   *
-   * @var int
-   */
-  protected $limit = 0;
-  protected $offset = 0;
-
-  /**
-   * @param string $field
-   * @param string $op
-   * @param mixed $value
-   * @return $this
-   * @throws \API_Exception
-   */
-  public function addWhere($field, $op, $value) {
-    if (!in_array($op, \CRM_Core_DAO::acceptedSQLOperators())) {
-      throw new \API_Exception('Unsupported operator');
+  public static function parseDocBlock($comment) {
+    $info = array();
+    foreach (preg_split("/((\r?\n)|(\r\n?))/", $comment) as $num => $line) {
+      if (!$num || strpos($line, '*/') !== FALSE) {
+        continue;
+      }
+      $line = ltrim(trim($line), '* ');
+      if (!$line) {
+        continue;
+      }
+      if ($num == 1) {
+        $info['description'] = $line;
+      }
+      elseif (strpos($line, '@') !== 0) {
+        $info['comment'] = isset($info['comment']) ? "{$info['comment']}\n$line" : $line;
+      }
+      else {
+        $words = explode(' ', $line);
+        $key = substr($words[0], 1);
+        if ($key == 'var') {
+          $info['type'] = explode('|', $words[1]);
+        }
+        else {
+          // Don't know what this is but we'll duly add it to the info array
+          $val = implode(' ', array_slice($words, 1));
+          $info[$key] = strlen($val) ? $val : TRUE;
+        }
+      }
     }
-    $this->where[$field] = array($op => $value);
-    return $this;
+    return $info;
   }
-
-  /**
-   * @param string $field
-   * @param string $direction
-   * @return $this
-   */
-  public function addOrderBy($field, $direction = 'ASC') {
-    $this->orderBy[$field] = $direction;
-    return $this;
-  }
-
-  protected function run(Result &$result) {
-
-  }
-
 }
