@@ -40,7 +40,7 @@ function civicrm_api($entity, $action, $params, $extra = NULL) {
  */
 function civicrm_api3($entity, $action, $params = array()) {
   $params['version'] = 3;
-  $result = civicrm_api($entity, $action, $params);
+  $result = \Civi::service('civi_api_kernel')->run($entity, $action, $params);
   if (is_array($result) && !empty($result['is_error'])) {
     throw new CiviCRM_API3_Exception($result['error_message'], CRM_Utils_Array::value('error_code', $result, 'undefined'), $result);
   }
@@ -56,12 +56,9 @@ function civicrm_api3($entity, $action, $params = array()) {
  * @return mixed
  */
 function civicrm_api4($entity, $action, $params = array()) {
-  $apiCall = call_user_func(array("Civi\\Api4\\$entity", $action));
-  foreach ($params as $name => $param) {
-    $setter = 'set' . ucfirst($name);
-    $apiCall->$setter($param);
-  }
-  return $apiCall->execute();
+  $params['version'] = 4;
+  $request = \Civi\API\Request::create($entity, $action, $params);
+  return \Civi::service('civi_api_kernel')->runRequest($request);
 }
 
 /**

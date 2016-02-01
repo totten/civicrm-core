@@ -59,75 +59,35 @@ class Request {
    *   - chains: unspecified derived from params [v4-only]
    */
   public static function create($entity, $action, $params, $extra) {
-    $apiRequest = array(); // new \Civi\API\Request();
-    $apiRequest['id'] = self::$nextId++;
-    $apiRequest['version'] = self::parseVersion($params);
-    $apiRequest['params'] = $params;
-    $apiRequest['extra'] = $extra;
-    $apiRequest['fields'] = NULL;
+    $version = self::parseVersion($params);
 
-    $apiRequest['entity'] = $entity = self::normalizeEntityName($entity, $apiRequest['version']);
-    $apiRequest['action'] = $action = self::normalizeActionName($action, $apiRequest['version']);
+    switch ($version) {
+      case 2:
+      case 3:
+        $apiRequest = array(); // new \Civi\API\Request();
+        $apiRequest['id'] = self::$nextId++;
+        $apiRequest['version'] = $version;
+        $apiRequest['params'] = $params;
+        $apiRequest['extra'] = $extra;
+        $apiRequest['fields'] = NULL;
 
-    // APIv1-v3 mix data+options in $params which means that each API callback is responsible
-    // for splitting the two. In APIv4, the split is done systematically so that we don't
-    // so much parsing logic spread around.
-    if ($apiRequest['version'] >= 4) {
-      $options = array();
-      $data = array();
-      $chains = array();
-      foreach ($params as $key => $value) {
-        if ($key == 'options') {
-          $options = array_merge($options, $value);
-        }
-        elseif ($key == 'return') {
-          if (!isset($options['return'])) {
-            $options['return'] = array();
-          }
-          $options['return'] = array_merge($options['return'], $value);
-        }
-        elseif (preg_match('/^option\.(.*)$/', $key, $matches)) {
-          $options[$matches[1]] = $value;
-        }
-        elseif (preg_match('/^return\.(.*)$/', $key, $matches)) {
-          if ($value) {
-            if (!isset($options['return'])) {
-              $options['return'] = array();
-            }
-            $options['return'][] = $matches[1];
-          }
-        }
-        elseif (preg_match('/^format\.(.*)$/', $key, $matches)) {
-          if ($value) {
-            if (!isset($options['format'])) {
-              $options['format'] = $matches[1];
-            }
-            else {
-              throw new \API_Exception("Too many API formats specified");
-            }
-          }
-        }
-        elseif (preg_match('/^api\./', $key)) {
-          // FIXME: represent subrequests as instances of "Request"
-          $chains[$key] = $value;
-        }
-        elseif ($key == 'debug') {
-          $options['debug'] = $value;
-        }
-        elseif ($key == 'version') {
-          // ignore
-        }
-        else {
-          $data[$key] = $value;
+        $apiRequest['entity'] = $entity = self::normalizeEntityName($entity, $apiRequest['version']);
+        $apiRequest['action'] = $action = self::normalizeActionName($action, $apiRequest['version']);
 
+        return $apiRequest;
+
+      case 4:
+        // FIXME: Civi\API\Action should handle ['id'], ['version'], ['params'], ['entity'], ['action'].
+        $apiCall = call_user_func(array("Civi\\Api4\\$entity", $action));
+        foreach ($params as $name => $param) {
+          $setter = 'set' . ucfirst($name);
+          $apiCall->$setter($param);
         }
-      }
-      $apiRequest['options'] = new \CRM_Utils_OptionBag($options);
-      $apiRequest['data'] = new \CRM_Utils_OptionBag($data);
-      $apiRequest['chains'] = $chains;
+        return $apiCall;
+
+      default:
     }
 
-    return $apiRequest;
   }
 
   /**
@@ -185,6 +145,13 @@ class Request {
       // we will set the default to version 3 as soon as we find that it works.
       return 3;
     }
+  }
+
+  public function execute() {
+    $kernel = Civi::service('civi_api_kernel');
+    $callback = array($this, 'run');
+    $kernel->runWith($entity, $action, $params, $callback);
+
   }
 
 }

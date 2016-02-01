@@ -149,23 +149,9 @@ abstract class Action {
    * @throws \Civi\API\Exception\UnauthorizedException
    */
   final public function execute() {
-    $entity = $this->getEntity();
-    $action = $this->getAction();
-    $params = $this->getParams();
-
-    /** @var AuthorizeEvent $event */
-//    $event = $this->thisDispatcher->dispatch(Events::AUTHORIZE, new AuthorizeEvent($apiProvider, $apiRequest, $this));
-//    if (!$event->isAuthorized()) {
-//      throw new \Civi\API\Exception\UnauthorizedException("Authorization failed");
-//    }
-
-    $result = new Result();
-    $result->entity = $entity;
-    $result->action = $action;
-    $this->run($result);
-
-    // TODO: hand off some post processing tasks to api kernel like executing chains?
-    return $result;
+    /** @var \Civi\API\Kernel $kernel */
+    $kernel = Civi::service('civi_api_kernel');
+    return $kernel->runRequest($this);
   }
 
   /**
