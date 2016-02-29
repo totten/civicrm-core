@@ -22,8 +22,10 @@
               'recipients',
               'scheduled_date'
             ]);
+            console.log('merged subject', angular.toJson(abtest.mailings.c.subject));
             crmStatus({start: ts('Saving...'), success: ''}, abtest.save())
               .then(function() {
+                console.log('saved, now sending', angular.toJson(abtest.mailings.c.subject));
                 return crmStatus({start: ts('Submitting...'), success: ts('Submitted')},
                   abtest.submitFinal().then(function(r) {
                     delete abtest.$CrmMailingABReportCnt;
