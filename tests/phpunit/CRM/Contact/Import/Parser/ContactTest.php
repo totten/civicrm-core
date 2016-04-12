@@ -27,7 +27,7 @@
 
 /**
  * @file
- * File for the CRM_Contact_Imports_Parser_ContactTest class.
+ * File for the CRM_Contact_Import_Parser_ContactTest class.
  */
 
 /**
@@ -36,7 +36,7 @@
  * @package CiviCRM
  * @group headless
  */
-class CRM_Contact_Imports_Parser_ContactTest extends CiviUnitTestCase {
+class CRM_Contact_Import_Parser_ContactTest extends CiviUnitTestCase {
   protected $_tablesToTruncate = array();
 
   /**
