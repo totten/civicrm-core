@@ -35,7 +35,7 @@
  * @package CiviCRM
  * @group headless
  */
-class CRM_Contact_Form_SelectorTest extends CiviUnitTestCase {
+class CRM_Contact_SelectorTest extends CiviUnitTestCase {
 
   public function tearDown() {
 
