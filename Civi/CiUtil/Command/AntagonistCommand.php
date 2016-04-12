@@ -49,7 +49,7 @@ class AntagonistCommand {
    */
   public static function findAntagonist($target, $candidateTests) {
     //$phpUnit = new \Civi\CiUtil\EnvTestRunner('./scripts/phpunit', 'EnvTests');
-    $phpUnit = new \Civi\CiUtil\EnvTestRunner('phpunit', 'tests/phpunit/EnvTests.php');
+    $phpUnit = new \Civi\CiUtil\EnvTestRunner('phpunit4', 'tests/phpunit/EnvTests.php');
     $expectedResults = $phpUnit->run(array($target));
     print_r(array('$expectedResults' => $expectedResults));
 
