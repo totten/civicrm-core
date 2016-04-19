@@ -1338,7 +1338,7 @@ FROM   civicrm_domain
    * @return string
    * @throws Exception
    */
-  public static function composeQuery($query, &$params, $abort = TRUE) {
+  public static function composeQuery($query, $params, $abort = TRUE) {
     $tr = array();
     foreach ($params as $key => $item) {
       if (is_numeric($key)) {
@@ -1380,6 +1380,35 @@ FROM   civicrm_domain
     }
 
     return strtr($query, $tr);
+  }
+
+  /**
+   * Get the query that would be generated.
+   *
+   * This could be used in tests or where it is desirable to log the query rather than run it.
+   *
+   * @param string $query
+   *   Query to be executed.
+   *
+   * @param array $params
+   * @param bool $abort
+   * @param bool $i18nRewrite
+   *
+   * @return string
+   *   The resolved mysql query.
+   */
+  public static function composeQueryLocalized(
+    $query,
+    $params = array(),
+    $abort = TRUE,
+    $i18nRewrite = TRUE
+  ) {
+    $queryStr = self::composeQuery($query, $params, $abort);
+    global $dbLocale;
+    if ($i18nRewrite and $dbLocale) {
+      $queryStr = CRM_Core_I18n_Schema::rewriteQuery($query);
+    }
+    return $queryStr;
   }
 
   /**
