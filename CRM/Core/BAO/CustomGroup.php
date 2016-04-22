@@ -442,7 +442,7 @@ LEFT JOIN civicrm_custom_field ON (civicrm_custom_field.custom_group_id = civicr
         $subTypeClauses = array();
         foreach ($subTypeParts as $subTypePart) {
           // CRM-17984: Only filter by this input if valid.
-          $subTypePart = CRM_Utils_Type::escape(trim($subTypePart, CRM_Core_DAO::VALUE_SEPARATOR), 'Integer', FALSE);
+          $subTypePart = CRM_Utils_Type::escape(trim($subTypePart, CRM_Core_DAO::VALUE_SEPARATOR), 'String', FALSE);
           if ($subTypePart) {
             $subTypePart = CRM_Core_DAO::VALUE_SEPARATOR .
               $subTypePart .
@@ -461,7 +461,7 @@ LEFT JOIN civicrm_custom_field ON (civicrm_custom_field.custom_group_id = civicr
       }
       else {
         // CRM-17984: Only filter by this input if valid.
-        $subType = CRM_Utils_Type::escape(trim($subType, CRM_Core_DAO::VALUE_SEPARATOR), 'Integer', FALSE);
+        $subType = CRM_Utils_Type::escape(trim($subType, CRM_Core_DAO::VALUE_SEPARATOR), 'String', FALSE);
         if ($subType) {
           $subType = CRM_Core_DAO::VALUE_SEPARATOR .
             $subType .
