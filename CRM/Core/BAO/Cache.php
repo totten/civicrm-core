@@ -54,11 +54,13 @@ class CRM_Core_BAO_Cache extends CRM_Core_DAO_Cache {
    *   (required) The path under which this item is stored.
    * @param int $componentID
    *   The optional component ID (so componenets can share the same name space).
+   * @param \Crypt_Base $cipher
+   *   A symmetric cipher for encrypting/decrypting the cache item.
    *
    * @return object
    *   The data if present in cache, else null
    */
-  public static function &getItem($group, $path, $componentID = NULL) {
+  public static function &getItem($group, $path, $componentID = NULL, $cipher = NULL) {
     if (self::$_cache === NULL) {
       self::$_cache = array();
     }
@@ -71,6 +73,9 @@ class CRM_Core_BAO_Cache extends CRM_Core_DAO_Cache {
         $table = self::getTableName();
         $where = self::whereCache($group, $path, $componentID);
         $rawData = CRM_Core_DAO::singleValueQuery("SELECT data FROM $table WHERE $where");
+        if ($rawData && $cipher) {
+          $rawData = $cipher->decrypt(base64_decode($rawData));
+        }
         $data = $rawData ? unserialize($rawData) : NULL;
 
         self::$_cache[$argString] = $data;
@@ -130,8 +135,10 @@ class CRM_Core_BAO_Cache extends CRM_Core_DAO_Cache {
    *   (required) The path under which this item is stored.
    * @param int $componentID
    *   The optional component ID (so componenets can share the same name space).
+   * * @param \Crypt_Base $cipher
+   *   A symmetric cipher for encrypting/decrypting the cache item.
    */
-  public static function setItem(&$data, $group, $path, $componentID = NULL) {
+  public static function setItem(&$data, $group, $path, $componentID = NULL, $cipher = NULL) {
     if (self::$_cache === NULL) {
       self::$_cache = array();
     }
@@ -149,6 +156,9 @@ class CRM_Core_BAO_Cache extends CRM_Core_DAO_Cache {
     $id = CRM_Core_DAO::singleValueQuery("SELECT id FROM $table WHERE $where");
     $now = date('Y-m-d H:i:s'); // FIXME - Use SQL NOW() or CRM_Utils_Time?
     $dataSerialized = serialize($data);
+    if ($cipher) {
+      $dataSerialized = base64_encode($cipher->encrypt($dataSerialized));
+    }
 
     // This table has a wonky index, so we cannot use REPLACE or
     // "INSERT ... ON DUPE". Instead, use SELECT+(INSERT|UPDATE).
@@ -180,6 +190,9 @@ class CRM_Core_BAO_Cache extends CRM_Core_DAO_Cache {
 
     $argString = "CRM_CT_{$group}_{$path}_{$componentID}";
     $cache = CRM_Utils_Cache::singleton();
+    if ($cipher) {
+      $dataSerialized = $cipher->decrypt(base64_decode($dataSerialized));
+    }
     $data = unserialize($dataSerialized);
     self::$_cache[$argString] = $data;
     $cache->set($argString, $data);
@@ -231,13 +244,18 @@ class CRM_Core_BAO_Cache extends CRM_Core_DAO_Cache {
    *   Should session state be reset on completion of DB store?.
    */
   public static function storeSessionToCache($names, $resetSession = TRUE) {
+    $cipher = new \Crypt_AES(CRYPT_AES_MODE_CBC);
+    $cipher->setKeyLength(\Civi\Cxn\Rpc\Constants::AES_BYTES);
+    $cipher->setKey(\Civi\Cxn\Rpc\BinHex::hex2bin(md5(self::getTerminalKey() . CIVICRM_SITE_KEY)));
+
     foreach ($names as $key => $sessionName) {
       if (is_array($sessionName)) {
         $value = NULL;
         if (!empty($_SESSION[$sessionName[0]][$sessionName[1]])) {
           $value = $_SESSION[$sessionName[0]][$sessionName[1]];
         }
-        self::setItem($value, 'CiviCRM Session', "{$sessionName[0]}_{$sessionName[1]}");
+        $cipher->setIV(md5("{$sessionName[0]}_{$sessionName[1]}"));
+        self::setItem($value, 'CiviCRM Session', "{$sessionName[0]}_{$sessionName[1]}", NULL, $cipher);
         if ($resetSession) {
           $_SESSION[$sessionName[0]][$sessionName[1]] = NULL;
           unset($_SESSION[$sessionName[0]][$sessionName[1]]);
@@ -248,7 +266,8 @@ class CRM_Core_BAO_Cache extends CRM_Core_DAO_Cache {
         if (!empty($_SESSION[$sessionName])) {
           $value = $_SESSION[$sessionName];
         }
-        self::setItem($value, 'CiviCRM Session', $sessionName);
+        $cipher->setIV(md5($sessionName));
+        self::setItem($value, 'CiviCRM Session', $sessionName, NULL, $cipher);
         if ($resetSession) {
           $_SESSION[$sessionName] = NULL;
           unset($_SESSION[$sessionName]);
@@ -273,19 +292,23 @@ class CRM_Core_BAO_Cache extends CRM_Core_DAO_Cache {
    * @param string $names
    */
   public static function restoreSessionFromCache($names) {
+    $cipher = new \Crypt_AES(CRYPT_AES_MODE_CBC);
+    $cipher->setKeyLength(\Civi\Cxn\Rpc\Constants::AES_BYTES);
+    $cipher->setKey(\Civi\Cxn\Rpc\BinHex::hex2bin(md5(self::getTerminalKey() . CIVICRM_SITE_KEY)));
+
     foreach ($names as $key => $sessionName) {
       if (is_array($sessionName)) {
+        $cipher->setIV(md5("{$sessionName[0]}_{$sessionName[1]}"));
         $value = self::getItem('CiviCRM Session',
-          "{$sessionName[0]}_{$sessionName[1]}"
-        );
+          "{$sessionName[0]}_{$sessionName[1]}", NULL, $cipher);
         if ($value) {
           $_SESSION[$sessionName[0]][$sessionName[1]] = $value;
         }
       }
       else {
+        $cipher->setIV(md5($sessionName));
         $value = self::getItem('CiviCRM Session',
-          $sessionName
-        );
+          $sessionName, NULL, $cipher);
         if ($value) {
           $_SESSION[$sessionName] = $value;
         }
@@ -388,6 +411,29 @@ AND         created_date < date_sub( NOW( ), INTERVAL $timeIntervalDays DAY )
       $clauses[] = ('component_id = ' . (int) $componentID);
     }
     return $clauses ? implode(' AND ', $clauses) : '(1)';
+  }
+
+  /**
+   * Find or create a unique key which identifies the user's terminal.
+   * The terminal key must never be stored in the database; it is
+   * only intended for transmission via cookie or request fields.
+   *
+   * The terminal-key can be combined with the site-key to produce
+   * a unique crypto key.
+   *
+   * @return string
+   */
+  private static function getTerminalKey() {
+    if (!empty($_COOKIE['cvtk'])) {
+      $terminalKey = $_COOKIE['cvtk'];
+      return $terminalKey;
+    }
+    else {
+      $terminalKey = $_COOKIE['cvtk'] = md5(crypt_random_string(32));
+      // FIXME path and expiration
+      setcookie('cvtk', $terminalKey);
+      return $terminalKey;
+    }
   }
 
 }
