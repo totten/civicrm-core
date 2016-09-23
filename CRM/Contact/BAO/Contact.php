@@ -973,23 +973,7 @@ WHERE id={$id}; ";
    *   Thumb dimension of image
    */
   public static function getThumbSize($imageWidth, $imageHeight) {
-    $thumbWidth = 100;
-    if ($imageWidth && $imageHeight) {
-      $imageRatio = $imageWidth / $imageHeight;
-    }
-    else {
-      $imageRatio = 1;
-    }
-    if ($imageRatio > 1) {
-      $imageThumbWidth = $thumbWidth;
-      $imageThumbHeight = round($thumbWidth / $imageRatio);
-    }
-    else {
-      $imageThumbHeight = $thumbWidth;
-      $imageThumbWidth = round($thumbWidth * $imageRatio);
-    }
-
-    return array($imageThumbWidth, $imageThumbHeight);
+    return CRM_Utils_Thumbnail::getThumbSize($imageWidth, $imageHeight);
   }
 
   /**
