@@ -259,6 +259,11 @@ class {$table.className} extends CRM_Core_DAO {ldelim}
             return $r;
       {rdelim}
 
+      /** FIXME */
+      public static function indices() {ldelim}
+        return {$indicesPhp};
+      {rdelim}
+
 {rdelim}
 
 
