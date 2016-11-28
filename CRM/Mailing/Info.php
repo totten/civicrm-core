@@ -166,6 +166,7 @@ class CRM_Mailing_Info extends CRM_Core_Component_Info {
     CRM_Core_Resources::singleton()
       ->addSetting(array(
         'crmMailing' => array(
+          'layouts' => $this->getComposerLayouts(),
           'civiMails' => $civiMails['values'],
           'campaignEnabled' => in_array('CiviCampaign', $config->enableComponents),
           'groupNames' => $groupNames['values'],
@@ -329,6 +330,28 @@ class CRM_Mailing_Info extends CRM_Core_Component_Info {
    * @param $shortCuts
    */
   public function creatNewShortcut(&$shortCuts) {
+  }
+
+  /**
+   * @return array
+   *   Array(string $pathSuffix => string $template).
+   */
+  private function getComposerLayouts() {
+    $layouts = array(
+      '' => '~/crmMailing/EditMailingCtrl/2step.html',
+      '/2step' => '~/crmMailing/EditMailingCtrl/2step.html',
+      '/unified' => '~/crmMailing/EditMailingCtrl/unified.html',
+      '/unified2' => '~/crmMailing/EditMailingCtrl/unified2.html',
+      '/wizard' => '~/crmMailing/EditMailingCtrl/wizard.html',
+    );
+
+    if (CRM_Mailing_Info::workflowEnabled()) {
+      $layouts[''] = '~/crmMailing/EditMailingCtrl/workflow.html';
+    }
+
+    CRM_Utils_Hook::mailingComposerLayouts($layouts);
+
+    return $layouts;
   }
 
 }

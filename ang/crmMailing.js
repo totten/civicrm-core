@@ -12,16 +12,11 @@
         controller: 'ListMailingsCtrl'
       });
 
-      var editorPaths = {
-        '': '~/crmMailing/EditMailingCtrl/2step.html',
-        '/unified': '~/crmMailing/EditMailingCtrl/unified.html',
-        '/unified2': '~/crmMailing/EditMailingCtrl/unified2.html',
-        '/wizard': '~/crmMailing/EditMailingCtrl/wizard.html'
-      };
-      angular.forEach(editorPaths, function(editTemplate, pathSuffix) {
-        if (CRM && CRM.crmMailing && CRM.crmMailing.workflowEnabled) {
-            editTemplate = '~/crmMailing/EditMailingCtrl/workflow.html'; // override
-        }
+      if (!CRM || !CRM.crmMailing) {
+        return;
+      }
+
+      angular.forEach(CRM.crmMailing.layouts, function(editTemplate, pathSuffix) {
         $routeProvider.when('/mailing/new' + pathSuffix, {
           template: '<p>' + ts('Initializing...') + '</p>',
           controller: 'CreateMailingCtrl',

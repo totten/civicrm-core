@@ -897,6 +897,20 @@ abstract class CRM_Utils_Hook {
   }
 
   /**
+   * (Experimental) Modify the list of page-layouts used for CiviMail composition.
+   *
+   * @param array $layouts
+   *   Array(string $pathSuffix => string $template).
+   * @return mixed
+   */
+  public static function mailingComposerLayouts(&$layouts) {
+    return self::singleton()->invoke(1, $layouts, self::$_nullObject, self::$_nullObject,
+      self::$_nullObject, self::$_nullObject, self::$_nullObject,
+      'civicrm_mailingComposerLayouts'
+    );
+  }
+
+  /**
    * This hook is called when composing the array of membershipTypes and their cost during a membership registration
    * (new or renewal).
    * Note the hook is called on initial page load and also reloaded after submit (PRG pattern).
