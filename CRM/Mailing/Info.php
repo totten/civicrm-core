@@ -166,6 +166,7 @@ class CRM_Mailing_Info extends CRM_Core_Component_Info {
     CRM_Core_Resources::singleton()
       ->addSetting(array(
         'crmMailing' => array(
+          'templateTypes' => $this->getTemplateTypes(),
           'civiMails' => $civiMails['values'],
           'campaignEnabled' => in_array('CiviCampaign', $config->enableComponents),
           'groupNames' => $groupNames['values'],
@@ -329,6 +330,45 @@ class CRM_Mailing_Info extends CRM_Core_Component_Info {
    * @param $shortCuts
    */
   public function creatNewShortcut(&$shortCuts) {
+  }
+
+  /**
+   * @return array
+   *   A list of template-types, keyed by name. Each defines:
+   *     - editorUrl: string, Angular template name
+   *
+   *   Ex: $templateTypes['mosaico']['editorUrl'] = '~/crmMosaico/editor.html'.
+   */
+  public static function getTemplateTypes() {
+    $types = array();
+    $types[] = array(
+      'name' => 'traditional',
+      'editorUrl' => CRM_Mailing_Info::workflowEnabled() ? '~/crmMailing/EditMailingCtrl/workflow.html' : '~/crmMailing/EditMailingCtrl/2step.html',
+      'weight' => 0,
+    );
+
+    //foreach(array('2step', 'unified', 'unified2', 'wizard') as $t) {
+    //  $types[] = array(
+    //    'name' => $t,
+    //    'editorUrl' => CRM_Mailing_Info::workflowEnabled() ? '~/crmMailing/EditMailingCtrl/workflow.html' : "~/crmMailing/EditMailingCtrl/{$t}.html",
+    //    'weight' => 0,
+    //  );
+    //}
+
+    CRM_Utils_Hook::mailingTemplateTypes($types);
+
+    $defaults = array('weight' => 0);
+    foreach (array_keys($types) as $typeName) {
+      $types[$typeName] = array_merge($defaults, $types[$typeName]);
+    }
+    usort($types, function ($a, $b) {
+      if ($a['weight'] === $b['weight']) {
+        return 0;
+      }
+      return $a['weight'] < $b['weight'] ? -1 : 1;
+    });
+
+    return $types;
   }
 
 }

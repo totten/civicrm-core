@@ -155,6 +155,8 @@
             groups: {include: [], exclude: [], base: []},
             mailings: {include: [], exclude: []}
           },
+          template_type: "traditional",
+          template_options: "",
           name: "",
           campaign_id: null,
           replyto_email: "",
