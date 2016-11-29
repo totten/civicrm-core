@@ -501,8 +501,6 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
       $swapLang = CRM_Utils_AutoClean::swap('global://dbLocale?getter', 'call://i18n/setLocale', $mailing->language);
     }
 
-    $job_date = CRM_Utils_Date::isoToMysql($this->scheduled_date);
-
     if (!empty($testParams)) {
       $mailing->subject = ts('[CiviMail Draft]') . ' ' . $mailing->subject;
     }
@@ -533,7 +531,7 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
 
       if ($mailerBatchLimit > 0 && self::$mailsProcessed >= $mailerBatchLimit) {
         if (!empty($tasks)) {
-          $this->deliverGroup($tasks, $mailing, $mailer, $job_date, $attachments);
+          $this->deliverGroup($tasks, $mailing, $mailer, $attachments);
         }
         $eq->free();
         return FALSE;
@@ -548,7 +546,7 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
         'phone' => $eq->phone,
       );
       if (count($tasks) == self::MAX_CONTACTS_TO_PROCESS) {
-        $isDelivered = $this->deliverGroup($tasks, $mailing, $mailer, $job_date, $attachments);
+        $isDelivered = $this->deliverGroup($tasks, $mailing, $mailer, $attachments);
         if (!$isDelivered) {
           $eq->free();
           return $isDelivered;
@@ -560,7 +558,7 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
     $eq->free();
 
     if (!empty($tasks)) {
-      $isDelivered = $this->deliverGroup($tasks, $mailing, $mailer, $job_date, $attachments);
+      $isDelivered = $this->deliverGroup($tasks, $mailing, $mailer, $attachments);
     }
     return $isDelivered;
   }
@@ -571,14 +569,15 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
    *   Each recipient is an array with keys 'hash', 'contact_id', 'email', etc.
    * @param $mailing
    * @param $mailer
-   * @param $job_date
    * @param $attachments
    *
    * @return bool|null
    * @throws Exception
    */
-  public function deliverGroup(&$tasks, &$mailing, &$mailer, &$job_date, &$attachments) {
+  public function deliverGroup(&$tasks, &$mailing, &$mailer, &$attachments) {
     static $smtpConnectionErrors = 0;
+
+    $job_date = CRM_Utils_Date::isoToMysql($this->scheduled_date);
 
     if (!is_object($mailer) || empty($tasks)) {
       CRM_Core_Error::fatal();
