@@ -84,7 +84,7 @@ class CRM_Mailing_BAO_Mailing extends CRM_Mailing_DAO_Mailing {
   /**
    * Cached BAO for the domain.
    */
-  private $_domain = NULL;
+  public $_domain = NULL;
 
   /**
    * Class constructor.
@@ -712,7 +712,7 @@ ORDER BY   i.contact_id, i.{$tempColumn}
    * for generating the emails and returns a copy of the
    * prepared templates
    */
-  private function getPreparedTemplates() {
+  public function getPreparedTemplates() {
     if (!$this->preparedTemplates) {
       $patterns['html'] = $this->getPatterns(TRUE);
       $patterns['subject'] = $patterns['text'] = $this->getPatterns();
@@ -758,7 +758,7 @@ ORDER BY   i.contact_id, i.{$tempColumn}
    * @return array
    *   reference to an assoc array
    */
-  private function &getTemplates() {
+  public function &getTemplates() {
     if (!$this->templates) {
       $this->getHeaderFooter();
       $this->templates = array();
@@ -1066,7 +1066,7 @@ ORDER BY   civicrm_email.is_bulkmail DESC
    * @return array
    *   array ref that hold array refs to the verp info, urls, and headers
    */
-  private function getVerpAndUrlsAndHeaders($job_id, $event_queue_id, $hash, $email, $isForward = FALSE) {
+  public function getVerpAndUrlsAndHeaders($job_id, $event_queue_id, $hash, $email, $isForward = FALSE) {
     $config = CRM_Core_Config::singleton();
 
     /**
@@ -1180,14 +1180,16 @@ ORDER BY   civicrm_email.is_bulkmail DESC
     $contactDetails, &$attachments, $isForward = FALSE,
     $fromEmail = NULL, $replyToEmail = NULL
   ) {
-    $config = CRM_Core_Config::singleton();
-    $this->getTokens();
+    $mailing = $this;
 
-    if ($this->_domain == NULL) {
-      $this->_domain = CRM_Core_BAO_Domain::getDomain();
+    $config = CRM_Core_Config::singleton();
+    $mailing->getTokens();
+
+    if ($mailing->_domain == NULL) {
+      $mailing->_domain = CRM_Core_BAO_Domain::getDomain();
     }
 
-    list($verp, $urls, $headers) = $this->getVerpAndUrlsAndHeaders(
+    list($verp, $urls, $headers) = $mailing->getVerpAndUrlsAndHeaders(
       $job_id,
       $event_queue_id,
       $hash,
@@ -1234,7 +1236,7 @@ ORDER BY   civicrm_email.is_bulkmail DESC
       CRM_Utils_Hook::tokenValues($contact, $contactId, $job_id);
     }
 
-    $pTemplates = $this->getPreparedTemplates();
+    $pTemplates = $mailing->getPreparedTemplates();
     $pEmails = array();
 
     foreach ($pTemplates as $type => $pTemplate) {
@@ -1246,7 +1248,7 @@ ORDER BY   civicrm_email.is_bulkmail DESC
       $idx = 0;
       if (!empty($tokens)) {
         foreach ($tokens as $idx => $token) {
-          $token_data = $this->getTokenData($token, $html, $contact, $verp, $urls, $event_queue_id);
+          $token_data = $mailing->getTokenData($token, $html, $contact, $verp, $urls, $event_queue_id);
           array_push($pEmail, $template[$idx]);
           array_push($pEmail, $token_data);
         }
@@ -1271,7 +1273,7 @@ ORDER BY   civicrm_email.is_bulkmail DESC
     }
 
     // push the tracking url on to the html email if necessary
-    if ($this->open_tracking && $html) {
+    if ($mailing->open_tracking && $html) {
       array_push($html, "\n" . '<img src="' . $config->userFrameworkResourceURL .
         "extern/open.php?q=$event_queue_id\" width='1' height='1' alt='' border='0'>"
       );
@@ -1300,8 +1302,8 @@ ORDER BY   civicrm_email.is_bulkmail DESC
     }
 
     if ($html && ($test || ($contact['preferred_mail_format'] == 'HTML' ||
-          $contact['preferred_mail_format'] == 'Both'
-        ))
+          $contact['preferred_mail_format'] == 'Both')
+      )
     ) {
       $htmlBody = implode('', $html);
       if ($useSmarty) {
@@ -1450,7 +1452,7 @@ ORDER BY   civicrm_email.is_bulkmail DESC
    *
    * @return bool|mixed|null|string
    */
-  private function getTokenData(&$token_a, $html = FALSE, &$contact, &$verp, &$urls, $event_queue_id) {
+  public function getTokenData(&$token_a, $html = FALSE, &$contact, &$verp, &$urls, $event_queue_id) {
     $type = $token_a['type'];
     $token = $token_a['token'];
     $data = $token;
