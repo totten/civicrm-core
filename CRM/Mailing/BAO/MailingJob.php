@@ -497,63 +497,11 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
     $mailing->find(TRUE);
     $mailing->free();
 
-    $eq = new CRM_Mailing_Event_BAO_Queue();
-    $eqTable = CRM_Mailing_Event_BAO_Queue::getTableName();
-    $emailTable = CRM_Core_BAO_Email::getTableName();
-    $phoneTable = CRM_Core_DAO_Phone::getTableName();
-    $contactTable = CRM_Contact_BAO_Contact::getTableName();
-    $edTable = CRM_Mailing_Event_BAO_Delivered::getTableName();
-    $ebTable = CRM_Mailing_Event_BAO_Bounce::getTableName();
-
-    $query = "  SELECT      $eqTable.id,
-                                $emailTable.email as email,
-                                $eqTable.contact_id,
-                                $eqTable.hash,
-                                NULL as phone
-                    FROM        $eqTable
-                    INNER JOIN  $emailTable
-                            ON  $eqTable.email_id = $emailTable.id
-                    INNER JOIN  $contactTable
-                            ON  $contactTable.id = $emailTable.contact_id
-                    LEFT JOIN   $edTable
-                            ON  $eqTable.id = $edTable.event_queue_id
-                    LEFT JOIN   $ebTable
-                            ON  $eqTable.id = $ebTable.event_queue_id
-                    WHERE       $eqTable.job_id = " . $this->id . "
-                        AND     $edTable.id IS null
-                        AND     $ebTable.id IS null
-                        AND    $contactTable.is_opt_out = 0";
-
-    if ($mailing->sms_provider_id) {
-      $query = "
-                    SELECT      $eqTable.id,
-                                $phoneTable.phone as phone,
-                                $eqTable.contact_id,
-                                $eqTable.hash,
-                                NULL as email
-                    FROM        $eqTable
-                    INNER JOIN  $phoneTable
-                            ON  $eqTable.phone_id = $phoneTable.id
-                    INNER JOIN  $contactTable
-                            ON  $contactTable.id = $phoneTable.contact_id
-                    LEFT JOIN   $edTable
-                            ON  $eqTable.id = $edTable.event_queue_id
-                    LEFT JOIN   $ebTable
-                            ON  $eqTable.id = $ebTable.event_queue_id
-                    WHERE       $eqTable.job_id = " . $this->id . "
-                        AND     $edTable.id IS null
-                        AND     $ebTable.id IS null
-                        AND    ( $contactTable.is_opt_out = 0
-                        OR       $contactTable.do_not_sms = 0 )";
-    }
-    $eq->query($query);
-
     if (property_exists($mailing, 'language') && $mailing->language && $mailing->language != 'en_US') {
       $swapLang = CRM_Utils_AutoClean::swap('global://dbLocale?getter', 'call://i18n/setLocale', $mailing->language);
     }
 
     $job_date = CRM_Utils_Date::isoToMysql($this->scheduled_date);
-    $fields = array();
 
     if (!empty($testParams)) {
       $mailing->subject = ts('[CiviMail Draft]') . ' ' . $mailing->subject;
@@ -575,47 +523,50 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
 
     // make sure that there's no more than $mailerBatchLimit mails processed in a run
     $mailerBatchLimit = Civi::settings()->get('mailerBatchLimit');
+
+    $eq = self::findPendingTasks($this->id, $mailing->sms_provider_id ? 'sms' : 'email');
+    $tasks = array();
     while ($eq->fetch()) {
       // if ( ( $mailsProcessed % 100 ) == 0 ) {
       // CRM_Utils_System::xMemory( "$mailsProcessed: " );
       // }
 
       if ($mailerBatchLimit > 0 && self::$mailsProcessed >= $mailerBatchLimit) {
-        if (!empty($fields)) {
-          $this->deliverGroup($fields, $mailing, $mailer, $job_date, $attachments);
+        if (!empty($tasks)) {
+          $this->deliverGroup($tasks, $mailing, $mailer, $job_date, $attachments);
         }
         $eq->free();
         return FALSE;
       }
       self::$mailsProcessed++;
 
-      $fields[] = array(
+      $tasks[] = array(
         'id' => $eq->id,
         'hash' => $eq->hash,
         'contact_id' => $eq->contact_id,
         'email' => $eq->email,
         'phone' => $eq->phone,
       );
-      if (count($fields) == self::MAX_CONTACTS_TO_PROCESS) {
-        $isDelivered = $this->deliverGroup($fields, $mailing, $mailer, $job_date, $attachments);
+      if (count($tasks) == self::MAX_CONTACTS_TO_PROCESS) {
+        $isDelivered = $this->deliverGroup($tasks, $mailing, $mailer, $job_date, $attachments);
         if (!$isDelivered) {
           $eq->free();
           return $isDelivered;
         }
-        $fields = array();
+        $tasks = array();
       }
     }
 
     $eq->free();
 
-    if (!empty($fields)) {
-      $isDelivered = $this->deliverGroup($fields, $mailing, $mailer, $job_date, $attachments);
+    if (!empty($tasks)) {
+      $isDelivered = $this->deliverGroup($tasks, $mailing, $mailer, $job_date, $attachments);
     }
     return $isDelivered;
   }
 
   /**
-   * @param array $fields
+   * @param array $tasks
    *   List of intended recipients.
    *   Each recipient is an array with keys 'hash', 'contact_id', 'email', etc.
    * @param $mailing
@@ -626,10 +577,10 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
    * @return bool|null
    * @throws Exception
    */
-  public function deliverGroup(&$fields, &$mailing, &$mailer, &$job_date, &$attachments) {
+  public function deliverGroup(&$tasks, &$mailing, &$mailer, &$job_date, &$attachments) {
     static $smtpConnectionErrors = 0;
 
-    if (!is_object($mailer) || empty($fields)) {
+    if (!is_object($mailer) || empty($tasks)) {
       CRM_Core_Error::fatal();
     }
 
@@ -645,8 +596,8 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
       $skipOnHold = FALSE; //do not include a statement to check wether e-mail address is on hold
     }
 
-    foreach ($fields as $key => $field) {
-      $params[] = $field['contact_id'];
+    foreach ($tasks as $key => $task) {
+      $params[] = $task['contact_id'];
     }
 
     $details = CRM_Utils_Token::getTokenDetails(
@@ -658,9 +609,8 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
       $this->id
     );
 
-    $config = CRM_Core_Config::singleton();
-    foreach ($fields as $key => $field) {
-      $contactID = $field['contact_id'];
+    foreach ($tasks as $key => $task) {
+      $contactID = $task['contact_id'];
       if (!array_key_exists($contactID, $details[0])) {
         $details[0][$contactID] = array();
       }
@@ -673,8 +623,8 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
       }
 
       $message = $mailing->compose(
-        $this->id, $field['id'], $field['hash'],
-        $field['contact_id'], $field['email'],
+        $this->id, $task['id'], $task['hash'],
+        $task['contact_id'], $task['email'],
         $recipient, FALSE, $details[0][$contactID], $attachments,
         FALSE, NULL, $replyToEmail
       );
@@ -692,8 +642,8 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
 
       if ($mailing->sms_provider_id) {
         $provider = CRM_SMS_Provider::singleton(array('mailing_id' => $mailing->id));
-        $body = $provider->getMessage($message, $field['contact_id'], $details[0][$contactID]);
-        $headers = $provider->getRecipientDetails($field, $details[0][$contactID]);
+        $body = $provider->getMessage($message, $task['contact_id'], $details[0][$contactID]);
+        $headers = $provider->getRecipientDetails($task, $details[0][$contactID]);
       }
 
       // make $recipient actually be the *encoded* header, so as not to baffle Mail_RFC822, CRM-5743
@@ -745,9 +695,9 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
         // Register the bounce event.
 
         $params = array(
-          'event_queue_id' => $field['id'],
+          'event_queue_id' => $task['id'],
           'job_id' => $this->id,
-          'hash' => $field['hash'],
+          'hash' => $task['hash'],
         );
         $params = array_merge($params,
           CRM_Mailing_BAO_BouncePattern::match($result->getMessage())
@@ -763,8 +713,8 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
       }
       else {
         // Register the delivery event.
-        $deliveredParams[] = $field['id'];
-        $targetParams[] = $field['contact_id'];
+        $deliveredParams[] = $task['id'];
+        $targetParams[] = $task['contact_id'];
 
         $count++;
         if ($count % CRM_Mailing_Config::BULK_MAIL_INSERT_COUNT == 0) {
@@ -1029,6 +979,67 @@ AND    record_type_id = $targetRecordID
     }
 
     return $result;
+  }
+
+  /**
+   * @param int $jobId
+   * @param string $medium
+   *   Ex: 'email' or 'sms'.
+   * @return \CRM_Mailing_Event_BAO_Queue
+   *   A query object whose rows provide ('id', 'contact_id', 'hash') and ('email' or 'phone').
+   */
+  public static function findPendingTasks($jobId, $medium) {
+    $eq = new CRM_Mailing_Event_BAO_Queue();
+    $queueTable = CRM_Mailing_Event_BAO_Queue::getTableName();
+    $emailTable = CRM_Core_BAO_Email::getTableName();
+    $phoneTable = CRM_Core_DAO_Phone::getTableName();
+    $contactTable = CRM_Contact_BAO_Contact::getTableName();
+    $deliveredTable = CRM_Mailing_Event_BAO_Delivered::getTableName();
+    $bounceTable = CRM_Mailing_Event_BAO_Bounce::getTableName();
+
+    $query = "  SELECT      $queueTable.id,
+                                $emailTable.email as email,
+                                $queueTable.contact_id,
+                                $queueTable.hash,
+                                NULL as phone
+                    FROM        $queueTable
+                    INNER JOIN  $emailTable
+                            ON  $queueTable.email_id = $emailTable.id
+                    INNER JOIN  $contactTable
+                            ON  $contactTable.id = $emailTable.contact_id
+                    LEFT JOIN   $deliveredTable
+                            ON  $queueTable.id = $deliveredTable.event_queue_id
+                    LEFT JOIN   $bounceTable
+                            ON  $queueTable.id = $bounceTable.event_queue_id
+                    WHERE       $queueTable.job_id = " . $jobId . "
+                        AND     $deliveredTable.id IS null
+                        AND     $bounceTable.id IS null
+                        AND    $contactTable.is_opt_out = 0";
+
+    if ($medium === 'sms') {
+      $query = "
+                    SELECT      $queueTable.id,
+                                $phoneTable.phone as phone,
+                                $queueTable.contact_id,
+                                $queueTable.hash,
+                                NULL as email
+                    FROM        $queueTable
+                    INNER JOIN  $phoneTable
+                            ON  $queueTable.phone_id = $phoneTable.id
+                    INNER JOIN  $contactTable
+                            ON  $contactTable.id = $phoneTable.contact_id
+                    LEFT JOIN   $deliveredTable
+                            ON  $queueTable.id = $deliveredTable.event_queue_id
+                    LEFT JOIN   $bounceTable
+                            ON  $queueTable.id = $bounceTable.event_queue_id
+                    WHERE       $queueTable.job_id = " . $jobId . "
+                        AND     $deliveredTable.id IS null
+                        AND     $bounceTable.id IS null
+                        AND    ( $contactTable.is_opt_out = 0
+                        OR       $contactTable.do_not_sms = 0 )";
+    }
+    $eq->query($query);
+    return $eq;
   }
 
 }
