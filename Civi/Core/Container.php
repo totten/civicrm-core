@@ -215,6 +215,11 @@ class Container {
       ))->addTag('kernel.event_subscriber');
     }
 
+    $container->setDefinition('civi_flexmailer_default', new Definition(
+      'Civi\FlexMailer\DefaultEngine',
+      array()
+    ));
+
     \CRM_Utils_Hook::container($container);
 
     return $container;
@@ -252,6 +257,14 @@ class Container {
     $dispatcher->addListener(\Civi\ActionSchedule\Events::MAPPINGS, array('CRM_Contribute_ActionMapping_ByType', 'onRegisterActionMappings'));
     $dispatcher->addListener(\Civi\ActionSchedule\Events::MAPPINGS, array('CRM_Event_ActionMapping', 'onRegisterActionMappings'));
     $dispatcher->addListener(\Civi\ActionSchedule\Events::MAPPINGS, array('CRM_Member_ActionMapping', 'onRegisterActionMappings'));
+
+    $terminalPriority = -100;
+    $dispatcher->addListenerService(\Civi\FlexMailer\FlexMailer::EVENT_RUN, array('civi_flexmailer_default', 'onRunInit'), 0);
+    $dispatcher->addListenerService(\Civi\FlexMailer\FlexMailer::EVENT_RUN, array('civi_flexmailer_default', 'onRunAbdicate'), $terminalPriority);
+    $dispatcher->addListenerService(\Civi\FlexMailer\FlexMailer::EVENT_WALK, array('civi_flexmailer_default', 'onWalkBatches'), $terminalPriority);
+    $dispatcher->addListenerService(\Civi\FlexMailer\FlexMailer::EVENT_COMPOSE, array('civi_flexmailer_default', 'onComposeBatch'), $terminalPriority);
+    $dispatcher->addListenerService(\Civi\FlexMailer\FlexMailer::EVENT_ALTER, array('civi_flexmailer_default', 'onAlterBatch'), -1);
+    $dispatcher->addListenerService(\Civi\FlexMailer\FlexMailer::EVENT_SEND, array('civi_flexmailer_default', 'onSendBatch'), $terminalPriority);
 
     return $dispatcher;
   }
