@@ -63,12 +63,13 @@ class api_v3_JobProcessMailingTest extends CiviUnitTestCase {
     $this->_groupID = $this->groupCreate();
     $this->_email = 'test@test.test';
     $this->_params = array(
-      'subject' => 'Accidents in cars cause children',
+      'subject' => 'Accidents in cars cause children for {contact.display_name}!',
       'body_text' => 'BEWARE children need regular infusions of toys. Santa knows your {domain.address}. There is no {action.optOutUrl}.',
       'name' => 'mailing name',
       'created_id' => 1,
       'groups' => array('include' => array($this->_groupID)),
       'scheduled_date' => 'now',
+      'open_tracking' => 1,
     );
     $this->defaultSettings = array(
       'mailings' => 1, // int, #mailings to send
@@ -96,15 +97,128 @@ class api_v3_JobProcessMailingTest extends CiviUnitTestCase {
     parent::tearDown();
   }
 
-  public function testBasic() {
+  public function basicSettings() {
+    $cases = array();
+    $cases[] = array(array('experimentalFlexMailerEngine' => FALSE));
+    // $cases[] = array(array('experimentalFlexMailerEngine' => TRUE));
+    return $cases;
+  }
+
+  /**
+   * Generate a fully-formatted mailing (with body_text content).
+   *
+   * @dataProvider basicSettings
+   * @param $settings
+   */
+  public function testBasicText($settings) {
     $this->createContactsInGroup(10, $this->_groupID);
     Civi::settings()->add(array(
       'mailerBatchLimit' => 2,
     ));
+    Civi::settings()->add($settings);
     $this->callAPISuccess('mailing', 'create', $this->_params);
     $this->_mut->assertRecipients(array());
     $this->callAPISuccess('job', 'process_mailing', array());
     $this->_mut->assertRecipients($this->getRecipients(1, 2));
+    foreach ($this->_mut->getAllMessages('ezc') as $k => $message) {
+      /** @var ezcMail $message */
+
+      $offset = $k + 1;
+
+      $this->assertEquals("FIXME", $message->from->name);
+      $this->assertEquals("info@EXAMPLE.ORG", $message->from->email);
+      $this->assertEquals("Mr. Foo{$offset} Anderson II", $message->to[0]->name);
+      $this->assertEquals("mail{$offset}@nul.example.com", $message->to[0]->email);
+
+      $this->assertRegExp('#^text/plain; charset=utf-8#', $message->headers['Content-Type']);
+      $this->assertRegExp(';^b\.[\d\.a-f]+@chaos.org$;', $message->headers['Return-Path']);
+      $this->assertRegExp(';^b\.[\d\.a-f]+@chaos.org$;', $message->headers['X-CiviMail-Bounce'][0]);
+      $this->assertRegExp(';^\<mailto:u\.[\d\.a-f]+@chaos.org\>$;', $message->headers['List-Unsubscribe'][0]);
+      $this->assertEquals('bulk', $message->headers['Precedence'][0]);
+
+      /** @var ezcMailText $textPart */
+      $textPart = $message->body;
+
+      $this->assertEquals('plain', $textPart->subType);
+      $this->assertRegExp(
+        ";" .
+        "Sample Header for TEXT formatted content.\n" . // Default header
+        "BEWARE children need regular infusions of toys. Santa knows your .*\\. There is no http.*civicrm/mailing/optout.*\\.\n" .
+        "to unsubscribe: http.*civicrm/mailing/optout" . // Default footer
+        ";",
+        $textPart->text
+      );
+    }
+  }
+
+  /**
+   * Generate a fully-formatted mailing (with body_html content).
+   *
+   * @dataProvider basicSettings
+   * @param $settings
+   */
+  public function testBasicHtml($settings) {
+    $this->createContactsInGroup(10, $this->_groupID);
+    Civi::settings()->add(array(
+      'mailerBatchLimit' => 2,
+    ));
+    Civi::settings()->add($settings);
+
+    $mailingParams = $this->_params;
+    unset($mailingParams['body_text']);
+    $mailingParams['body_html'] = '<p>You can <a href="{action.optOutUrl}">opt out</a>.</p>';
+
+    $this->callAPISuccess('mailing', 'create', $mailingParams);
+    $this->_mut->assertRecipients(array());
+    $this->callAPISuccess('job', 'process_mailing', array());
+    $this->_mut->assertRecipients($this->getRecipients(1, 2));
+    foreach ($this->_mut->getAllMessages('ezc') as $k => $message) {
+      /** @var ezcMail $message */
+
+      $offset = $k + 1;
+
+      $this->assertEquals("FIXME", $message->from->name);
+      $this->assertEquals("info@EXAMPLE.ORG", $message->from->email);
+      $this->assertEquals("Mr. Foo{$offset} Anderson II", $message->to[0]->name);
+      $this->assertEquals("mail{$offset}@nul.example.com", $message->to[0]->email);
+
+      $this->assertRegExp(';^multipart/alternative;', $message->headers['Content-Type']);
+      $this->assertRegExp(';^b\.[\d\.a-f]+@chaos.org$;', $message->headers['Return-Path']);
+      $this->assertRegExp(';^b\.[\d\.a-f]+@chaos.org$;', $message->headers['X-CiviMail-Bounce'][0]);
+      $this->assertRegExp(';^\<mailto:u\.[\d\.a-f]+@chaos.org\>$;', $message->headers['List-Unsubscribe'][0]);
+      $this->assertEquals('bulk', $message->headers['Precedence'][0]);
+
+      /** @var ezcMailText $textPart */
+      /** @var ezcMailText $htmlPart */
+      list($textPart, $htmlPart) = $message->body->getParts();
+
+      $this->assertEquals('html', $htmlPart->subType);
+      $this->assertRegExp(
+        ";" .
+        "Sample Header for HTML formatted content.\n" . // Default header
+        "<p>You can <a href=\"http.*civicrm/mailing/optout.*\">opt out</a>.</p>\n" . // body_html
+        "Sample Footer for HTML formatted content" . // Default footer
+        ".*\n" .
+        "<img src=\".*extern/open.php.*\"" .
+        ";",
+        $htmlPart->text
+      );
+
+      $this->assertEquals('plain', $textPart->subType);
+      $this->assertRegExp(
+        ";" .
+        "Sample Header for TEXT formatted content.\n" . // Default header
+        "You can opt out \\[1\\]\\.\n" . //  body_html, filtered
+        "\n" .
+        "Links:\n" .
+        "------\n" .
+        "\\[1\\] http.*civicrm/mailing/optout.*\n" .
+        "\n" .
+        "to unsubscribe: http.*civicrm/mailing/optout" . // Default footer
+        ";",
+        $textPart->text
+      );
+    }
   }
 
   public function concurrencyExamples() {
@@ -232,6 +346,26 @@ class api_v3_JobProcessMailingTest extends CiviUnitTestCase {
     return $es;
   }
 
+  //  /**
+  //   * @dataProvider concurrencyExamples
+  //   * @see _testConcurrencyCommon
+  //   */
+  //  public function testConcurrencyLegacy($settings, $expectedTallies, $expectedTotal) {
+  //    // TODO: Delete this test when removing the old delivery system.
+  //    Civi::settings()->set('experimentalFlexMailerEngine', FALSE);
+  //    $this->_testConcurrencyCommon($settings, $expectedTallies, $expectedTotal);
+  //  }
+
+  /**
+   * @dataProvider concurrencyExamples
+   * @see _testConcurrencyCommon
+   */
+  public function testConcurrencyFlex($settings, $expectedTallies, $expectedTotal) {
+    // TODO: Rename this test when removing the old delivery system.
+    Civi::settings()->set('experimentalFlexMailerEngine', TRUE);
+    $this->_testConcurrencyCommon($settings, $expectedTallies, $expectedTotal);
+  }
+
   /**
    * Setup various mail configuration options (eg $mailerBatchLimit,
    * $mailerJobMax) and spawn multiple worker threads ($workers).
@@ -249,9 +383,8 @@ class api_v3_JobProcessMailingTest extends CiviUnitTestCase {
    * @param int $expectedTotal
    *    The total number of contacts for whom messages should have
    *    been sent.
-   * @dataProvider concurrencyExamples
    */
-  public function testConcurrency($settings, $expectedTallies, $expectedTotal) {
+  protected function _testConcurrencyCommon($settings, $expectedTallies, $expectedTotal) {
     $settings = array_merge($this->defaultSettings, $settings);
 
     $this->createContactsInGroup($settings['recipients'], $this->_groupID);
@@ -300,7 +433,7 @@ class api_v3_JobProcessMailingTest extends CiviUnitTestCase {
    */
   public function createContactsInGroup($count, $groupID, $domain = 'nul.example.com') {
     for ($i = 1; $i <= $count; $i++) {
-      $contactID = $this->individualCreate(array('first_name' => $count, 'email' => 'mail' . $i . '@' . $domain));
+      $contactID = $this->individualCreate(array('first_name' => "Foo{$i}", 'email' => 'mail' . $i . '@' . $domain));
       $this->callAPISuccess('group_contact', 'create', array(
         'contact_id' => $contactID,
         'group_id' => $groupID,
