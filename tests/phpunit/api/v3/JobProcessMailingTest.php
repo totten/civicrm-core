@@ -100,7 +100,7 @@ class api_v3_JobProcessMailingTest extends CiviUnitTestCase {
   public function basicSettings() {
     $cases = array();
     $cases[] = array(array('experimentalFlexMailerEngine' => FALSE));
-    // $cases[] = array(array('experimentalFlexMailerEngine' => TRUE));
+    $cases[] = array(array('experimentalFlexMailerEngine' => TRUE));
     return $cases;
   }
 
@@ -346,15 +346,15 @@ class api_v3_JobProcessMailingTest extends CiviUnitTestCase {
     return $es;
   }
 
-  //  /**
-  //   * @dataProvider concurrencyExamples
-  //   * @see _testConcurrencyCommon
-  //   */
-  //  public function testConcurrencyLegacy($settings, $expectedTallies, $expectedTotal) {
-  //    // TODO: Delete this test when removing the old delivery system.
-  //    Civi::settings()->set('experimentalFlexMailerEngine', FALSE);
-  //    $this->_testConcurrencyCommon($settings, $expectedTallies, $expectedTotal);
-  //  }
+  /**
+   * @dataProvider concurrencyExamples
+   * @see _testConcurrencyCommon
+   */
+  public function testConcurrencyLegacy($settings, $expectedTallies, $expectedTotal) {
+    // TODO: Delete this test when removing the old delivery system.
+    Civi::settings()->set('experimentalFlexMailerEngine', FALSE);
+    $this->_testConcurrencyCommon($settings, $expectedTallies, $expectedTotal);
+  }
 
   /**
    * @dataProvider concurrencyExamples
