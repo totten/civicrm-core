@@ -63,12 +63,13 @@ class api_v3_JobProcessMailingTest extends CiviUnitTestCase {
     $this->_groupID = $this->groupCreate();
     $this->_email = 'test@test.test';
     $this->_params = array(
-      'subject' => 'Accidents in cars cause children',
+      'subject' => 'Accidents in cars cause children for {contact.display_name}!',
       'body_text' => 'BEWARE children need regular infusions of toys. Santa knows your {domain.address}. There is no {action.optOutUrl}.',
       'name' => 'mailing name',
       'created_id' => 1,
       'groups' => array('include' => array($this->_groupID)),
       'scheduled_date' => 'now',
+      'open_tracking' => 1,
     );
     $this->defaultSettings = array(
       'mailings' => 1, // int, #mailings to send
@@ -96,11 +97,25 @@ class api_v3_JobProcessMailingTest extends CiviUnitTestCase {
     parent::tearDown();
   }
 
-  public function testBasic() {
+  public function basicSettings() {
+    $cases = array();
+    $cases[] = array(array('experimentalFlexMailerEngine' => FALSE));
+    $cases[] = array(array('experimentalFlexMailerEngine' => TRUE));
+    return $cases;
+  }
+
+  /**
+   * Generate a fully-formatted mailing (with body_text content).
+   *
+   * @dataProvider basicSettings
+   * @param $settings
+   */
+  public function testBasic($settings) {
     $this->createContactsInGroup(10, $this->_groupID);
     Civi::settings()->add(array(
       'mailerBatchLimit' => 2,
     ));
+    Civi::settings()->add($settings);
     $this->callAPISuccess('mailing', 'create', $this->_params);
     $this->_mut->assertRecipients(array());
     $this->callAPISuccess('job', 'process_mailing', array());
@@ -233,6 +248,26 @@ class api_v3_JobProcessMailingTest extends CiviUnitTestCase {
   }
 
   /**
+   * @dataProvider concurrencyExamples
+   * @see _testConcurrencyCommon
+   */
+  public function testConcurrencyLegacy($settings, $expectedTallies, $expectedTotal) {
+    // TODO: Delete this test when removing the old delivery system.
+    Civi::settings()->set('experimentalFlexMailerEngine', FALSE);
+    $this->_testConcurrencyCommon($settings, $expectedTallies, $expectedTotal);
+  }
+
+  /**
+   * @dataProvider concurrencyExamples
+   * @see _testConcurrencyCommon
+   */
+  public function testConcurrencyFlex($settings, $expectedTallies, $expectedTotal) {
+    // TODO: Rename this test when removing the old delivery system.
+    Civi::settings()->set('experimentalFlexMailerEngine', TRUE);
+    $this->_testConcurrencyCommon($settings, $expectedTallies, $expectedTotal);
+  }
+
+  /**
    * Setup various mail configuration options (eg $mailerBatchLimit,
    * $mailerJobMax) and spawn multiple worker threads ($workers).
    * Allow the threads to complete. (Optionally, repeat the above
@@ -249,9 +284,8 @@ class api_v3_JobProcessMailingTest extends CiviUnitTestCase {
    * @param int $expectedTotal
    *    The total number of contacts for whom messages should have
    *    been sent.
-   * @dataProvider concurrencyExamples
    */
-  public function testConcurrency($settings, $expectedTallies, $expectedTotal) {
+  protected function _testConcurrencyCommon($settings, $expectedTallies, $expectedTotal) {
     $settings = array_merge($this->defaultSettings, $settings);
 
     $this->createContactsInGroup($settings['recipients'], $this->_groupID);
@@ -300,7 +334,7 @@ class api_v3_JobProcessMailingTest extends CiviUnitTestCase {
    */
   public function createContactsInGroup($count, $groupID, $domain = 'nul.example.com') {
     for ($i = 1; $i <= $count; $i++) {
-      $contactID = $this->individualCreate(array('first_name' => $count, 'email' => 'mail' . $i . '@' . $domain));
+      $contactID = $this->individualCreate(array('first_name' => "Foo{$i}", 'email' => 'mail' . $i . '@' . $domain));
       $this->callAPISuccess('group_contact', 'create', array(
         'contact_id' => $contactID,
         'group_id' => $groupID,
