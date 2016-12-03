@@ -189,7 +189,14 @@ class CRM_Mailing_BAO_MailingJob extends CRM_Mailing_DAO_MailingJob {
       }
 
       // Compose and deliver each child job
-      $isComplete = $job->deliver($mailer, $testParams);
+      $flexMailer = new \Civi\FlexMailer\FlexMailer(array(
+        'mailing' => CRM_Mailing_BAO_Mailing::findById($job->mailing_id),
+        'job' => $job,
+        'attachments' => \CRM_Core_BAO_File::getEntityFile('civicrm_mailing', $job->mailing_id),
+        'deprecatedMessageMailer' => $mailer,
+        'deprecatedTestParams' => $testParams,
+      ));
+      $isComplete = $flexMailer->run();
 
       CRM_Utils_Hook::post('create', 'CRM_Mailing_DAO_Spool', $job->id, $isComplete);
 
@@ -490,8 +497,16 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
    *   A Mail object to send the messages.
    *
    * @param array $testParams
+   *
+   * @return bool
+   *
+   * @deprecated
    */
   public function deliver(&$mailer, $testParams = NULL) {
+    if (\Civi::settings()->get('experimentalFlexMailerEngine')) {
+      throw new \RuntimeException("Cannot use legacy deliver() when experimentalFlexMailerEngine is enabled");
+    }
+
     $mailing = new CRM_Mailing_BAO_Mailing();
     $mailing->id = $this->mailing_id;
     $mailing->find(TRUE);
@@ -581,6 +596,8 @@ VALUES (%1, %2, %3, %4, %5, %6, %7)
    *
    * @return bool|null
    * @throws Exception
+   * @deprecated
+   * @see \Civi\FlexMailer\FlexMailer
    */
   public function deliverGroup(&$fields, &$mailing, &$mailer, &$job_date, &$attachments) {
     static $smtpConnectionErrors = 0;
