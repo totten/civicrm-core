@@ -156,7 +156,7 @@
             mailings: {include: [], exclude: []}
           },
           template_type: "traditional",
-          template_options: "",
+          template_options: {},
           name: "",
           campaign_id: null,
           replyto_email: "",
