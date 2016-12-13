@@ -156,7 +156,7 @@
             mailings: {include: [], exclude: []}
           },
           template_type: "traditional",
-          template_options: {},
+          template_options: {nonce: 1}, // Workaround CRM-19756
           name: "",
           campaign_id: null,
           replyto_email: "",
