@@ -299,9 +299,7 @@ abstract class CRM_Utils_Hook {
   public static function pre($op, $objectName, $id, &$params) {
     $event = new \Civi\Core\Event\PreEvent($op, $objectName, $id, $params);
     \Civi::service('dispatcher')->dispatch("hook_civicrm_pre", $event);
-    \Civi::service('dispatcher')->dispatch("hook_civicrm_pre::$objectName", $event);
-    return self::singleton()
-      ->invoke(4, $op, $objectName, $id, $params, self::$_nullObject, self::$_nullObject, 'civicrm_pre');
+    return $event->getReturnValue();
   }
 
   /**
@@ -323,9 +321,7 @@ abstract class CRM_Utils_Hook {
   public static function post($op, $objectName, $objectId, &$objectRef = NULL) {
     $event = new \Civi\Core\Event\PostEvent($op, $objectName, $objectId, $objectRef);
     \Civi::service('dispatcher')->dispatch("hook_civicrm_post", $event);
-    \Civi::service('dispatcher')->dispatch("hook_civicrm_post::$objectName", $event);
-    return self::singleton()
-      ->invoke(4, $op, $objectName, $objectId, $objectRef, self::$_nullObject, self::$_nullObject, 'civicrm_post');
+    return $event->getReturnValue();
   }
 
   /**
@@ -2056,11 +2052,6 @@ abstract class CRM_Utils_Hook {
   public static function caseChange(\Civi\CCase\Analyzer $analyzer) {
     $event = new \Civi\CCase\Event\CaseChangeEvent($analyzer);
     \Civi::service('dispatcher')->dispatch("hook_civicrm_caseChange", $event);
-
-    self::singleton()->invoke(1, $analyzer,
-      self::$_nullObject, self::$_nullObject, self::$_nullObject, self::$_nullObject, self::$_nullObject,
-      'civicrm_caseChange'
-    );
   }
 
   /**

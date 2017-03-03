@@ -31,7 +31,16 @@ namespace Civi\Core\Event;
  * Class AuthorizeEvent
  * @package Civi\API\Event
  */
-class PreEvent extends \Symfony\Component\EventDispatcher\Event {
+class PreEvent extends GenericHookEvent {
+
+  /**
+   * This adapter automatically emits a narrower event.
+   *
+   * @param \Civi\Core\Event\PreEvent $event
+   */
+  public static function dispatchSubevent(PreEvent $event) {
+    \Civi::service('dispatcher')->dispatch("hook_civicrm_pre::" . $event->entity, $event);
+  }
 
   /**
    * @var string 'create'|'edit'|'delete' etc
@@ -64,6 +73,18 @@ class PreEvent extends \Symfony\Component\EventDispatcher\Event {
     $this->entity = $entity;
     $this->id = $id;
     $this->params = $params;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getHookParams() {
+    return array(
+      'action' => $this->action,
+      'entity' => $this->entity,
+      'id' => $this->id,
+      'params' => &$this->params,
+    );
   }
 
 }
