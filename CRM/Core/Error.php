@@ -587,31 +587,17 @@ class CRM_Core_Error extends PEAR_ErrorStack {
    * @param string $priority
    */
   public static function debug_log_message($message, $out = FALSE, $comp = '', $priority = NULL) {
-    $config = CRM_Core_Config::singleton();
-
-    $file_log = self::createDebugLogger($comp);
-    $file_log->log("$message\n", $priority);
-
-    $str = '<p/><code>' . htmlspecialchars($message) . '</code>';
-    if ($out && CRM_Core_Permission::check('view debug output')) {
-      echo $str;
-    }
-    $file_log->close();
-
-    if (!isset(\Civi::$statics[__CLASS__]['userFrameworkLogging'])) {
-      // Set it to FALSE first & then try to set it. This is to prevent a loop as calling
-      // $config->userFrameworkLogging can trigger DB queries & under log mode this
-      // then gets called again.
-      \Civi::$statics[__CLASS__]['userFrameworkLogging'] = FALSE;
-      \Civi::$statics[__CLASS__]['userFrameworkLogging'] = $config->userFrameworkLogging;
-    }
-
-    if (!empty(\Civi::$statics[__CLASS__]['userFrameworkLogging'])) {
-      // should call $config->userSystem->logger($message) here - but I got a situation where userSystem was not an object - not sure why
-      if ($config->userSystem->is_drupal and function_exists('watchdog')) {
-        watchdog('civicrm', '%message', array('%message' => $message), WATCHDOG_DEBUG);
-      }
-    }
+    $container = \Civi\Core\Container::getBootService('container');
+    // For errors during bootstrap, we can't rely on pluggable logs. Fallback to default.
+    $logger = $container ? $container->get('psr_log') : new CRM_Core_Error_Log();
+    $logger->log(
+      ($priority === NULL ? \Psr\Log\LogLevel::INFO : array_search($priority, CRM_Core_Error_Log::getLevelMap())),
+      $message,
+      array(
+        'civi.comp' => $comp,
+        'civi.out' => $out,
+      )
+    );
   }
 
   /**
