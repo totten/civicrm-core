@@ -536,10 +536,6 @@ class CRM_Core_Error extends PEAR_ErrorStack {
    * @param string $comp
    *   Variable name.
    *
-   * @return string
-   *   the generated output
-   *
-   *
    *
    * @see CRM_Core_Error::debug()
    * @see CRM_Core_Error::debug_log_message()
@@ -573,7 +569,7 @@ class CRM_Core_Error extends PEAR_ErrorStack {
         reset($variable);
       }
     }
-    return self::debug_log_message($out, FALSE, $comp);
+    self::debug_log_message($out, FALSE, $comp);
   }
 
   /**
@@ -589,9 +585,6 @@ class CRM_Core_Error extends PEAR_ErrorStack {
    * @param string $comp
    *   Message to be output.
    * @param string $priority
-   *
-   * @return string
-   *   Format of the backtrace
    */
   public static function debug_log_message($message, $out = FALSE, $comp = '', $priority = NULL) {
     $config = CRM_Core_Config::singleton();
@@ -619,8 +612,6 @@ class CRM_Core_Error extends PEAR_ErrorStack {
         watchdog('civicrm', '%message', array('%message' => $message), WATCHDOG_DEBUG);
       }
     }
-
-    return $str;
   }
 
   /**
