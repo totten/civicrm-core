@@ -57,6 +57,10 @@ class CRM_Core_Error_Log extends \Psr\Log\AbstractLogger {
    * @param array $context
    */
   public function log($level, $message, array $context = array()) {
+    if (CRM_Utils_System::isDevelopment() && CRM_Core_Config::singleton()->debug && function_exists('debug_backtrace')) {
+      $context['civi.caller'] = $this->findNonLogCaller(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
+    }
+
     // FIXME: This flattens a $context a bit prematurely. When integrating
     // with external/CMS logs, we should pass through $context.
     if (!empty($context)) {
@@ -70,6 +74,27 @@ class CRM_Core_Error_Log extends \Psr\Log\AbstractLogger {
       }
     }
     CRM_Core_Error::debug_log_message($message, FALSE, '', $this->map[$level]);
+  }
+
+
+  /**
+   * @param array $frames
+   *   List of stack frames (from `debug_backtrace()`).
+   * @return string
+   */
+  protected function findNonLogCaller($frames) {
+    $prev = NULL;
+    foreach ($frames as $frame) {
+      if (isset($frame['class'])) {
+        $c = new ReflectionClass($frame['class']);
+        if ($c->implementsInterface('\Psr\Log\LoggerInterface')) {
+          $prev = $frame;
+          continue;
+        }
+      }
+      return $prev['file'] . ' at line ' . $prev['line'];
+    }
+    return '(unidentified code)';
   }
 
 }
