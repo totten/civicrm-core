@@ -10,6 +10,7 @@ describe('crmMailingRadioDate', function() {
   });
 
   var standardMarkup = '<form name="myForm">' +
+    // TODO: ' <div ng-include="~/crmMailing/BlockSchedule.html"'
     '  <div crm-mailing-radio-date="mySchedule" ng-model="model.the_date" name="myRadioDate">' +
     '    <input ng-model="mySchedule.mode" type="radio" name="send" value="now" class="radio-now" />' +
     '    <input ng-model="mySchedule.mode" type="radio" name="send" value="at" class="radio-at" />' +
