@@ -5,7 +5,7 @@
     pageTitle = 'CiviCRM',
     documentTitle = 'CiviCRM';
 
-  angular.module('crmUi', [])
+  angular.crmDepends('crmUi')
 
     // example <div crm-ui-accordion crm-title="ts('My Title')" crm-collapsed="true">...content...</div>
     // WISHLIST: crmCollapsed should support two-way/continuous binding

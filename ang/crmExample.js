@@ -1,8 +1,6 @@
 (function(angular, $, _) {
 
-  angular.module('crmExample', [
-    'crmUtil', 'ngRoute', 'ui.utils', 'crmUi'
-  ]);
+  angular.crmDepends('crmExample');
 
   angular.module('crmExample').config([
     '$routeProvider',

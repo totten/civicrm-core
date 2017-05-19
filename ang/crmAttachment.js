@@ -1,7 +1,7 @@
 /// crmFile: Manage file attachments
 (function (angular, $, _) {
 
-  angular.module('crmAttachment', ['angularFileUpload']);
+  angular.crmDepends('crmAttachment');
 
   // crmAttachment manages the list of files which are attached to a given entity
   angular.module('crmAttachment').factory('CrmAttachments', function (crmApi, crmStatus, FileUploader, $q) {
