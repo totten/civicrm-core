@@ -26,7 +26,7 @@
         }
         else {
           angular.forEach(dfrs, function(dfr) {
-            dfr.reject({status: 500}); // FIXME
+            dfr.reject({status: 500, headers: function(){}, data: ''});
           });
         }
       });
@@ -34,9 +34,9 @@
 
     var moduleUrl = CRM.angular.bundleUrl;
     $http.get(moduleUrl)
-      .success(function httpSuccess(data) {
+      .then(function httpSuccess(response) {
         templates = [];
-        angular.forEach(data, function(module) {
+        angular.forEach(response.data, function(module) {
           if (module.partials) {
             angular.extend(templates, module.partials);
           }
@@ -46,7 +46,7 @@
         });
         notify();
       })
-      .error(function httpError() {
+      .catch(function httpError() {
         templates = [];
         notify();
       });
