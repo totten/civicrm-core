@@ -10,7 +10,6 @@ bin/setup.conf
 civicrm-version.php
 civicrm-version.txt
 civicrm.config.php
-install/langs.php
 node_modules
 packages/.channels
 packages/.depdb
