@@ -19,7 +19,9 @@ class CRM_Core_CodeGen_I18n extends CRM_Core_CodeGen_BaseTask {
     for ($i = 0; $i < count($matches[0]); $i++) {
       $langs[$matches[1][$i]] = $matches[2][$i];
     }
-    file_put_contents('../install/langs.php', "<?php \$langs = " . var_export($langs, TRUE) . ";");
+    $langsPhp = "<?php \$langs = " . var_export($langs, TRUE) . ";\n";
+    $langsPhp = str_replace('= array (', '= array(', $langsPhp);
+    file_put_contents('../install/langs.php', $langsPhp);
   }
 
   public function generateSchemaStructure() {
