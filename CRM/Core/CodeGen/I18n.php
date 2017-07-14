@@ -10,6 +10,7 @@ class CRM_Core_CodeGen_I18n extends CRM_Core_CodeGen_BaseTask {
   }
 
   public function generateInstallLangs() {
+    echo "Generating installation language index\n";
     // CRM-7161: generate install/langs.php from the languages template
     // grep it for enabled languages and create a 'xx_YY' => 'Language name' $langs mapping
     $matches = array();
@@ -22,7 +23,7 @@ class CRM_Core_CodeGen_I18n extends CRM_Core_CodeGen_BaseTask {
   }
 
   public function generateSchemaStructure() {
-    echo "Generating CRM_Core_I18n_SchemaStructure...\n";
+    echo "Generating CRM_Core_I18n_SchemaStructure\n";
     $columns = array();
     $indices = array();
     $widgets = array();
