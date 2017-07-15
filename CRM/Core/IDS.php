@@ -47,6 +47,14 @@ class CRM_Core_IDS {
   private $path;
 
   /**
+   * CRM_Core_IDS constructor.
+   * @param string $path
+   */
+  public function __construct($path = NULL) {
+    $this->path = $path;
+  }
+
+  /**
    * Check function.
    *
    * This function includes the IDS vendor parts and runs the
@@ -232,7 +240,7 @@ class CRM_Core_IDS {
    *
    * @return bool
    */
-  private function react(IDS_Report $result) {
+  public function react(IDS_Report $result) {
 
     $impact = $result->getImpact();
     if ($impact >= $this->threshold['kick']) {
