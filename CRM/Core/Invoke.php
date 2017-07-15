@@ -132,10 +132,7 @@ class CRM_Core_Invoke {
   static public function init($args) {
     // first fire up IDS and check for bad stuff
     $config = CRM_Core_Config::singleton();
-    if (!CRM_Core_Permission::check('skip IDS check')) {
-      $ids = new CRM_Core_IDS();
-      $ids->check($args);
-    }
+    CRM_Utils_Hook::ids(implode('/', $args));
 
     // also initialize the i18n framework
     require_once 'CRM/Core/I18n.php';

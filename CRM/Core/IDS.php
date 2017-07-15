@@ -33,6 +33,17 @@
 class CRM_Core_IDS {
 
   /**
+   * @param \Civi\Core\Event\GenericHookEvent $e
+   * @see CRM_Utils_Hook::ids
+   */
+  public static function onApplyIds(\Civi\Core\Event\GenericHookEvent $e) {
+    if (!CRM_Core_Permission::check('skip IDS check')) {
+      $ids = new CRM_Core_IDS();
+      $ids->check(explode('/', $e->path));
+    }
+  }
+
+  /**
    * Define the threshold for the ids reactions.
    */
   private $threshold = array(
