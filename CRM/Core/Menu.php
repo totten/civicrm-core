@@ -729,7 +729,13 @@ UNION (
       $i18n = CRM_Core_I18n::singleton();
       $i18n->localizeTitles($menuPath);
     }
-    return $menuPath;
+
+    $items = array(
+      $path => $menuPath,
+    );
+    CRM_Utils_Hook::alterMenu($items);
+
+    return $items[$path];
   }
 
   /**
