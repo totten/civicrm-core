@@ -2341,6 +2341,22 @@ abstract class CRM_Utils_Hook {
   }
 
   /**
+   * (Experimental) Apply IDS checks.
+   *
+   * @param string $path
+   *   The current route.
+   *   Ex: `civicrm/dashboard`, `civicrm/contact/view`.
+   *
+   * @return mixed
+   */
+  public static function ids($path) {
+    return self::singleton()->invoke(array('path'), $path, self::$_nullObject,
+      self::$_nullObject, self::$_nullObject, self::$_nullObject, self::$_nullObject,
+      'civicrm_ids'
+    );
+  }
+
+  /**
    * This hook is called for bypass a few civicrm urls from IDS check.
    *
    * @param array $skip list of civicrm urls
