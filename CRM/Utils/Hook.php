@@ -2343,14 +2343,17 @@ abstract class CRM_Utils_Hook {
   /**
    * (Experimental) Apply IDS checks.
    *
-   * @param string $path
-   *   The current route.
-   *   Ex: `civicrm/dashboard`, `civicrm/contact/view`.
+   * @param array $route
+   *   The current route. Fields:
+   *    - path: string, eg `civicrm/dashboard`, `civicrm/contact/view`.
    *
    * @return mixed
+   *
+   * @see CRM_Core_Menu
+   * @see CRM_Core_Invoke::getItem()
    */
-  public static function ids($path) {
-    return self::singleton()->invoke(array('path'), $path, self::$_nullObject,
+  public static function ids($route) {
+    return self::singleton()->invoke(array('route'), $route, self::$_nullObject,
       self::$_nullObject, self::$_nullObject, self::$_nullObject, self::$_nullObject,
       'civicrm_ids'
     );

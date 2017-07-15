@@ -132,7 +132,6 @@ class CRM_Core_Invoke {
   static public function init($args) {
     // first fire up IDS and check for bad stuff
     $config = CRM_Core_Config::singleton();
-    CRM_Utils_Hook::ids(implode('/', $args));
 
     // also initialize the i18n framework
     require_once 'CRM/Core/I18n.php';
@@ -194,6 +193,8 @@ class CRM_Core_Invoke {
    * @return string, HTML
    */
   static public function runItem($item) {
+    CRM_Utils_Hook::ids($item);
+
     $config = CRM_Core_Config::singleton();
     if ($config->userFramework == 'Joomla' && $item) {
       $config->userFrameworkURLVar = 'task';

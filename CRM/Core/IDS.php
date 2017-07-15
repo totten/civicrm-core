@@ -39,7 +39,7 @@ class CRM_Core_IDS {
   public static function onApplyIds(\Civi\Core\Event\GenericHookEvent $e) {
     if (!CRM_Core_Permission::check('skip IDS check')) {
       $ids = new CRM_Core_IDS();
-      $ids->check(explode('/', $e->path));
+      $ids->check(explode('/', $e->route['path']));
     }
   }
 
