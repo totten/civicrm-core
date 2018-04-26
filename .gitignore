@@ -26,6 +26,7 @@ tests/phpunit/CiviTest/civicrm.settings.php
 tools/stats/config.php
 authors.txt
 drupal/
+drupal-8/
 WordPress
 joomla
 packages/
