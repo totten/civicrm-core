@@ -45,4 +45,8 @@ class CRM_Core_PrevNextCache_Memory implements CRM_Core_PrevNextCache_Interface 
     $this->cache = $cache;
   }
 
+  public function fetch($cacheKey, $offset, $rowCount, $includeContactIds, $queryBao) {
+    throw new \RuntimeException("Not implemented: " . __CLASS__ . '::' . __FUNCTION__);
+  }
+
 }
