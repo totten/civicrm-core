@@ -49,6 +49,10 @@ class CRM_Core_PrevNextCache_Memory implements CRM_Core_PrevNextCache_Interface 
     throw new \RuntimeException("Not implemented: " . __CLASS__ . '::' . __FUNCTION__);
   }
 
+  public function fillWithArray($cacheKey, $rows) {
+    throw new \RuntimeException("Not implemented: " . __CLASS__ . '::' . __FUNCTION__);
+  }
+
   public function fetch($cacheKey, $offset, $rowCount, $includeContactIds, $queryBao) {
     throw new \RuntimeException("Not implemented: " . __CLASS__ . '::' . __FUNCTION__);
   }
