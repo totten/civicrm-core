@@ -39,7 +39,7 @@ interface CRM_Core_PrevNextCache_Interface {
    * @param string $cacheKey
    * @param string $sql
    *   A SQL query. The query *MUST* be a SELECT statement which yields
-   *   the following columns (in order): entity_table, entity_id1, entity_id2, cacheKey, data
+   *   the following columns (in order): cacheKey, entity_id1, data
    * @return bool
    */
   public function fillWithSql($cacheKey, $sql);
@@ -117,9 +117,8 @@ interface CRM_Core_PrevNextCache_Interface {
    *
    * @param int $id
    * @param string $cacheKey
-   * @param string $entityTable
    */
-  public function deleteItem($id = NULL, $cacheKey = NULL, $entityTable = 'civicrm_contact');
+  public function deleteItem($id = NULL, $cacheKey = NULL);
 
   /**
    * Get count of matching rows.
