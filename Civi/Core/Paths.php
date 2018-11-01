@@ -67,6 +67,24 @@ class Paths {
       ->register('civicrm.files', function () {
         return \CRM_Core_Config::singleton()->userSystem->getDefaultFileStorage();
       })
+      ->register('config.imageUpload', function() {
+        return array(
+          'path' => \CRM_Core_Config::singleton()->imageUploadDir,
+          'url' => \CRM_Core_Config::singleton()->imageUploadURL,
+        );
+      })
+      ->register('config.extensions', function() {
+        return array(
+          'path' => \CRM_Core_Config::singleton()->extensionsDir,
+          'url' => \CRM_Core_Config::singleton()->extensionsURL,
+        );
+      })
+      ->register('config.customFileUpload', function() {
+        return array('path' => \CRM_Core_Config::singleton()->customFileUploadDir);
+      })
+      ->register('config.upload', function() {
+        return array('path' => \CRM_Core_Config::singleton()->uploadDir);
+      })
       ->register('wp.frontend.base', function () {
         return array('url' => rtrim(CIVICRM_UF_BASEURL, '/') . '/');
       })
