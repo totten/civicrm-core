@@ -74,19 +74,19 @@ class AssetBuilderTest extends \CiviEndToEndTestCase {
 
     $examples[] = array(
       0 => 'square.txt',
-      1 => array('x' => 11),
+      1 => array('x' => '11'),
       2 => 'text/plain',
       3 => 'Square: 121',
     );
     $examples[] = array(
       0 => 'square.txt',
-      1 => array('x' => 12),
+      1 => array('x' => '12'),
       2 => 'text/plain',
       3 => 'Square: 144',
     );
     $examples[] = array(
       0 => 'square.js',
-      1 => array('x' => 12),
+      1 => array('x' => '12'),
       2 => 'application/javascript',
       3 => 'var square=144;',
     );
@@ -126,6 +126,7 @@ class AssetBuilderTest extends \CiviEndToEndTestCase {
   public function testGetUrl_cached($asset, $params, $expectedMimeType, $expectedContent) {
     \Civi::service('asset_builder')->setCacheEnabled(TRUE);
     $url = \Civi::service('asset_builder')->getUrl($asset, $params);
+    $this->assertEquals($url, \Civi::paths()->getUrl('assetBuilder://' . $asset . '?' . http_build_query($params)));
     $this->assertEquals(1, $this->fired['hook_civicrm_buildAsset']);
     $this->assertRegExp(';^https?:.*dyn/square.[0-9a-f]+.(txt|js)$;', $url);
     $this->assertEquals($expectedContent, file_get_contents($url));
@@ -149,6 +150,7 @@ class AssetBuilderTest extends \CiviEndToEndTestCase {
   public function testGetUrl_uncached($asset, $params, $expectedMimeType, $expectedContent) {
     \Civi::service('asset_builder')->setCacheEnabled(FALSE);
     $url = \Civi::service('asset_builder')->getUrl($asset, $params);
+    $this->assertEquals($url, \Civi::paths()->getUrl('assetBuilder://' . $asset . '?' . http_build_query($params)));
     $this->assertEquals(0, $this->fired['hook_civicrm_buildAsset']);
     $this->assertRegExp(';^https?:.*civicrm/asset/builder.*square.(txt|js);', $url);
 

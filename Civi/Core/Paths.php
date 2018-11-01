@@ -8,7 +8,10 @@ namespace Civi\Core;
  * This paths class translates path-expressions into local file paths and
  * URLs. Path-expressions may take a few forms:
  *
- *  - Paths and URLs may use a variable prefix. For example, '[civicrm.files]/upload'
+ *  - Path and URL expressions may use a variable prefix. For example, '[civicrm.files]/upload'
+ *  - Path and URL expressions may be looked up in other subsystems with a URL notation, e.g.
+ *    - 'ext://org.civicrm.api4/README.md' ==> Lookup an extension
+ *    - 'assetBuilder://visual-bundle.js' ==> Lookup a dynamic asset
  *  - Paths and URLS may be absolute.
  *  - Paths may be relative (base dir: [civicrm.files]).
  *  - URLs may be relative (base dir: [cms.root]).
@@ -27,11 +30,19 @@ class Paths {
   private $variableFactory = array();
 
   /**
+   * @var array
+   *   Array(string $urlScheme => callable $lookupFunc).
+   */
+  private $schemes = array();
+
+  /**
    * Class constructor.
    */
   public function __construct() {
     $paths = $this;
     $this
+      ->registerUrlScheme('ext', new PrivatePathsExtAdapter())
+      ->registerUrlScheme('assetBuilder', new PrivatePathsAssetAdapter())
       ->register('civicrm.root', function () {
         return \CRM_Core_Config::singleton()->userSystem->getCiviSourceStorage();
       })
@@ -105,6 +116,11 @@ class Paths {
     return $this;
   }
 
+  public function registerUrlScheme($scheme, $handler) {
+    $this->schemes[$scheme] = $handler;
+    return $this;
+  }
+
   /**
    * @param string $name
    *   Ex: 'civicrm.root'.
@@ -114,7 +130,7 @@ class Paths {
    */
   public function getVariable($name, $attr) {
     if (!isset($this->variables[$name])) {
-      $this->variables[$name] = call_user_func($this->variableFactory[$name]);
+      $this->variables[$name] = call_user_func($this->variableFactory[$name], $name);
       if (isset($GLOBALS['civicrm_paths'][$name])) {
         $this->variables[$name] = array_merge($this->variables[$name], $GLOBALS['civicrm_paths'][$name]);
       }
@@ -137,16 +153,38 @@ class Paths {
   }
 
   /**
+   * Determine if we have special-lookup support for a URL scheme.
+   *
+   * @param string $scheme
+   *   Ex: 'ext', 'assetBuilder', 'fooBar'.
+   * @return bool
+   *   TRUE if supported.
+   */
+  public function hasUrlScheme($scheme) {
+    return isset($this->schemes[$scheme]);
+  }
+
+  /**
    * Determine the absolute path to a file, given that the file is most likely
    * in a given particular variable.
    *
    * @param string $value
    *   The file path.
    *   Use "." to reference to default file root.
-   *   Values may begin with a variable, e.g. "[civicrm.files]/upload".
+   *   Values may begin with a variable or internal URL-scheme.
+   *   Ex: "[civicrm.files]/upload"
+   *   Ex: "ext://org.civicrm.api4/README.md".
    * @return mixed|string
+   *   The local path of the resource.
    */
   public function getPath($value) {
+    if ($value && strpos($value, '://') !== FALSE) {
+      $urlParts = parse_url($value);
+      if (isset($this->schemes[$urlParts['scheme']])) {
+        return $this->schemes[$urlParts['scheme']]->getPath($urlParts);
+      }
+    }
+
     $defaultContainer = self::DEFAULT_PATH;
     if ($value && $value{0} == '[' && preg_match(';^\[([a-zA-Z0-9\._]+)\]/(.*);', $value, $matches)) {
       $defaultContainer = $matches[1];
@@ -165,7 +203,10 @@ class Paths {
    * Determine the URL to a file.
    *
    * @param string $value
-   *   The file path. The path may begin with a variable, e.g. "[civicrm.files]/upload".
+   *   The file path.
+   *   Values may begin with a variable or internal URL-scheme.
+   *   Ex: "[civicrm.files]/upload".
+   *   Ex: "ext://org.civicrm.api4/README.md"
    * @param string $preferFormat
    *   The preferred format ('absolute', 'relative').
    *   The result data may not meet the preference -- if the setting
@@ -174,25 +215,34 @@ class Paths {
    * @param bool|NULL $ssl
    *   NULL to autodetect. TRUE to force to SSL.
    * @return mixed|string
+   *   The public HTTP(S) URL of the resource.
    */
   public function getUrl($value, $preferFormat = 'relative', $ssl = NULL) {
-    $defaultContainer = self::DEFAULT_URL;
-    if ($value && $value{0} == '[' && preg_match(';^\[([a-zA-Z0-9\._]+)\](/(.*))$;', $value, $matches)) {
-      $defaultContainer = $matches[1];
-      $value = empty($matches[3]) ? '.' : $matches[3];
+    if ($value && strpos($value, '://') !== FALSE) {
+      $urlParts = parse_url($value);
+      if (isset($this->schemes[$urlParts['scheme']])) {
+        $value = $this->schemes[$urlParts['scheme']]->getUrl($urlParts);
+      }
     }
+    else {
+      $defaultContainer = self::DEFAULT_URL;
+      if ($value && $value{0} == '[' && preg_match(';^\[([a-zA-Z0-9\._:\-]+)\](/(.*))$;', $value, $matches)) {
+        $defaultContainer = $matches[1];
+        $value = empty($matches[3]) ? '.' : $matches[3];
+      }
 
-    if (empty($value)) {
-      return FALSE;
-    }
-    if ($value === '.') {
-      $value = '';
-    }
-    if (substr($value, 0, 4) == 'http') {
-      return $value;
-    }
+      if (empty($value)) {
+        return FALSE;
+      }
+      if ($value === '.') {
+        $value = '';
+      }
+      if (substr($value, 0, 4) == 'http') {
+        return $value;
+      }
 
-    $value = $this->getVariable($defaultContainer, 'url') . $value;
+      $value = $this->getVariable($defaultContainer, 'url') . $value;
+    }
 
     if ($preferFormat === 'relative') {
       $parsed = parse_url($value);
@@ -206,6 +256,50 @@ class Paths {
     }
 
     return $value;
+  }
+
+}
+
+class PrivatePathsExtAdapter {
+  public function getPath($urlParts) {
+    $path = isset($urlParts['path']) ? $urlParts['path'] : '';
+    // CRM_Core_Resources::getPath() has some wonky file-existence checks, and
+    // we don't really need its other bits. Go to canonical source.
+    return \CRM_Extension_System::singleton()->getMapper()->keyToBasePath($urlParts['host']) . $path;
+  }
+
+  public function getUrl($urlParts) {
+    // CRM_Core_Resources::getPath() has some wonky file-existence checks, and
+    // we don't really need its other bits. Go to canonical source.
+    $path = isset($urlParts['path']) ? $urlParts['path'] : '';
+    return \CRM_Extension_System::singleton()->getMapper()->keyToUrl($urlParts['host'])  . $path;
+  }
+
+}
+
+class PrivatePathsAssetAdapter {
+  public function getPath($urlParts) {
+    list ($assetName, $assetParams) = $this->parseAsset($urlParts);
+    return \Civi::service('asset_builder')->getPath($assetName, $assetParams);
+  }
+
+  public function getUrl($urlParts) {
+    list ($assetName, $assetParams) = $this->parseAsset($urlParts);
+    return \Civi::service('asset_builder')->getUrl($assetName, $assetParams);
+  }
+
+  private function parseAsset($urlParts) {
+    $assetName = $urlParts['host'];
+    if (isset($urlParts['path'])) {
+      $assetName .= $urlParts['path'];
+    }
+
+    $assetParams = array();
+    if (isset($urlParts['query'])) {
+      parse_str('' . $urlParts['query'], $assetParams);
+    }
+
+    return [$assetName, $assetParams];
   }
 
 }
