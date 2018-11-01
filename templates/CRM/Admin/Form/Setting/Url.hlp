@@ -107,4 +107,11 @@
   <p>
     {ts}These variables are computed automatically using <tt>civicrm.settings.php</tt> and its options, such as <tt>CIVICRM_TEMPLATE_COMPILEDIR</tt>.{/ts}
   </p>
+  <p>
+  {ts}Additionally, you may reference resources from extensions and the dynamic-asset builder, as in:{/ts}
+  </p>
+  <ul>
+    <li><tt>ext://org.civicrm.api4/css</tt></li>
+    <li><tt>assetBuilder://visual-bundle.js</tt></li>
+  </ul>
 {/htxt}
