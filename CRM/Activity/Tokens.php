@@ -73,8 +73,8 @@ class CRM_Activity_Tokens extends \Civi\Token\AbstractTokenSubscriber {
       )
       ||
       (
-        !empty($processor->context['fields'])
-        && in_array('activityId', $processor->context['fields'])
+        !empty($processor->context['schema'])
+        && in_array('activityId', $processor->context['schema'])
       );
   }
 
