@@ -67,8 +67,15 @@ class CRM_Activity_Tokens extends \Civi\Token\AbstractTokenSubscriber {
   public function checkActive(\Civi\Token\TokenProcessor $processor) {
     // Extracted from scheduled-reminders code. See the class description.
     return
-      !empty($processor->context['actionMapping'])
-      && $processor->context['actionMapping']->getEntity() === 'civicrm_activity';
+      (
+        !empty($processor->context['actionMapping'])
+        && $processor->context['actionMapping']->getEntity() === 'civicrm_activity'
+      )
+      ||
+      (
+        !empty($processor->context['fields'])
+        && in_array('activityId', $processor->context['fields'])
+      );
   }
 
   /**
@@ -99,10 +106,40 @@ class CRM_Activity_Tokens extends \Civi\Token\AbstractTokenSubscriber {
   }
 
   /**
+   * If context has 'activityId', then we'll batch-load the activities.
+   *
+   * @param \Civi\Token\Event\TokenValueEvent $e
+   * @return array|null
+   */
+  public function prefetch(\Civi\Token\Event\TokenValueEvent $e) {
+    if (in_array('activityId', $e->getTokenProcessor()->context['fields'])) {
+      $result = civicrm_api3('Activity', 'get', [
+        'id' => ['IN' => $e->getTokenProcessor()->getContextValues('activityId')],
+        'options' => ['limit' => 0],
+        // TODO: only return items for `intersect(BAO::fields(), tokenProc->getMessageTokens(...like 'activity.*'...)`
+      ]);
+      $prefetch = [];
+      foreach ($result['values'] as $aid => $value) {
+        $prefetch[$aid] = (object) $value;
+        $prefetch[$aid]->entity_id = $value['id'];
+      }
+      return $prefetch;
+    }
+    else {
+      return NULL;
+    }
+  }
+
+  /**
    * @inheritDoc
    */
   public function evaluateToken(\Civi\Token\TokenRow $row, $entity, $field, $prefetch = NULL) {
-    $actionSearchResult = $row->context['actionSearchResult'];
+    // FIXME/WIP: this is a quick hack which only works correctly for a couple fields (subject, activity_date_time, details).
+    // Generally, alterActionScheduleQuery(), prefetch(), and evaluateToken()
+    // should be reworked to actually use the same data-structure.
+    $actionSearchResult = !empty($row->context['actionSearchResult'])
+      ? $row->context['actionSearchResult']
+      : $prefetch[$row->context['activityId']];
 
     if (in_array($field, array('activity_date_time'))) {
       $row->tokens($entity, $field, \CRM_Utils_Date::customFormat($actionSearchResult->$field));
