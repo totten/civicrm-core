@@ -225,7 +225,7 @@ class CRM_Utils_REST {
     // Everyone should be required to provide the server key, so the whole
     // interface can be disabled in more change to the configuration file.
     // first check for civicrm site key
-    if (!CRM_Utils_System::authenticateKey(FALSE)) {
+    if (Civi::settings()->get('require_rest_site_key') && !CRM_Utils_System::authenticateKey(FALSE)) {
       $docLink = CRM_Utils_System::docURL2("Managing Scheduled Jobs", TRUE, NULL, NULL, NULL, "wiki");
       $key = CRM_Utils_Array::value('key', $requestParams);
       if (empty($key)) {
@@ -595,7 +595,7 @@ class CRM_Utils_REST {
       // Therefore we have reasonably well-formed "?q=civicrm/X/Y"
     }
 
-    if (!CRM_Utils_System::authenticateKey(FALSE)) {
+    if (Civi::settings()->get('require_rest_site_key') && !CRM_Utils_System::authenticateKey(FALSE)) {
       // FIXME: At time of writing, this doesn't actually do anything because
       // authenticateKey abends, but that's a bad behavior which sends a
       // malformed response.
