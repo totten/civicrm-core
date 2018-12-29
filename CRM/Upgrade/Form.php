@@ -639,7 +639,7 @@ SET    version = '$version'
    * @return bool
    */
   public static function disableOldExtensions(CRM_Queue_TaskContext $ctx, $postUpgradeMessageFile) {
-    $compatInfo = CRM_Extension_System::getCompatibilityInfo();
+    $compatInfo = CRM_Extension_System::singleton()->getCompatibilityInfo();
     $disabled = [];
     $manager = CRM_Extension_System::singleton()->getManager();
     foreach ($compatInfo as $key => $ext) {

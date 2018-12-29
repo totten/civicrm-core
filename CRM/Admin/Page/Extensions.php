@@ -238,7 +238,7 @@ class CRM_Admin_Page_Extensions extends CRM_Core_Page_Basic {
 
     // build list of available downloads
     $remoteExtensionRows = array();
-    $compat = CRM_Extension_System::getCompatibilityInfo();
+    $compat = CRM_Extension_System::singleton()->getCompatibilityInfo();
 
     foreach ($remoteExtensions as $info) {
       if (!empty($compat[$info->key]['obsolete'])) {

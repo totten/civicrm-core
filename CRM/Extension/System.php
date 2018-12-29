@@ -42,6 +42,7 @@ class CRM_Extension_System {
   private $manager = NULL;
   private $browser = NULL;
   private $downloader = NULL;
+  private $compatibility = NULL;
 
   /**
    * @var CRM_Extension_ClassLoader
@@ -291,11 +292,11 @@ class CRM_Extension_System {
    *
    * @return array
    */
-  public static function getCompatibilityInfo() {
-    if (!isset(Civi::$statics[__CLASS__]['compatibility'])) {
-      Civi::$statics[__CLASS__]['compatibility'] = json_decode(file_get_contents(Civi::paths()->getPath('[civicrm.root]/extension-compatibility.json')), TRUE);
+  public function getCompatibilityInfo() {
+    if ($this->compatibility === NULL) {
+      $this->compatibility = json_decode(file_get_contents(Civi::paths()->getPath('[civicrm.root]/extension-compatibility.json')), TRUE);
     }
-    return Civi::$statics[__CLASS__]['compatibility'];
+    return $this->compatibility;
   }
 
   /**

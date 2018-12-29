@@ -185,7 +185,7 @@ class CRM_Extension_Info {
    */
   public function filterRequirements($requirements) {
     $filtered = [];
-    $compatInfo = CRM_Extension_System::getCompatibilityInfo();
+    $compatInfo = CRM_Extension_System::singleton()->getCompatibilityInfo();
     foreach ($requirements->ext as $ext) {
       $ext = (string) $ext;
       if (empty($compatInfo[$ext]['obsolete'])) {
