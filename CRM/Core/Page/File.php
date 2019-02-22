@@ -62,10 +62,16 @@ class CRM_Core_Page_File extends CRM_Core_Page {
       if ($fileName !== basename($fileName)) {
         throw new CRM_Core_Exception("Malformed filename");
       }
-      $mimeType = '';
       $path = CRM_Core_Config::singleton()->customFileUploadDir . $fileName;
+
+      if (CRM_Utils_Constant::value('CIVICRM_DEPRECATED_MIME_OVERRIDE') && version_compare(CRM_Utils_System::version(), '5.14', '<')) {
+        $mimeType = CRM_Utils_Request::retrieveValue('mime-type', 'String', NULL, FALSE);
+      }
+      else {
+        // FIXME: This might not work due to file extension munging? Test oddball ext.
+        $mimeType = mime_content_type($path);
+      }
     }
-    $mimeType = CRM_Utils_Request::retrieveValue('mime-type', 'String', $mimeType, FALSE);
 
     if (!$path) {
       CRM_Core_Error::statusBounce('Could not retrieve the file');
