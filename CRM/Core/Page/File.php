@@ -77,11 +77,6 @@ class CRM_Core_Page_File extends CRM_Core_Page {
       CRM_Core_Error::statusBounce('Could not retrieve the file');
     }
 
-    $buffer = file_get_contents($path);
-    if (!$buffer) {
-      CRM_Core_Error::statusBounce('The file is either empty or you do not have permission to retrieve the file');
-    }
-
     if ($action & CRM_Core_Action::DELETE) {
       if (CRM_Utils_Request::retrieve('confirmed', 'Boolean')) {
         CRM_Core_BAO_File::deleteFileReferences($fileId, $entityId, $fieldId);
@@ -93,6 +88,14 @@ class CRM_Core_Page_File extends CRM_Core_Page {
       }
     }
     else {
+      if (!file_exists($path) || !is_readable($path)) {
+        CRM_Core_Error::statusBounce('Could not retrieve the file');
+      }
+      $buffer = file_get_contents($path);
+      if (!$buffer) {
+        CRM_Core_Error::statusBounce('The file is either empty or you do not have permission to retrieve the file');
+      }
+
       CRM_Utils_System::download(
         CRM_Utils_File::cleanFileName(basename($path)),
         $mimeType,
