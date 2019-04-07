@@ -422,6 +422,9 @@ class CRM_Core_Config extends CRM_Core_Config_MagicMerge {
    * @return bool
    */
   public static function isUpgradeMode($path = NULL) {
+    if (defined('CIVICRM_UPGRADE_FINISH')) {
+      return FALSE;
+    }
     if (defined('CIVICRM_UPGRADE_ACTIVE')) {
       return TRUE;
     }

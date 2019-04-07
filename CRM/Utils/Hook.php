@@ -60,7 +60,7 @@ abstract class CRM_Utils_Hook {
    *
    * @var object
    */
-  static private $_singleton = NULL;
+  static public $_singleton = NULL;
 
   /**
    * @var bool

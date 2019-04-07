@@ -770,6 +770,19 @@ SET    version = '$version'
     // Seems extraneous in context, but we'll preserve old behavior
     $upgrade->setVersion($latestVer);
 
+    // Ensure that caches hydrate with all extension metadata
+    define('CIVICRM_UPGRADE_FINISH', TRUE);
+//    Civi::$statics = array();
+//    CRM_Utils_Hook::$_singleton = NULL;
+//    // \Civi::reset();
+//    // \Civi\Core\Container::boot(TRUE);
+//    CRM_Core_Config::singleton(TRUE, TRUE);
+//    CRM_Utils_System::flushCache();
+
+    CRM_Utils_System::flushCache();
+    \Civi::reset();
+    CRM_Core_Config::singleton(TRUE, TRUE);
+
     // Clear cached metadata.
     Civi::service('settings_manager')->flush();
 
