@@ -165,7 +165,7 @@ class Kernel {
 
     list($apiProvider, $apiRequest) = $this->resolve($apiRequest);
     $this->authorize($apiProvider, $apiRequest);
-    $apiRequest = $this->prepare($apiProvider, $apiRequest);
+    list ($apiProvider, $apiRequest) = $this->prepare($apiProvider, $apiRequest);
     $result = $apiProvider->invoke($apiRequest);
 
     return $this->respond($apiProvider, $apiRequest, $result);
@@ -251,12 +251,13 @@ class Kernel {
    * @param array $apiRequest
    *   The full description of the API request.
    * @return array
+   *   [0 => ProviderInterface $provider, 1 => array $apiRequest]
    *   The revised API request.
    */
   public function prepare($apiProvider, $apiRequest) {
     /** @var PrepareEvent $event */
     $event = $this->dispatcher->dispatch(Events::PREPARE, new PrepareEvent($apiProvider, $apiRequest, $this));
-    return $event->getApiRequest();
+    return [$event->getApiProvider(), $event->getApiRequest()];
   }
 
   /**
