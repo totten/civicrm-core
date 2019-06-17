@@ -163,6 +163,17 @@ class CRM_Core_Resources {
     $this->paths = Civi::paths();
   }
 
+  protected $activeBundles = [];
+
+  public function addBundle($nameOrObject) {
+    $bundle = is_string($nameOrObject) ? Civi::service('bundle.' . $nameOrObject) : $nameOrObject;
+    if (!isset($this->activeBundles[$bundle->getName()])) {
+      $this->activeBundles[$bundle->getName()] = TRUE;
+      $bundle->applyTo($this);
+    }
+    return $this;
+  }
+
   /**
    * Export permission data to the client to enable smarter GUIs.
    *
