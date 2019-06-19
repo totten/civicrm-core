@@ -51,7 +51,7 @@ class PrepareEvent extends Event {
    *
    * Ex:
    *
-   * $event->wrap(function($apiRequest, $continue){
+   * $event->wrapApi(function($apiRequest, $continue){
    *   echo "Hello\n";
    *   $continue($apiRequest);
    *   echo "Goodbye\n";
@@ -62,7 +62,7 @@ class PrepareEvent extends Event {
    *   Function(array $apiRequest, callable $continue).
    * @return PrepareEvent
    */
-  public function wrap($callback) {
+  public function wrapApi($callback) {
     $this->apiProvider = new WrappingProvider($callback, $this->apiProvider);
     return $this;
   }
