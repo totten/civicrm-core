@@ -57,7 +57,43 @@ class Paths {
         return \CRM_Core_Config::singleton()->userSystem->getDefaultFileStorage();
       })
       ->register('civicrm.private', function () {
-        return \CRM_Core_Config::singleton()->userSystem->getDefaultFileStorage();
+        return [
+          // -- Option A: Hierarchy of path variables
+          // Pro: civicrm.{private,log,compile} form sensible hierarchy.
+          //      You can change base ('civicrm.private') and transitively affect
+          //      descendents ('civicrm.log', 'civicrm.compile').
+          // Con: Possibly changes civicrm.compile in very obscure edge-case
+          //      (where compilation dir).
+
+          'path' => \CRM_Utils_File::baseFilePath(),
+
+          // -- Option B: "civicrm.private" is new/separate. "civicrm.{log,compile}" are strict/drop-in refactors.
+          // Pro: Strictly safer/more conservative. New code-path has new name;
+          //      old variables are resolved with same logic as before.
+          // Con: The variables civicrm.{private,log,compile} should be considered separate.
+
+          // 'path' => \CRM_Core_Config::singleton()->userSystem->getDefaultFileStorage()['path'],
+
+        ];
+      })
+      ->register('civicrm.log', function () {
+        return [
+          // -- Option A: Hierarchy of path variables
+          'path' => \Civi::paths()->getPath('[civicrm.private]/ConfigAndLog'),
+
+          // -- Option B: "civicrm.private" is new/separate. "civicrm.{log,compile}" are strict/drop-in refactors.
+          // 'path' => \CRM_Utils_File::baseFilePath() . 'ConfigAndLog',
+        ];
+      })
+      ->register('civicrm.compile', function () {
+        return [
+          // -- Option A: Hierarchy of path variables
+          // By default, `[civicrm.private]/templates_c` === `{baseFilePath}/templates_c` === CIVICRM_TEMPLATE_COMPILEDIR
+          'path' => \Civi::paths()->getPath('[civicrm.private]/templates_c'),
+
+          // -- Option B: "civicrm.private" is new/separate. "civicrm.{log,compile}" are strict/drop-in refactors.
+          // 'path' => CIVICRM_TEMPLATE_COMPILEDIR,
+        ];
       })
       ->register('wp.frontend.base', function () {
         return ['url' => rtrim(CIVICRM_UF_BASEURL, '/') . '/'];
