@@ -25,27 +25,46 @@ class UserOverrideTest extends \CiviEndToEndTestCase {
   public function testOverride() {
     $session = \CRM_Core_Session::singleton();
     $originalUser = $session::getLoggedInContactID();
-    // Set user CID to 2
-    $o1 = $session->overrideCurrentUser(2);
+    $session->set('favoriteColor', 'red');
+    $this->assertEquals('red', $session->get('favoriteColor'));
+
+    $session->overrideCurrentUser(2);
+    $session->set('favoriteColor', 'orange');
     $this->assertEquals(2, $session::getLoggedInContactID());
-    // Set user CID to 3
-    $o2 = $session->overrideCurrentUser(3);
+    $this->assertEquals(2, $session->getOverriddenUser());
+    $this->assertEquals('orange', $session->get('favoriteColor'));
+
+    $session->overrideCurrentUser(3);
+    $session->set('favoriteColor', 'yellow');
     $this->assertEquals(3, $session::getLoggedInContactID());
-    // Set user CID to 4
-    $o3 = $session->overrideCurrentUser(4);
-    // Clear the second override
-    $this->assertTrue($session->restoreCurrentUser($o2));
-    // Latest override should still stand
+    $this->assertEquals(3, $session->getOverriddenUser());
+    $this->assertEquals('yellow', $session->get('favoriteColor'));
+
+    $session->overrideCurrentUser(4);
+    $session->set('favoriteColor', 'green');
     $this->assertEquals(4, $session::getLoggedInContactID());
-    // Clear the last override, should revert to the one remaining override
+    $this->assertEquals(4, $session->getOverriddenUser());
+    $this->assertEquals('green', $session->get('favoriteColor'));
+
+    // Unwind intermediate overrides
+
+    $this->assertTrue($session->restoreCurrentUser());
+    $this->assertEquals(3, $session::getLoggedInContactID());
+    $this->assertEquals(3, $session->getOverriddenUser());
+    $this->assertEquals('yellow', $session->get('favoriteColor'));
+
     $this->assertTrue($session->restoreCurrentUser());
     $this->assertEquals(2, $session::getLoggedInContactID());
     $this->assertEquals(2, $session->getOverriddenUser());
+    $this->assertEquals('orange', $session->get('favoriteColor'));
+
     // Clear the final override
+
     $this->assertTrue($session->restoreCurrentUser());
     $this->assertEquals($originalUser, $session::getLoggedInContactID());
-    // Assert there are no overrides left to clear
     $this->assertNull($session->getOverriddenUser());
+    $this->assertEquals('red', $session->get('favoriteColor'));
+
     $this->assertFalse($session->restoreCurrentUser());
   }
 

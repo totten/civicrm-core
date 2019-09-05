@@ -53,7 +53,7 @@ class CRM_Core_Session {
    * This is just a reference to the real session. Allows us to
    * debug this class a wee bit easier
    *
-   * @var object
+   * @var array|NULL
    */
   protected $_session = NULL;
 
@@ -64,13 +64,6 @@ class CRM_Core_Session {
    * @var object
    */
   static private $_singleton = NULL;
-
-  /**
-   * Stack of contact ids when overriding current user
-   *
-   * @var array
-   */
-  static private $userOverride = [];
 
   /**
    * Constructor.
@@ -256,11 +249,6 @@ class CRM_Core_Session {
   public function get($name, $prefix = NULL) {
     // create session scope
     $this->createScope($prefix, TRUE);
-
-    if (!$prefix && $name == 'userID' && self::$userOverride) {
-      end(self::$userOverride);
-      return current(self::$userOverride);
-    }
 
     if (empty($this->_session) || empty($this->_session[$this->_key])) {
       return NULL;
@@ -551,9 +539,10 @@ class CRM_Core_Session {
    * @return int|null
    *   contact ID of logged in user
    */
-  public static function getLoggedInContactID() {
+  public static function  getLoggedInContactID() {
     $session = CRM_Core_Session::singleton();
-    if (!is_numeric($session->get('userID'))) {
+    $userID = $session->get('userID');
+    if (!is_numeric($userID)) {
       return NULL;
     }
     return $session->get('userID');
@@ -604,9 +593,17 @@ class CRM_Core_Session {
       // Current user is already $contactId; nothing to do
       return FALSE;
     }
-    $handle = $handle ?? uniqid();
-    self::$userOverride[$handle] = $contactId;
-    return $handle;
+    if (!isset(Civi::$statics[__CLASS__]['sessionStack'])) {
+      Civi::$statics[__CLASS__]['sessionStack'] = [];
+    }
+    Civi::$statics[__CLASS__]['sessionStack'][] = $this->_session; // &?
+
+    // Note: Careful to avoid reference trampling.
+    $newSession = [] + (array)$this->_session;
+    $this->_session = $newSession;
+    $this->set('userID', $contactId);
+
+    return count(Civi::$statics[__CLASS__]['sessionStack']);
   }
 
   /**
@@ -620,12 +617,10 @@ class CRM_Core_Session {
    *   Whether or not anything was done.
    */
   public function restoreCurrentUser($handle = NULL) {
-    if (self::$userOverride) {
-      $handle = $handle ?? array_reverse(array_keys(self::$userOverride))[0];
-      if (array_key_exists($handle, self::$userOverride)) {
-        unset(self::$userOverride[$handle]);
-        return TRUE;
-      }
+    if (!empty(Civi::$statics[__CLASS__]['sessionStack'])) {
+      $this->_session = array_pop(Civi::$statics[__CLASS__]['sessionStack']);
+      return TRUE;
+
     }
     return FALSE;
   }
@@ -638,7 +633,7 @@ class CRM_Core_Session {
    * @return int|null
    */
   public static function getOverriddenUser() {
-    return self::$userOverride ? self::getLoggedInContactID() : NULL;
+    return Civi::$statics[__CLASS__]['sessionStack'] ? self::getLoggedInContactID() : NULL;
   }
 
 }
