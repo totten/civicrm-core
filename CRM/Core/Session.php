@@ -575,35 +575,47 @@ class CRM_Core_Session {
   }
 
   /**
-   * Temporarily masquerade as a different user.
-   *
-   * Note: the override is stored in a static variable so does not persist past this page request.
+   * Create a temporary/ephemeral session in which various business operations
+   * can run without affecting the persistent state.
    *
    * Returns a handle to identify this override so you can revert it later.
    *
-   * @param int $contactId
+   * @param array $values
    *   Contact id to spoof as current user.
-   * @param string|int $handle
+   * @param bool $clone
+   *   Whether to copy in values from the parent session.
+   * @param string $handle
    *   Specify your own handle if you wish.
    * @return bool|string|int
    *   Handle if anything was done, FALSE otherwise
    */
-  public function overrideCurrentUser($contactId, $handle = NULL) {
-    if ($contactId == $this->get('userID')) {
-      // Current user is already $contactId; nothing to do
+  public function createSubsession($values = [], $clone = FALSE, $handle = NULL) {
+    static $idGen = 0;
+    $handle = $handle ?? ('subsession_' . ++$idGen);
+
+    if (!isset(Civi::$statics[__CLASS__]['subsessions'])) {
+      Civi::$statics[__CLASS__]['subsessions'] = [];
+    }
+    Civi::$statics[__CLASS__]['subsessions'][$handle] = $this->_session;
+
+    // Note: Emphatically new variable and new array to avoid munging references.
+    $newSession = $clone ? ([] + (array) $this->_session) : [];
+    $this->_session = &$newSession;
+    foreach ($values as $k => $v) {
+      $this->set($k, $v);
+    }
+
+    return $handle;
+  }
+
+  public function setSubsession($handle) {
+    if (isset(Civi::$statics[__CLASS__]['subsessions'][$handle])) {
+      $this->_session = Civi::$statics[__CLASS__]['subsessions'][$handle];
+      return TRUE;
+    }
+    else {
       return FALSE;
     }
-    if (!isset(Civi::$statics[__CLASS__]['sessionStack'])) {
-      Civi::$statics[__CLASS__]['sessionStack'] = [];
-    }
-    Civi::$statics[__CLASS__]['sessionStack'][] = $this->_session; // &?
-
-    // Note: Careful to avoid reference trampling.
-    $newSession = [] + (array)$this->_session;
-    $this->_session = $newSession;
-    $this->set('userID', $contactId);
-
-    return count(Civi::$statics[__CLASS__]['sessionStack']);
   }
 
   /**
@@ -616,9 +628,9 @@ class CRM_Core_Session {
    * @return bool
    *   Whether or not anything was done.
    */
-  public function restoreCurrentUser($handle = NULL) {
-    if (!empty(Civi::$statics[__CLASS__]['sessionStack'])) {
-      $this->_session = array_pop(Civi::$statics[__CLASS__]['sessionStack']);
+  public function closeSubsession($handle) {
+    if (!empty(Civi::$statics[__CLASS__]['subsessions'])) {
+      $this->_session = array_pop(Civi::$statics[__CLASS__]['subsessions']);
       return TRUE;
 
     }
@@ -630,10 +642,10 @@ class CRM_Core_Session {
    *
    * Otherwise return null to indicate the current user is not being overridden.
    *
-   * @return int|null
+   * @return bool
    */
-  public static function getOverriddenUser() {
-    return Civi::$statics[__CLASS__]['sessionStack'] ? self::getLoggedInContactID() : NULL;
+  public function isSubsession() {
+    return !empty(Civi::$statics[__CLASS__]['subsessions']);
   }
 
 }
