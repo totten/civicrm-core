@@ -267,19 +267,24 @@ class CRM_Utils_String {
    *   array of strings w/ corresponding redacted outputs
    *
    * @deprecated
-   * @see CRM_Utils_Redactor::regex()
+   * @see CRM_Utils_Redactor::regex
    */
   public static function regex($str, $regexRules) {
     return Civi::service('redactor')->regex($str, $regexRules);
   }
+
   /**
-   * @param $str
-   * @param $stringRules
+   * @param string $str
+   *   A printable message.
+   * @param string[] $stringRules
+   *   A list of case-insensitive string replacements.
+   *   Ex: ['Voldemort' => 'He Who Shall Not Be Named']
    *
-   * @return mixed
+   * @return string
+   *   Redacted message.
    *
    * @deprecated
-   * @see CRM_Utils_Redactor::redact()
+   * @see CRM_Utils_Redactor::redact
    */
   public static function redaction($str, $stringRules) {
     return Civi::service('redactor')->redact($str, $stringRules);

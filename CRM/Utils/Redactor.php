@@ -33,10 +33,14 @@
 class CRM_Utils_Redactor {
 
   /**
-   * @param $str
-   * @param $stringRules
+   * @param string $str
+   *   A printable message.
+   * @param string[] $stringRules
+   *   A list of case-insensitive string replacements.
+   *   Ex: ['Voldemort' => 'He Who Shall Not Be Named']
    *
-   * @return mixed
+   * @return string
+   *   Redacted message.
    */
   public function redact($str, $stringRules) {
     // redact the strings
@@ -46,7 +50,6 @@ class CRM_Utils_Redactor {
       }
     }
 
-    // return the redacted output
     return $str;
   }
 
@@ -58,9 +61,12 @@ class CRM_Utils_Redactor {
    *   Input string.
    * @param array $regexRules
    *   Regular expression to be matched w/ replacements.
+   *   Ex: ['/\n\n\n-\n\n-\n\n\n\n/' => '[SSN]']
+   *   Ex: ['/\n\n\n[ \-\.]\n\n\n[ \-\.]\n\n\n/' => '[PHONE]']
    *
    * @return array
    *   array of strings w/ corresponding redacted outputs
+   *   Ex: ['987-65-4321' => '[SSN]nW9z1']
    */
   public function regex($str, $regexRules) {
     // redact the regular expressions
@@ -95,7 +101,7 @@ class CRM_Utils_Redactor {
   }
 
   /**
-   * This function will mask part of the the user portion of an Email address (everything before the @)
+   * This function will mask part of the the user portion of an email address (everything before the @)
    *
    * @param string $email
    *   The email address to be masked.
@@ -105,7 +111,7 @@ class CRM_Utils_Redactor {
    *   The percentage of the user portion to be masked.
    *
    * @return string
-   *   returns the masked Email address
+   *   Returns the masked email address
    */
   public function maskEmail($email, $maskChar = '*', $percent = 50) {
     list($user, $domain) = preg_split("/@/", $email);
