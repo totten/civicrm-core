@@ -265,39 +265,13 @@ class CRM_Utils_String {
    *
    * @return array
    *   array of strings w/ corresponding redacted outputs
+   *
+   * @deprecated
+   * @see CRM_Utils_Redactor::regex()
    */
   public static function regex($str, $regexRules) {
-    // redact the regular expressions
-    if (!empty($regexRules) && isset($str)) {
-      static $matches, $totalMatches, $match = [];
-      foreach ($regexRules as $pattern => $replacement) {
-        preg_match_all($pattern, $str, $matches);
-        if (!empty($matches[0])) {
-          if (empty($totalMatches)) {
-            $totalMatches = $matches[0];
-          }
-          else {
-            $totalMatches = array_merge($totalMatches, $matches[0]);
-          }
-          $match = array_flip($totalMatches);
-        }
-      }
-    }
-
-    if (!empty($match)) {
-      foreach ($match as $matchKey => & $dontCare) {
-        foreach ($regexRules as $pattern => $replacement) {
-          if (preg_match($pattern, $matchKey)) {
-            $dontCare = $replacement . substr(md5($matchKey), 0, 5);
-            break;
-          }
-        }
-      }
-      return $match;
-    }
-    return [];
+    return Civi::service('redactor')->regex($str, $regexRules);
   }
-
   /**
    * @param $str
    * @param $stringRules

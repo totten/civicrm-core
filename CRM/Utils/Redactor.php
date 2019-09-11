@@ -50,4 +50,48 @@ class CRM_Utils_Redactor {
     return $str;
   }
 
+  /**
+   * Determine the string replacements for redaction.
+   * on the basis of the regular expressions
+   *
+   * @param string $str
+   *   Input string.
+   * @param array $regexRules
+   *   Regular expression to be matched w/ replacements.
+   *
+   * @return array
+   *   array of strings w/ corresponding redacted outputs
+   */
+  public function regex($str, $regexRules) {
+    // redact the regular expressions
+    if (!empty($regexRules) && isset($str)) {
+      static $matches, $totalMatches, $match = [];
+      foreach ($regexRules as $pattern => $replacement) {
+        preg_match_all($pattern, $str, $matches);
+        if (!empty($matches[0])) {
+          if (empty($totalMatches)) {
+            $totalMatches = $matches[0];
+          }
+          else {
+            $totalMatches = array_merge($totalMatches, $matches[0]);
+          }
+          $match = array_flip($totalMatches);
+        }
+      }
+    }
+
+    if (!empty($match)) {
+      foreach ($match as $matchKey => & $dontCare) {
+        foreach ($regexRules as $pattern => $replacement) {
+          if (preg_match($pattern, $matchKey)) {
+            $dontCare = $replacement . substr(md5($matchKey), 0, 5);
+            break;
+          }
+        }
+      }
+      return $match;
+    }
+    return [];
+  }
+
 }
