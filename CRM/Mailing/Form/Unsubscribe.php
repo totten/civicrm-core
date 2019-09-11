@@ -55,7 +55,7 @@ class CRM_Mailing_Form_Unsubscribe extends CRM_Core_Form {
 
     list($displayName, $email) = CRM_Mailing_Event_BAO_Queue::getContactInfo($queue_id);
     $this->assign('display_name', $displayName);
-    $emailMasked = CRM_Utils_String::maskEmail($email);
+    $emailMasked = Civi::service('redactor')->maskEmail($email);
     $this->assign('email_masked', $emailMasked);
     $this->assign('email', $email);
     $this->_email = $email;

@@ -687,18 +687,12 @@ class CRM_Utils_String {
    *
    * @return string
    *   returns the masked Email address
+   *
+   * @deprecated
+   * @see CRM_Utils_Redactor::maskEmail()
    */
   public static function maskEmail($email, $maskChar = '*', $percent = 50) {
-    list($user, $domain) = preg_split("/@/", $email);
-    $len = strlen($user);
-    $maskCount = floor($len * $percent / 100);
-    $offset = floor(($len - $maskCount) / 2);
-
-    $masked = substr($user, 0, $offset)
-      . str_repeat($maskChar, $maskCount)
-      . substr($user, $maskCount + $offset);
-
-    return ($masked . '@' . $domain);
+    return Civi::service('redactor')->maskEmail($email, $maskChar, $percent);
   }
 
   /**

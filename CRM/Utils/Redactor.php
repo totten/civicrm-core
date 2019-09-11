@@ -94,4 +94,30 @@ class CRM_Utils_Redactor {
     return [];
   }
 
+  /**
+   * This function will mask part of the the user portion of an Email address (everything before the @)
+   *
+   * @param string $email
+   *   The email address to be masked.
+   * @param string $maskChar
+   *   The character used for masking.
+   * @param int $percent
+   *   The percentage of the user portion to be masked.
+   *
+   * @return string
+   *   returns the masked Email address
+   */
+  public function maskEmail($email, $maskChar = '*', $percent = 50) {
+    list($user, $domain) = preg_split("/@/", $email);
+    $len = strlen($user);
+    $maskCount = floor($len * $percent / 100);
+    $offset = floor(($len - $maskCount) / 2);
+
+    $masked = substr($user, 0, $offset)
+      . str_repeat($maskChar, $maskCount)
+      . substr($user, $maskCount + $offset);
+
+    return ($masked . '@' . $domain);
+  }
+
 }
