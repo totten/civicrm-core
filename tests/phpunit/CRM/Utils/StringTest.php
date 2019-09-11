@@ -354,6 +354,21 @@ class CRM_Utils_StringTest extends CiviUnitTestCase {
     ];
   }
 
+  public function testRegex() {
+    $actual = CRM_Utils_String::regex(
+      'Hi my SSN is 987-65-4321!',
+      ['/\d\d\d-\d\d-\d\d\d\d/' => '[SSN]']
+    );
+    // Note: The original function uses `static` in a way that may be brittle
+    // in a unit-testing context.
+    $this->assertEquals(['987-65-4321' => '[SSN]45e51'], $actual);
+  }
+
+  public function testMaskEmail() {
+    $actual = CRM_Utils_String::maskEmail('secret@example.org');
+    $this->assertEquals('s***et@example.org', $actual);
+  }
+
   public function purifyHTMLProvider() {
     $tests = [];
     $tests[] = ['<span onmouseover=alert(0)>HOVER</span>', '<span>HOVER</span>'];
