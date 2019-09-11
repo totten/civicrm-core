@@ -32,4 +32,22 @@
  */
 class CRM_Utils_Redactor {
 
+  /**
+   * @param $str
+   * @param $stringRules
+   *
+   * @return mixed
+   */
+  public function redact($str, $stringRules) {
+    // redact the strings
+    if (!empty($stringRules)) {
+      foreach ($stringRules as $match => $replace) {
+        $str = str_ireplace($match, $replace, $str);
+      }
+    }
+
+    // return the redacted output
+    return $str;
+  }
+
 }

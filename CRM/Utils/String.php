@@ -303,17 +303,12 @@ class CRM_Utils_String {
    * @param $stringRules
    *
    * @return mixed
+   *
+   * @deprecated
+   * @see CRM_Utils_Redactor::redact()
    */
   public static function redaction($str, $stringRules) {
-    // redact the strings
-    if (!empty($stringRules)) {
-      foreach ($stringRules as $match => $replace) {
-        $str = str_ireplace($match, $replace, $str);
-      }
-    }
-
-    // return the redacted output
-    return $str;
+    return Civi::service('redactor')->redact($str, $stringRules);
   }
 
   /**
