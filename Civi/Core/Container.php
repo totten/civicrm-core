@@ -207,6 +207,11 @@ class Container {
       []
     ));
 
+    $container->setDefinition('redactor', new Definition(
+      'CRM_Utils_Redactor',
+      []
+    ));
+
     $container->setDefinition('pear_mail', new Definition('Mail'))
       ->setFactory('CRM_Utils_Mail::createMailer');
 
