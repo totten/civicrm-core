@@ -301,9 +301,26 @@ class CRM_Utils_System {
   public static function externUrl($path = NULL, $query = NULL, $fragment = NULL, $absolute = TRUE, $isSSL = NULL) {
     $query = self::makeQueryString($query);
 
-    $url = Civi::paths()->getUrl("[civicrm.root]/{$path}.php", $absolute ? 'absolute' : 'relative', $isSSL)
-      . ($query ? "?$query" : "")
-      . ($fragment ? "#$fragment" : "");
+    $defaultExternUrl = Civi::settings()->get('defaultExternUrl');
+    $migratedPaths = [
+      // string $oldExternScript => string $newRouterPath
+      'extern/url' => 'civicrm/mailing/url',
+    ];
+
+    if ($defaultExternUrl === 'none') {
+      $url = '';
+    }
+    elseif ($defaultExternUrl === 'router' && isset($migratedPaths[$path])) {
+      $url = CRM_Utils_System::url($migratedPaths[$path], $query, $absolute, $fragment, FALSE);
+      if ($isSSL || ($isSSL === NULL && \CRM_Utils_System::isSSL())) {
+        $url = str_replace('http://', 'https://', $url);
+      }
+    }
+    else {
+      $url = Civi::paths()->getUrl("[civicrm.root]/{$path}.php", $absolute ? 'absolute' : 'relative', $isSSL)
+        . ($query ? "?$query" : "")
+        . ($fragment ? "#$fragment" : "");
+    }
 
     $parsedUrl = CRM_Utils_Url::parseUrl($url);
     $event = \Civi\Core\Event\GenericHookEvent::create([
