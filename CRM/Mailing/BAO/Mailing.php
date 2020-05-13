@@ -1141,7 +1141,7 @@ ORDER BY   civicrm_email.is_bulkmail DESC
 
     // push the tracking url on to the html email if necessary
     if ($this->open_tracking && $html) {
-      array_push($html, "\n" . '<img src="' . CRM_Utils_System::externUrl('extern/open', "q=$event_queue_id")
+      array_push($html, "\n" . '<img src="' . CRM_Utils_System::externUrl('extern/open', "qid=$event_queue_id")
         . '" width="1" height="1" alt="" border="0">'
       );
     }

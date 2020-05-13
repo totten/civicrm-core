@@ -7,7 +7,11 @@ require_once 'CRM/Utils/Rule.php';
 require_once 'CRM/Utils/Request.php';
 
 CRM_Core_Config::singleton();
-$queue_id = CRM_Utils_Request::retrieveValue('q', 'Positive', NULL, FALSE, 'GET');
+$queue_id = CRM_Utils_Request::retrieveValue('qid', 'Positive', NULL, FALSE, 'GET');
+if (!$queue_id) {
+  // Deprecated: "?q=" is problematic in Drupal integrations.
+  $queue_id = CRM_Utils_Request::retrieveValue('q', 'Positive', NULL, FALSE, 'GET');;
+}
 if (!$queue_id) {
   echo "Missing input parameters\n";
   exit();
