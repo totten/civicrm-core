@@ -128,6 +128,8 @@ class CRM_Core_Session {
    * Resets the session store.
    *
    * @param int $all
+   *   - 1 (default): destroy CiviCRM-specific session data
+   *   - 2: destroy all session data
    */
   public function reset($all = 1) {
     if ($all != 1) {
