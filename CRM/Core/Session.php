@@ -262,13 +262,12 @@ class CRM_Core_Session {
    *   Associative array to store name/value pairs.
    * @param string $prefix
    *   Will be stripped from the key before putting it in the return.
+   * @deprecated
+   * @throws \CRM_Core_Exception
    */
   public function getVars(&$vars, $prefix = '') {
-    // create session scope
-    $this->createScope($prefix, TRUE);
-
     if (empty($prefix)) {
-      $values = &$this->_session[$this->_key];
+      throw new \CRM_Core_Exception("getVars() requires a prefix");
     }
     else {
       $values = Civi::cache('session')->get("CiviCRM_{$prefix}");
