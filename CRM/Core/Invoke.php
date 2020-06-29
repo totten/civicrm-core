@@ -312,7 +312,7 @@ class CRM_Core_Invoke {
         $result = $object->run($newArgs, $pageArgs);
       }
 
-      CRM_Core_Session::storeSessionObjects();
+      \Civi::service('form_state')->onShutdown();
       return $result;
     }
 

@@ -1459,8 +1459,9 @@ class CRM_Utils_System {
     if ($status > 0) {
       http_response_code(500);
     }
-    // move things to CiviCRM cache as needed
-    CRM_Core_Session::storeSessionObjects();
+
+    // TODO: Move this to a listener.
+    \Civi::service('form_state')->onShutdown();
 
     if (Civi\Core\Container::isContainerBooted()) {
       Civi::dispatcher()->dispatch('civi.core.exit');
