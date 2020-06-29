@@ -112,11 +112,19 @@ class CRM_Core_Controller extends HTML_QuickForm_Controller {
   static protected $_template;
 
   /**
-   * Cache the session for efficiency reasons.
+   * The form's persistent state. This is auto-saved at the end of the page-request.
    *
-   * @var CRM_Core_Session
+   * Note that there are technically two distinct aspects of the state:
+   *
+   * 'qf': State populated/managed via HTML_QuickForm_Controller::container() API.
+   * 'crm': State populated/managed via CRM_Core_Controller::set() API.
+   *
+   * It's arguably a bit silly to store these as two separate formStates when
+   * it's one logical formState. Keeping this split is potentially more backward-compatible.
+   *
+   * @var array
    */
-  static protected $_session;
+  private $_formStates = [];
 
   /**
    * The parent of this form if embedded.
@@ -171,7 +179,6 @@ class CRM_Core_Controller extends HTML_QuickForm_Controller {
     // let the constructor initialize this, should happen only once
     if (!isset(self::$_template)) {
       self::$_template = CRM_Core_Smarty::singleton();
-      self::$_session = CRM_Core_Session::singleton();
     }
 
     // lets try to get it from the session and/or the request vars
@@ -189,22 +196,10 @@ class CRM_Core_Controller extends HTML_QuickForm_Controller {
     }
     $name = $name . '_' . $this->key($name, $addSequence, $ignoreKey);
     $this->_title = $title;
-    if ($scope) {
-      $this->_scope = $scope;
-    }
-    else {
-      $this->_scope = CRM_Utils_System::getClassName($this);
-    }
-    $this->_scope = $this->_scope . '_' . $this->_key;
+    $this->_scope = ($scope ?: CRM_Utils_System::getClassName($this)) . '_' . $this->_key;
 
-    // only use the civicrm cache if we have a valid key
-    // else we clash with other users CRM-7059
-    if (!empty($this->_key)) {
-      CRM_Core_Session::registerAndRetrieveSessionObjects([
-        "_{$name}_container",
-        ['CiviCRM', $this->_scope],
-      ]);
-    }
+    $this->_formStates['qf'] = &\Civi::service('form_state')->load("_{$name}_container", []);
+    $this->_formStates['crm'] = &\Civi::service('form_state')->load("CiviCRM_{$this->_scope}", []);
 
     parent::__construct($name, $modal);
 
@@ -258,6 +253,39 @@ class CRM_Core_Controller extends HTML_QuickForm_Controller {
       NULL,
       $_REQUEST
     );
+  }
+
+  /**
+   * Get a reference to the in-memory location where QuickForm
+   * can store its form-state. If necessary, initialize it.
+   *
+   * This overrides a method from HTML_QuickForm_Controller. Instead of
+   * using $_SESSION for storage, we use FormStateManager.
+   *
+   * @param bool $reset
+   * @return array
+   */
+  public function &container($reset = FALSE) {
+    if ($reset) {
+      $this->_formStates['qf'] = [];
+    }
+
+    if ($this->_formStates['qf'] === []) {
+      // Form has default value - either via $reset or via default initialization.
+      $this->_formStates['qf'] = [
+        'defaults' => [],
+        'constants' => [],
+        'values' => [],
+        'valid' => [],
+      ];
+    }
+    foreach (array_keys($this->_pages) as $pageName) {
+      if (!isset($this->_formStates['qf']['values'][$pageName])) {
+        $this->_formStates['qf']['values'][$pageName] = [];
+        $this->_formStates['qf']['valid'][$pageName]  = NULL;
+      }
+    }
+    return $this->_formStates['qf'];
   }
 
   public function fini() {
@@ -485,8 +513,14 @@ class CRM_Core_Controller extends HTML_QuickForm_Controller {
    * Destroy all the session state of the controller.
    */
   public function reset() {
-    $this->container(TRUE);
-    self::$_session->resetScope($this->_scope);
+    /** @var \Civi\Session\FormStateManager $formStateMgr */
+    $formStateMgr = \Civi::service('form_state');
+
+    $formStateMgr->delete("_{$this->_name}_container");
+    $formStateMgr->delete("CiviCRM_{$this->_scope}");
+
+    $this->_formStates['qf'] = &$formStateMgr->load("_{$this->_name}_container", []);
+    $this->_formStates['crm'] = &$formStateMgr->load("CiviCRM_{$this->_scope}", []);
   }
 
   /**
@@ -508,7 +542,7 @@ class CRM_Core_Controller extends HTML_QuickForm_Controller {
    *   Value of the variable if string.
    */
   public function set($name, $value = NULL) {
-    self::$_session->set($name, $value, $this->_scope);
+    $this->_formStates['crm'][$name] = $value;
   }
 
   /**
@@ -520,7 +554,7 @@ class CRM_Core_Controller extends HTML_QuickForm_Controller {
    * @return mixed
    */
   public function get($name) {
-    return self::$_session->get($name, $this->_scope);
+    return $this->_formStates['crm'][$name];
   }
 
   /**
