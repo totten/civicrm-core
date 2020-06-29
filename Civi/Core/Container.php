@@ -237,6 +237,11 @@ class Container {
       [new Reference('service_container')]
     ))->setFactory([new Reference(self::SELF), 'createResources'])->setPublic(TRUE);
 
+    $container->setDefinition('form_state', new Definition(
+      'Civi\Session\FormStateManager',
+      [new Reference('cache.session')]
+    ))->setPublic(TRUE);
+
     $container->setDefinition('prevnext', new Definition(
       'CRM_Core_PrevNextCache_Interface',
       [new Reference('service_container')]
