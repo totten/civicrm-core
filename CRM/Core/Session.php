@@ -15,12 +15,6 @@
 class CRM_Core_Session {
 
   /**
-   * Cache of all the session names that we manage.
-   * @var array
-   */
-  public static $_managedNames = NULL;
-
-  /**
    * Key is used to allow the application to have multiple top
    * level scopes rather than a single scope. (avoids naming
    * conflicts). We also extend this idea further and have local
@@ -481,43 +475,6 @@ class CRM_Core_Session {
         'options' => $options ? $options : NULL,
       ];
     }
-  }
-
-  /**
-   * Register and retrieve session objects.
-   *
-   * @param string|array $names
-   */
-  public static function registerAndRetrieveSessionObjects($names) {
-    if (!is_array($names)) {
-      $names = [$names];
-    }
-
-    if (!self::$_managedNames) {
-      self::$_managedNames = $names;
-    }
-    else {
-      self::$_managedNames = array_merge(self::$_managedNames, $names);
-    }
-
-    CRM_Core_BAO_Cache::restoreSessionFromCache($names);
-  }
-
-  /**
-   * Store session objects.
-   *
-   * @param bool $reset
-   */
-  public static function storeSessionObjects($reset = TRUE) {
-    if (empty(self::$_managedNames)) {
-      return;
-    }
-
-    self::$_managedNames = CRM_Utils_Array::crmArrayUnique(self::$_managedNames);
-
-    CRM_Core_BAO_Cache::storeSessionToCache(self::$_managedNames, $reset);
-
-    self::$_managedNames = NULL;
   }
 
   /**
