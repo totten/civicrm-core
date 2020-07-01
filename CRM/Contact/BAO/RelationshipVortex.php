@@ -27,11 +27,11 @@ class CRM_Contact_BAO_RelationshipVortex extends CRM_Contact_DAO_RelationshipVor
         SELECT name_a_b, name_b_a INTO name_a_b_, name_b_a_ FROM civicrm_relationship_type WHERE id = NEW.relationship_type_id;
 
         INSERT INTO civicrm_relationship_vtx (relationship_id, relationship_type_id, orientation, near_type, near_contact_id, far_type, far_contact_id)
-        VALUES (NEW.id, NEW.relationship_type_id, 0, name_b_a_, NEW.contact_id_a, name_a_b_, NEW.contact_id_b)
+        VALUES (NEW.id, NEW.relationship_type_id, 0, name_a_b_, NEW.contact_id_a, name_b_a_, NEW.contact_id_b)
         ON DUPLICATE KEY UPDATE near_type = name_b_a_, near_contact_id = NEW.contact_id_a, far_type = name_a_b_, far_contact_id = NEW.contact_id_b;
 
         INSERT INTO civicrm_relationship_vtx (relationship_id, relationship_type_id, orientation, near_type, near_contact_id, far_type, far_contact_id)
-        VALUES (NEW.id, NEW.relationship_type_id, 1, name_a_b_, NEW.contact_id_b, name_b_a_, NEW.contact_id_a)
+        VALUES (NEW.id, NEW.relationship_type_id, 1, name_b_a_, NEW.contact_id_b, name_a_b_, NEW.contact_id_a)
         ON DUPLICATE KEY UPDATE near_type = name_a_b_, near_contact_id = NEW.contact_id_b, far_type = name_b_a_, far_contact_id = NEW.contact_id_a;
 ";
 
@@ -44,11 +44,11 @@ class CRM_Contact_BAO_RelationshipVortex extends CRM_Contact_DAO_RelationshipVor
     IF (OLD.name_a_b != NEW.name_a_b COLLATE utf8_bin OR OLD.name_b_a != NEW.name_b_a COLLATE utf8_bin) THEN
 
       UPDATE civicrm_relationship_vtx
-      SET near_type = NEW.name_b_a, far_type = NEW.name_a_b
+      SET near_type = NEW.name_a_b, far_type = NEW.name_b_a
       WHERE relationship_type_id = NEW.id AND orientation = 0;
 
       UPDATE civicrm_relationship_vtx
-      SET near_type = NEW.name_a_b, far_type = NEW.name_b_a
+      SET near_type = NEW.name_b_a, far_type = NEW.name_a_b
       WHERE relationship_type_id = NEW.id AND orientation = 1;
 
     END IF;
@@ -70,14 +70,14 @@ class CRM_Contact_BAO_RelationshipVortex extends CRM_Contact_DAO_RelationshipVor
 
     CRM_Core_DAO::executeQuery('
       INSERT INTO civicrm_relationship_vtx (relationship_id, relationship_type_id, orientation, near_type, near_contact_id, far_type, far_contact_id)
-      SELECT rel.id, rel.relationship_type_id, 0, reltype.name_b_a, rel.contact_id_a, reltype.name_a_b, rel.contact_id_b
+      SELECT rel.id, rel.relationship_type_id, 0, reltype.name_a_b, rel.contact_id_a, reltype.name_b_a, rel.contact_id_b
       FROM civicrm_relationship rel
       INNER JOIN civicrm_relationship_type reltype ON rel.relationship_type_id = reltype.id
     ');
 
     CRM_Core_DAO::executeQuery('
       INSERT INTO civicrm_relationship_vtx (relationship_id, relationship_type_id, orientation, near_type, near_contact_id, far_type, far_contact_id)
-      SELECT rel.id, rel.relationship_type_id, 1, reltype.name_a_b, rel.contact_id_b, reltype.name_b_a, rel.contact_id_a
+      SELECT rel.id, rel.relationship_type_id, 1, reltype.name_b_a, rel.contact_id_b, reltype.name_a_b, rel.contact_id_a
       FROM civicrm_relationship rel
       INNER JOIN civicrm_relationship_type reltype ON rel.relationship_type_id = reltype.id
     ');
