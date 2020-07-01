@@ -270,6 +270,29 @@ class Container {
       ['civicrm_case', 'Case']
     ))->addTag('kernel.event_listener', ['event' => 'hook_civicrm_triggerInfo', 'method' => 'onTriggerInfo'])->setPublic(TRUE);
 
+    $container->setDefinition('civi.relationship.staticTriggers', new Definition(
+      'Civi\Core\SqlTrigger\StaticTriggers',
+      [
+        [
+          [
+            'table' => 'civicrm_relationship',
+            'when' => 'AFTER',
+            'event' => ['INSERT', 'UPDATE'],
+            'sql' => \CRM_Contact_BAO_RelationshipVortex::UPDATE_RELATIONSHIP_TRIGGER,
+          ],
+          [
+            'table' => 'civicrm_relationship_type',
+            'when' => 'AFTER',
+            'event' => ['UPDATE'],
+            'sql' => \CRM_Contact_BAO_RelationshipVortex::UPDATE_RELATIONSHIP_TYPE_TRIGGER,
+          ],
+
+          // Note: We do not need a DELETE trigger to main `civicrm_relationship_vtx` because it uses `<onDelete>CASCADE</onDelete>`.
+        ],
+      ]
+    ))
+      ->addTag('kernel.event_listener', ['event' => 'hook_civicrm_triggerInfo', 'method' => 'onTriggerInfo'])->setPublic(TRUE);
+
     $container->setDefinition('civi.case.staticTriggers', new Definition(
       'Civi\Core\SqlTrigger\StaticTriggers',
       [
