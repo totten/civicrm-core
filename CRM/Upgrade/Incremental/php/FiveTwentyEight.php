@@ -94,7 +94,7 @@ class CRM_Upgrade_Incremental_php_FiveTwentyEight extends CRM_Upgrade_Incrementa
 
     CRM_Core_DAO::executeQuery('
       INSERT INTO civicrm_relationship_vtx (relationship_id, relationship_type_id, orientation, near_type, near_contact_id, far_type, far_contact_id)
-      SELECT rel.id, rel.relationship_type_id, 0, reltype.name_b_a, rel.contact_id_a, reltype.name_a_b, rel.contact_id_b
+      SELECT rel.id, rel.relationship_type_id, 0, reltype.name_a_b, rel.contact_id_a, reltype.name_b_a, rel.contact_id_b
       FROM civicrm_relationship rel
       INNER JOIN civicrm_relationship_type reltype ON rel.relationship_type_id = reltype.id
       WHERE rel.id >= %1 AND rel.id <= %2
@@ -102,7 +102,7 @@ class CRM_Upgrade_Incremental_php_FiveTwentyEight extends CRM_Upgrade_Incrementa
 
     CRM_Core_DAO::executeQuery('
       INSERT INTO civicrm_relationship_vtx (relationship_id, relationship_type_id, orientation, near_type, near_contact_id, far_type, far_contact_id)
-      SELECT rel.id, rel.relationship_type_id, 1, reltype.name_a_b, rel.contact_id_b, reltype.name_b_a, rel.contact_id_a
+      SELECT rel.id, rel.relationship_type_id, 1, reltype.name_b_a, rel.contact_id_b, reltype.name_a_b, rel.contact_id_a
       FROM civicrm_relationship rel
       INNER JOIN civicrm_relationship_type reltype ON rel.relationship_type_id = reltype.id
       WHERE rel.id >= %1 AND rel.id <= %2
