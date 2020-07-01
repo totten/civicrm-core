@@ -14,33 +14,12 @@
  */
 class CRM_Core_Session {
 
-  /**
-   * Key is used to allow the application to have multiple top
-   * level scopes rather than a single scope. (avoids naming
-   * conflicts). We also extend this idea further and have local
-   * scopes within a global scope. Allows us to do cool things
-   * like resetting a specific area of the session code while
-   * keeping the rest intact
-   *
-   * @var string
-   */
-  protected $_key = 'CiviCRM';
   const USER_CONTEXT = 'userContext';
 
   /**
-   * This is just a reference to the real session. Allows us to
-   * debug this class a wee bit easier
-   *
-   * @var object
+   * @var CRM_Core_Session_Interface
    */
-  protected $_session = NULL;
-
-  /**
-   * Current php Session ID : needed to detect if the session is changed
-   *
-   * @var string
-   */
-  protected $sessionID;
+  protected $backend;
 
   /**
    * We only need one instance of this object. So we use the singleton
@@ -65,7 +44,7 @@ class CRM_Core_Session {
    * @return CRM_Core_Session
    */
   public function __construct() {
-    $this->_session = NULL;
+    $this->backend = new CRM_Core_Session_Standard();
   }
 
   /**
@@ -89,33 +68,7 @@ class CRM_Core_Session {
    *   Is this a read operation, in this case, the session will not be touched.
    */
   public function initialize($isRead = FALSE) {
-    // remove $_SESSION reference if session is changed
-    if (($sid = session_id()) !== $this->sessionID) {
-      $this->_session = NULL;
-      $this->sessionID = $sid;
-    }
-    // lets initialize the _session variable just before we need it
-    // hopefully any bootstrapping code will actually load the session from the CMS
-    if (!isset($this->_session)) {
-      // CRM-9483
-      if (!isset($_SESSION) && PHP_SAPI !== 'cli') {
-        if ($isRead) {
-          return;
-        }
-        CRM_Core_Config::singleton()->userSystem->sessionStart();
-      }
-      $this->_session =& $_SESSION;
-    }
-
-    if ($isRead) {
-      return;
-    }
-
-    if (!isset($this->_session[$this->_key]) ||
-      !is_array($this->_session[$this->_key])
-    ) {
-      $this->_session[$this->_key] = [];
-    }
+    return $this->backend->initialize($isRead);
   }
 
   /**
@@ -126,17 +79,11 @@ class CRM_Core_Session {
    *   - 2: destroy CiviCRM-specific session data
    */
   public function reset($all = 1) {
-    if ($all != 1) {
-      $this->initialize();
+    return $this->backend->reset($all);
+  }
 
-      // to make certain we clear it, first initialize it to empty
-      $this->_session[$this->_key] = [];
-      unset($this->_session[$this->_key]);
-    }
-    else {
-      $this->_session = [];
-    }
-
+  private function &ref() {
+    return $this->backend->getRef();
   }
 
   /**
@@ -154,8 +101,9 @@ class CRM_Core_Session {
       return;
     }
 
-    if (empty($this->_session[$this->_key][$prefix])) {
-      $this->_session[$this->_key][$prefix] = [];
+    $ref = &$this->ref();
+    if (empty($ref[$prefix])) {
+      $ref[$prefix] = [];
     }
   }
 
@@ -172,8 +120,9 @@ class CRM_Core_Session {
       return;
     }
 
-    if (array_key_exists($prefix, $this->_session[$this->_key])) {
-      unset($this->_session[$this->_key][$prefix]);
+    $ref = &$this->ref();
+    if (array_key_exists($prefix, $ref)) {
+      unset($ref[$prefix]);
     }
   }
 
@@ -198,10 +147,10 @@ class CRM_Core_Session {
     $this->createScope($prefix);
 
     if (empty($prefix)) {
-      $session = &$this->_session[$this->_key];
+      $session = &$this->ref();
     }
     else {
-      $session = &$this->_session[$this->_key][$prefix];
+      $session = &$this->ref()[$prefix];
     }
 
     if (is_array($name)) {
@@ -231,19 +180,20 @@ class CRM_Core_Session {
   public function get($name, $prefix = NULL) {
     // create session scope
     $this->createScope($prefix, TRUE);
+    $ref = &$this->ref();
 
-    if (empty($this->_session) || empty($this->_session[$this->_key])) {
+    if (empty($ref)) {
       return NULL;
     }
 
     if (empty($prefix)) {
-      $session =& $this->_session[$this->_key];
+      $session =& $this->ref();
     }
     else {
-      if (empty($this->_session[$this->_key][$prefix])) {
+      if (empty($ref[$prefix])) {
         return NULL;
       }
-      $session =& $this->_session[$this->_key][$prefix];
+      $session =& $ref[$prefix];
     }
 
     return $session[$name] ?? NULL;
@@ -314,26 +264,28 @@ class CRM_Core_Session {
     }
 
     $this->createScope(self::USER_CONTEXT);
+    $ref = &$this->ref();
 
     // hack, reset if too big
-    if (count($this->_session[$this->_key][self::USER_CONTEXT]) > 10) {
+    if (count($ref[self::USER_CONTEXT]) > 10) {
       $this->resetScope(self::USER_CONTEXT);
       $this->createScope(self::USER_CONTEXT);
+      $ref = &$this->ref();
     }
 
-    $topUC = array_pop($this->_session[$this->_key][self::USER_CONTEXT]);
+    $topUC = array_pop($ref[self::USER_CONTEXT]);
 
     // see if there is a match between the new UC and the top one. the match needs to be
     // fuzzy since we use the referer at times
     // if close enough, lets just replace the top with the new one
     if ($check && $topUC && CRM_Utils_String::match($topUC, $userContext)) {
-      array_push($this->_session[$this->_key][self::USER_CONTEXT], $userContext);
+      array_push($ref[self::USER_CONTEXT], $userContext);
     }
     else {
       if ($topUC) {
-        array_push($this->_session[$this->_key][self::USER_CONTEXT], $topUC);
+        array_push($ref[self::USER_CONTEXT], $topUC);
       }
-      array_push($this->_session[$this->_key][self::USER_CONTEXT], $userContext);
+      array_push($ref[self::USER_CONTEXT], $userContext);
     }
   }
 
@@ -349,9 +301,10 @@ class CRM_Core_Session {
     }
 
     $this->createScope(self::USER_CONTEXT);
+    $ref = &$this->ref();
 
-    array_pop($this->_session[$this->_key][self::USER_CONTEXT]);
-    array_push($this->_session[$this->_key][self::USER_CONTEXT], $userContext);
+    array_pop($ref[self::USER_CONTEXT]);
+    array_push($ref[self::USER_CONTEXT], $userContext);
   }
 
   /**
@@ -362,8 +315,9 @@ class CRM_Core_Session {
    */
   public function popUserContext() {
     $this->createScope(self::USER_CONTEXT);
+    $ref = &$this->ref();
 
-    return array_pop($this->_session[$this->_key][self::USER_CONTEXT]);
+    return array_pop($ref[self::USER_CONTEXT]);
   }
 
   /**
@@ -374,10 +328,11 @@ class CRM_Core_Session {
    */
   public function readUserContext() {
     $this->createScope(self::USER_CONTEXT);
+    $ref = &$this->ref();
 
     $config = CRM_Core_Config::singleton();
-    $lastElement = count($this->_session[$this->_key][self::USER_CONTEXT]) - 1;
-    return $lastElement >= 0 ? $this->_session[$this->_key][self::USER_CONTEXT][$lastElement] : $config->userFrameworkBaseURL;
+    $lastElement = count($ref[self::USER_CONTEXT]) - 1;
+    return $lastElement >= 0 ? $ref[self::USER_CONTEXT][$lastElement] : $config->userFrameworkBaseURL;
   }
 
   /**
@@ -388,10 +343,10 @@ class CRM_Core_Session {
   public function debug($all = 1) {
     $this->initialize();
     if ($all != 1) {
-      CRM_Core_Error::debug('CRM Session', $this->_session);
+      CRM_Core_Error::debug('CRM Session', $_SESSION);
     }
     else {
-      CRM_Core_Error::debug('CRM Session', $this->_session[$this->_key]);
+      CRM_Core_Error::debug('CRM Session', $this->ref());
     }
   }
 
@@ -406,14 +361,15 @@ class CRM_Core_Session {
    */
   public function getStatus($reset = FALSE) {
     $this->initialize();
+    $ref = &$this->ref();
 
     $status = NULL;
-    if (array_key_exists('status', $this->_session[$this->_key])) {
-      $status = $this->_session[$this->_key]['status'];
+    if (array_key_exists('status', $ref)) {
+      $status = $ref['status'];
     }
     if ($reset) {
-      $this->_session[$this->_key]['status'] = NULL;
-      unset($this->_session[$this->_key]['status']);
+      $ref['status'] = NULL;
+      unset($ref['status']);
     }
     return $status;
   }
@@ -456,19 +412,20 @@ class CRM_Core_Session {
     // default options
     $options += ['unique' => TRUE];
 
-    if (!isset(self::$_singleton->_session[self::$_singleton->_key]['status'])) {
-      self::$_singleton->_session[self::$_singleton->_key]['status'] = [];
+    $ref = &self::$_singleton->ref();
+    if (!isset($ref['status'])) {
+      $ref['status'] = [];
     }
     if ($text || $title) {
       if ($options['unique']) {
-        foreach (self::$_singleton->_session[self::$_singleton->_key]['status'] as $msg) {
+        foreach ($ref['status'] as $msg) {
           if ($msg['text'] == $text && $msg['title'] == $title) {
             return;
           }
         }
       }
       unset($options['unique']);
-      self::$_singleton->_session[self::$_singleton->_key]['status'][] = [
+      $ref['status'][] = [
         'text' => $text,
         'title' => $title,
         'type' => $type,
