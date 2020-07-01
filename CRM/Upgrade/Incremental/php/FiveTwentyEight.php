@@ -63,6 +63,52 @@ class CRM_Upgrade_Incremental_php_FiveTwentyEight extends CRM_Upgrade_Incrementa
     $this->addTask('Add icon column to civicrm_custom_group', 'addColumn',
       'civicrm_custom_group', 'icon', "varchar(255) COMMENT 'crm-i icon class' DEFAULT NULL");
     $this->addTask('Remove index on medium_id from civicrm_activity', 'dropIndex', 'civicrm_activity', 'index_medium_id');
+
+    list($minId, $maxId) = CRM_Core_DAO::executeQuery("SELECT coalesce(min(id),0), coalesce(max(id),0)
+      FROM civicrm_relationship ")->getDatabaseResult()->fetchRow();
+    for ($startId = $minId; $startId <= $maxId; $startId += self::BATCH_SIZE) {
+      $endId = $startId + self::BATCH_SIZE - 1;
+      $title = ts("Upgrade DB to %1: Fill civicrm_relationship_vtx (%2 => %3)", [
+        1 => $rev,
+        2 => $startId,
+        3 => $endId,
+      ]);
+      $this->addTask($title, 'populateRelationshipVortex', $startId, $endId);
+    }
+  }
+
+  /**
+   * @param \CRM_Queue_TaskContext $ctx
+   * @param int $startId
+   *   The lowest relationship ID that should be updated.
+   * @param int $endId
+   *   The highest relationship ID that should be updated.
+   * @return bool
+   *   TRUE on success
+   */
+  public static function populateRelationshipVortex(CRM_Queue_TaskContext $ctx, $startId, $endId) {
+    $params = [
+      1 => [$startId, 'Positive'],
+      2 => [$endId, 'Positive'],
+    ];
+
+    CRM_Core_DAO::executeQuery('
+      INSERT INTO civicrm_relationship_vtx (relationship_id, relationship_type_id, orientation, near_type, near_contact_id, far_type, far_contact_id)
+      SELECT rel.id, rel.relationship_type_id, 0, reltype.name_b_a, rel.contact_id_a, reltype.name_a_b, rel.contact_id_b
+      FROM civicrm_relationship rel
+      INNER JOIN civicrm_relationship_type reltype ON rel.relationship_type_id = reltype.id
+      WHERE rel.id >= %1 AND rel.id <= %2
+    ', $params);
+
+    CRM_Core_DAO::executeQuery('
+      INSERT INTO civicrm_relationship_vtx (relationship_id, relationship_type_id, orientation, near_type, near_contact_id, far_type, far_contact_id)
+      SELECT rel.id, rel.relationship_type_id, 1, reltype.name_a_b, rel.contact_id_b, reltype.name_b_a, rel.contact_id_a
+      FROM civicrm_relationship rel
+      INNER JOIN civicrm_relationship_type reltype ON rel.relationship_type_id = reltype.id
+      WHERE rel.id >= %1 AND rel.id <= %2
+    ', $params);
+
+    return TRUE;
   }
 
   public static function populateMissingContactTypeName() {
