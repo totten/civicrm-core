@@ -197,7 +197,7 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addScriptUrl($url, $weight = self::DEFAULT_WEIGHT, $region = self::DEFAULT_REGION) {
-    CRM_Core_Region::instance($region)->addScriptUrl($url, $weight);
+    CRM_Core_Region::instance($region)->add(['scriptUrl' => $url, 'weight' => $weight]);
     return $this;
   }
 
@@ -213,7 +213,7 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addScript($code, $weight = self::DEFAULT_WEIGHT, $region = self::DEFAULT_REGION) {
-    CRM_Core_Region::instance($region)->addScript($code, $weight);
+    CRM_Core_Region::instance($region)->add(['script' => $code, 'weight' => $weight]);
     return $this;
   }
 
@@ -343,7 +343,7 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addStyleUrl($url, $weight = self::DEFAULT_WEIGHT, $region = self::DEFAULT_REGION) {
-    CRM_Core_Region::instance($region)->addStyleUrl($url, $weight);
+    CRM_Core_Region::instance($region)->add(['styleUrl' => $url, 'weight' => $weight]);
     return $this;
   }
 
@@ -359,7 +359,7 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addStyle($code, $weight = self::DEFAULT_WEIGHT, $region = self::DEFAULT_REGION) {
-    CRM_Core_Region::instance($region)->addStyle($code, $weight);
+    CRM_Core_Region::instance($region)->add(['style' => $code, 'weight' => $weight]);
     return $this;
   }
 

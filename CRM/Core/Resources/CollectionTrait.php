@@ -108,7 +108,16 @@ trait CRM_Core_Resources_CollectionTrait {
       throw new \RuntimeException("Unsupported snippet type: " . $snippet['type']);
     }
     if (!isset($snippet['name'])) {
-      $snippet['name'] = count($this->snippets);
+      switch ($snippet['type']) {
+        case 'scriptUrl':
+        case 'styleUrl':
+          $snippet['name'] = $snippet[$snippet['type']];
+          break;
+
+        default:
+          $snippet['name'] = count($this->snippets);
+          break;
+      }
     }
 
     $this->snippets[$snippet['name']] = $snippet;
@@ -264,16 +273,13 @@ trait CRM_Core_Resources_CollectionTrait {
    *
    * @param string $code
    *   JavaScript source code.
-   * @param int $weight
-   *   relative weight within a given region.
+   * @param array $options
+   *   Open-ended list of options (per add())
+   *   Ex: ['weight' => 123]
    * @return static
    */
-  public function addScript($code, $weight = NULL) {
-    $this->add([
-      'type' => 'script',
-      'script' => $code,
-      'weight' => $weight,
-    ]);
+  public function addScript($code, $options = []) {
+    $this->add($options + ['script' => $code]);
     return $this;
   }
 
@@ -281,17 +287,13 @@ trait CRM_Core_Resources_CollectionTrait {
    * Add a JavaScript file to the current page using <SCRIPT SRC>.
    *
    * @param string $url
-   * @param int $weight
-   *   relative weight within a given region.
+   * @param array $options
+   *   Open-ended list of options (per add())
+   *   Ex: ['weight' => 123]
    * @return static
    */
-  public function addScriptUrl($url, $weight = NULL) {
-    $this->add([
-      'name' => $url,
-      'type' => 'scriptUrl',
-      'scriptUrl' => $url,
-      'weight' => $weight,
-    ]);
+  public function addScriptUrl($url, $options = []) {
+    $this->add($options + ['scriptUrl' => $url]);
     return $this;
   }
 
@@ -351,16 +353,13 @@ trait CRM_Core_Resources_CollectionTrait {
    *
    * @param string $code
    *   CSS source code.
-   * @param int|NULL $weight
-   *   relative weight within a given region.
+   * @param array $options
+   *   Open-ended list of options (per add())
+   *   Ex: ['weight' => 123]
    * @return static
    */
-  public function addStyle($code, $weight = NULL) {
-    $this->add([
-      'type' => 'style',
-      'style' => $code,
-      'weight' => $weight,
-    ]);
+  public function addStyle($code, $options = []) {
+    $this->add($options + ['style' => $code]);
     return $this;
   }
 
@@ -368,17 +367,13 @@ trait CRM_Core_Resources_CollectionTrait {
    * Add a CSS file to the current page using <LINK HREF>.
    *
    * @param string $url
-   * @param int $weight
-   *   relative weight within a given region.
+   * @param array $options
+   *   Open-ended list of options (per add())
+   *   Ex: ['weight' => 123]
    * @return static
    */
-  public function addStyleUrl($url, $weight = NULL) {
-    $this->add([
-      'name' => $url,
-      'type' => 'styleUrl',
-      'styleUrl' => $url,
-      'weight' => $weight,
-    ]);
+  public function addStyleUrl($url, $options = []) {
+    $this->add($options + ['styleUrl' => $url]);
     return $this;
   }
 
