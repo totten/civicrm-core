@@ -3,7 +3,7 @@
 /**
  * Maintain a set of markup/templates to inject inside various regions
  */
-class CRM_Core_Region {
+class CRM_Core_Region implements CRM_Core_Resources_CollectionInterface {
   static private $_instances = NULL;
 
   /**

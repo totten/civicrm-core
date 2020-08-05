@@ -49,45 +49,12 @@ trait CRM_Core_Resources_CollectionTrait {
   protected $types = [];
 
   /**
-   * Add an item to the collection. For example, when working with 'page-header' collection:
-   *
-   * ```
-   * CRM_Core_Region::instance('page-header')->add(array(
-   *   'markup' => '<div style="color:red">Hello!</div>',
-   * ));
-   * CRM_Core_Region::instance('page-header')->add(array(
-   *   'script' => 'alert("Hello");',
-   * ));
-   * CRM_Core_Region::instance('page-header')->add(array(
-   *   'template' => 'CRM/Myextension/Extra.tpl',
-   * ));
-   * CRM_Core_Region::instance('page-header')->add(array(
-   *   'callback' => 'myextension_callback_function',
-   * ));
-   * ```
-   *
-   * Note: This function does not perform any extra encoding of markup, script code, or etc. If
-   * you're passing in user-data, you must clean it yourself.
+   * Add an item to the collection.
    *
    * @param array $snippet
-   *   Array; keys:.
-   *   - type: string (auto-detected for markup, template, callback, script, scriptUrl, jquery, style, styleUrl)
-   *   - name: string, optional
-   *   - weight: int, optional; default=1
-   *   - disabled: int, optional; default=0
-   *   - markup: string, HTML; required (for type==markup)
-   *   - template: string, path; required (for type==template)
-   *   - callback: mixed; required (for type==callback)
-   *   - arguments: array, optional (for type==callback)
-   *   - script: string, Javascript code
-   *   - scriptUrl: string, URL of a Javascript file
-   *   - jquery: string, Javascript code which runs inside a jQuery(function($){...}); block
-   *   - settings: array, list of static values to convey.
-   *   - style: string, CSS code
-   *   - styleUrl: string, URL of a CSS file
-   *
    * @return array
    *   The full/computed snippet (with defaults applied).
+   * @see CRM_Core_Resources_CollectionInterface::add()
    */
   public function add($snippet) {
     $snippet += ['disabled' => FALSE];
@@ -128,10 +95,13 @@ trait CRM_Core_Resources_CollectionTrait {
   /**
    * @param string $name
    * @param $snippet
+   * @return static
+   * @see CRM_Core_Resources_CollectionInterface::add()
    */
   public function update($name, $snippet) {
     $this->snippets[$name] = array_merge($this->snippets[$name], $snippet);
     $this->isSorted = FALSE;
+    return $this;
   }
 
   /**
@@ -139,6 +109,7 @@ trait CRM_Core_Resources_CollectionTrait {
    *
    * @param string $name
    * @return array|NULL
+   * @see CRM_Core_Resources_CollectionInterface::add()
    */
   public function &get($name) {
     return $this->snippets[$name];
@@ -148,6 +119,7 @@ trait CRM_Core_Resources_CollectionTrait {
    * Get a list of all snippets in this collection.
    *
    * @return array
+   * @see CRM_Core_Resources_CollectionInterface::add()
    */
   public function getAll() {
     $this->sort();
@@ -158,12 +130,8 @@ trait CRM_Core_Resources_CollectionTrait {
    * Alter the contents of the collection.
    *
    * @param callable $callback
-   *   The callback is invoked once for each member in the collection.
-   *   The callback may return one of three values:
-   *   - TRUE: The item is OK and belongs in the collection.
-   *   - FALSE: The item is not OK and should be omitted from the collection.
-   *   - Array: The item should be revised (using the returned value).
    * @return static
+   * @see CRM_Core_Resources_CollectionInterface::add()
    */
   public function filter($callback) {
     $this->sort();
@@ -193,6 +161,7 @@ trait CRM_Core_Resources_CollectionTrait {
    * @param callable $callback
    * @return array
    *   List of matching snippets.
+   * @see CRM_Core_Resources_CollectionInterface::add()
    */
   public function find($callback) {
     $r = [];
