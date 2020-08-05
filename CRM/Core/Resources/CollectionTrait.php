@@ -13,8 +13,17 @@
  * Class CRM_Core_Resources_CollectionTrait
  *
  * This is a building-block for creating classes which maintain a list of resources.
+ *
+ * The class is generally organized in two sections: First, we have core
+ * bit that manages a list of '$snippets'. Second, we have a set of helper
+ * functions which add some syntactic sugar for the snippets.
  */
 trait CRM_Core_Resources_CollectionTrait {
+
+  /**
+   * @var int
+   */
+  protected $defaultWeight = 1;
 
   /**
    * List of snippets to inject within region.
@@ -81,11 +90,11 @@ trait CRM_Core_Resources_CollectionTrait {
    *   The full/computed snippet (with defaults applied).
    */
   public function add($snippet) {
-    $defaults = [
-      'weight' => 1,
-      'disabled' => FALSE,
-    ];
-    $snippet += $defaults;
+    $snippet += ['disabled' => FALSE];
+    if (!isset($snippet['weight'])) {
+      $snippet['weight'] = $this->defaultWeight;
+    }
+
     if (!isset($snippet['type'])) {
       foreach ($this->types as $type) {
         // auto-detect
@@ -160,6 +169,80 @@ trait CRM_Core_Resources_CollectionTrait {
       return 1;
     }
     return 0;
+  }
+
+  // -----------------------------------------------
+
+  /**
+   * Add a JavaScript file to the current page using <SCRIPT SRC>.
+   *
+   * @param string $code
+   *   JavaScript source code.
+   * @param int $weight
+   *   relative weight within a given region.
+   * @return static
+   */
+  public function addScript($code, $weight = NULL) {
+    $this->add([
+      'type' => 'script',
+      'script' => $code,
+      'weight' => $weight,
+    ]);
+    return $this;
+  }
+
+  /**
+   * Add a JavaScript file to the current page using <SCRIPT SRC>.
+   *
+   * @param string $url
+   * @param int $weight
+   *   relative weight within a given region.
+   * @return static
+   */
+  public function addScriptUrl($url, $weight = NULL) {
+    $this->add([
+      'name' => $url,
+      'type' => 'scriptUrl',
+      'scriptUrl' => $url,
+      'weight' => $weight,
+    ]);
+    return $this;
+  }
+
+  /**
+   * Add a CSS content to the current page using <STYLE>.
+   *
+   * @param string $code
+   *   CSS source code.
+   * @param int|NULL $weight
+   *   relative weight within a given region.
+   * @return static
+   */
+  public function addStyle($code, $weight = NULL) {
+    $this->add([
+      'type' => 'style',
+      'style' => $code,
+      'weight' => $weight,
+    ]);
+    return $this;
+  }
+
+  /**
+   * Add a CSS file to the current page using <LINK HREF>.
+   *
+   * @param string $url
+   * @param int $weight
+   *   relative weight within a given region.
+   * @return static
+   */
+  public function addStyleUrl($url, $weight = NULL) {
+    $this->add([
+      'name' => $url,
+      'type' => 'styleUrl',
+      'styleUrl' => $url,
+      'weight' => $weight,
+    ]);
+    return $this;
   }
 
 }
