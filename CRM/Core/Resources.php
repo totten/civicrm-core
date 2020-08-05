@@ -243,11 +243,8 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addVars($nameSpace, $vars, $region = NULL) {
-    $s = &$this->findCreateSettingSnippet($region);
-    $s['settings']['vars'][$nameSpace] = $this->mergeSettings(
-      $s['settings']['vars'][$nameSpace] ?? [],
-      $vars
-    );
+    $region = $region ?: (self::isAjaxMode() ? 'ajax-snippet' : 'html-header');
+    CRM_Core_Region::instance($region)->addVars($nameSpace, $vars);
     return $this;
   }
 
@@ -263,8 +260,8 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addSetting($settings, $region = NULL) {
-    $s = &$this->findCreateSettingSnippet($region);
-    $s['settings'] = $this->mergeSettings($s['settings'], $settings);
+    $region = $region ?: (self::isAjaxMode() ? 'ajax-snippet' : 'html-header');
+    CRM_Core_Region::instance($region)->addSetting($settings);
     return $this;
   }
 
@@ -272,68 +269,20 @@ class CRM_Core_Resources {
    * Add JavaScript variables to the global CRM object via a callback function.
    *
    * @param callable $callable
-   * @param string|NULL $region
    * @return CRM_Core_Resources
    */
-  public function addSettingsFactory($callable, $region = NULL) {
-    $s = &$this->findCreateSettingSnippet($region);
-    $s['settingsFactories'][] = $callable;
+  public function addSettingsFactory($callable) {
+    $region = self::isAjaxMode() ? 'ajax-snippet' : 'html-header';
+    CRM_Core_Region::instance($region)->addSettingsFactory($callable);
     return $this;
   }
 
   /**
    * Helper fn for addSettingsFactory.
-   * @deprecated
    */
-  public function getSettings($region = NULL) {
-    $s = &$this->findCreateSettingSnippet($region);
-    $result = $s['settings'];
-    foreach ($s['settingsFactories'] as $callable) {
-      $result = $this->mergeSettings($result, $callable());
-    }
-    CRM_Utils_Hook::alterResourceSettings($result);
-    return $result;
-  }
-
-  /**
-   * @param array $settings
-   * @param array $additions
-   * @return array
-   *   combination of $settings and $additions
-   */
-  protected function mergeSettings($settings, $additions) {
-    foreach ($additions as $k => $v) {
-      if (isset($settings[$k]) && is_array($settings[$k]) && is_array($v)) {
-        $v += $settings[$k];
-      }
-      $settings[$k] = $v;
-    }
-    return $settings;
-  }
-
-  /**
-   * @param string $regionName
-   * @return array
-   */
-  private function &findCreateSettingSnippet($regionName) {
-    if (!$regionName) {
-      $regionName = self::isAjaxMode() ? 'ajax-snippet' : 'html-header';
-    }
-
-    $region = CRM_Core_Region::instance($regionName);
-    $snippet = &$region->get('settings');
-    if ($snippet !== NULL) {
-      return $snippet;
-    }
-
-    $region->add([
-      'name' => 'settings',
-      'type' => 'settings',
-      'settings' => [],
-      'settingsFactories' => [],
-      'weight' => -100000,
-    ]);
-    return $region->get('settings');
+  public function getSettings() {
+    $region = self::isAjaxMode() ? 'ajax-snippet' : 'html-header';
+    return CRM_Core_Region::instance($region)->getSettings();
   }
 
   /**

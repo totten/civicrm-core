@@ -245,4 +245,109 @@ trait CRM_Core_Resources_CollectionTrait {
     return $this;
   }
 
+  /**
+   * Add JavaScript variables to CRM.vars
+   *
+   * Example:
+   * From the server:
+   * CRM_Core_Resources::singleton()->addVars('myNamespace', array('foo' => 'bar'));
+   * Access var from javascript:
+   * CRM.vars.myNamespace.foo // "bar"
+   *
+   * @see https://docs.civicrm.org/dev/en/latest/standards/javascript/
+   *
+   * @param string $nameSpace
+   *   Usually the name of your extension.
+   * @param array $vars
+   * @param string $region
+   *   The region to add settings to (eg. for payment processors usually billing-block)
+   *
+   * @return static
+   */
+  public function addVars($nameSpace, $vars, $region = NULL) {
+    $s = &$this->findCreateSettingSnippet($region);
+    $s['settings']['vars'][$nameSpace] = $this->mergeSettings(
+      $s['settings']['vars'][$nameSpace] ?? [],
+      $vars
+    );
+    return $this;
+  }
+
+  /**
+   * Add JavaScript variables to the root of the CRM object.
+   * This function is usually reserved for low-level system use.
+   * Extensions and components should generally use addVars instead.
+   *
+   * @param array $settings
+   * @return static
+   */
+  public function addSetting($settings) {
+    $s = &$this->findCreateSettingSnippet();
+    $s['settings'] = $this->mergeSettings($s['settings'], $settings);
+    return $this;
+  }
+
+  /**
+   * Add JavaScript variables to the global CRM object via a callback function.
+   *
+   * @param callable $callable
+   * @return static
+   */
+  public function addSettingsFactory($callable) {
+    $s = &$this->findCreateSettingSnippet();
+    $s['settingsFactories'][] = $callable;
+    return $this;
+  }
+
+  /**
+   * Get a fully-formed/altered list of settings, including the results of
+   * any callbacks/listeners.
+   *
+   * @return array
+   */
+  public function getSettings() {
+    $s = &$this->findCreateSettingSnippet();
+    $result = $s['settings'];
+    foreach ($s['settingsFactories'] as $callable) {
+      $result = $this->mergeSettings($result, $callable());
+    }
+    CRM_Utils_Hook::alterResourceSettings($result);
+    return $result;
+  }
+
+  /**
+   * @param array $settings
+   * @param array $additions
+   * @return array
+   *   combination of $settings and $additions
+   */
+  private function mergeSettings($settings, $additions) {
+    foreach ($additions as $k => $v) {
+      if (isset($settings[$k]) && is_array($settings[$k]) && is_array($v)) {
+        $v += $settings[$k];
+      }
+      $settings[$k] = $v;
+    }
+    return $settings;
+  }
+
+  /**
+   * @return array
+   */
+  private function &findCreateSettingSnippet() {
+    $snippet = &$this->get('settings');
+    if ($snippet !== NULL) {
+      return $snippet;
+    }
+
+    $this->add([
+      'name' => 'settings',
+      'type' => 'settings',
+      'settings' => [],
+      'settingsFactories' => [],
+      'weight' => -100000,
+    ]);
+    return $this->get('settings');
+  }
+
 }

@@ -118,7 +118,7 @@ class CRM_Core_Region {
           break;
 
         case 'settings':
-          $settingsData = Civi::resources()->getSettings($this->_name);
+          $settingsData = $this->getSettings();
 
           if (($this->_name === 'html-header') || !CRM_Core_Resources::isAjaxMode()) {
             $js = 'var CRM = ' . json_encode($settingsData) . ';';
