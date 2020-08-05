@@ -152,8 +152,7 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addPermissions($permNames) {
-    $region = self::isAjaxMode() ? 'ajax-snippet' : 'html-header';
-    CRM_Core_Region::instance($region)->addPermissions($permNames);
+    $this->getSettingRegion()->addPermissions($permNames);
     return $this;
   }
 
@@ -238,8 +237,7 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addVars($nameSpace, $vars, $region = NULL) {
-    $region = $region ?: (self::isAjaxMode() ? 'ajax-snippet' : 'html-header');
-    CRM_Core_Region::instance($region)->addVars($nameSpace, $vars);
+    $this->getSettingRegion($region)->addVars($nameSpace, $vars);
     return $this;
   }
 
@@ -255,8 +253,7 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addSetting($settings, $region = NULL) {
-    $region = $region ?: (self::isAjaxMode() ? 'ajax-snippet' : 'html-header');
-    CRM_Core_Region::instance($region)->addSetting($settings);
+    $this->getSettingRegion($region)->addSetting($settings);
     return $this;
   }
 
@@ -267,8 +264,7 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addSettingsFactory($callable) {
-    $region = self::isAjaxMode() ? 'ajax-snippet' : 'html-header';
-    CRM_Core_Region::instance($region)->addSettingsFactory($callable);
+    $this->getSettingRegion()->addSettingsFactory($callable);
     return $this;
   }
 
@@ -276,8 +272,7 @@ class CRM_Core_Resources {
    * Helper fn for addSettingsFactory.
    */
   public function getSettings() {
-    $region = self::isAjaxMode() ? 'ajax-snippet' : 'html-header';
-    return CRM_Core_Region::instance($region)->getSettings();
+    return $this->getSettingRegion()->getSettings();
   }
 
   /**
@@ -311,8 +306,7 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addString($text, $domain = 'civicrm') {
-    $region = self::isAjaxMode() ? 'ajax-snippet' : 'html-header';
-    CRM_Core_Region::instance($region)->addString($text, $domain);
+    $this->getSettingRegion()->addString($text, $domain);
     return $this;
   }
 
@@ -882,6 +876,16 @@ class CRM_Core_Resources {
    */
   public static function isFullyFormedUrl($url) {
     return (substr($url, 0, 4) === 'http') || (substr($url, 0, 1) === '/');
+  }
+
+  /**
+   * @param string|NULL $region
+   *   Optional request for a specific region. If NULL/omitted, use global default.
+   * @return \CRM_Core_Region
+   */
+  private function getSettingRegion($region = NULL) {
+    $region = $region ?: (self::isAjaxMode() ? 'ajax-snippet' : 'html-header');
+    return CRM_Core_Region::instance($region);
   }
 
 }
