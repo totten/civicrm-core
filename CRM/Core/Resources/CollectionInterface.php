@@ -77,9 +77,9 @@ interface CRM_Core_Resources_CollectionInterface {
   /**
    * Get a list of all snippets in this collection.
    *
-   * @return array
+   * @return iterable
    */
-  public function getAll();
+  public function getAll(): iterable;
 
   /**
    * Alter the contents of the collection.
@@ -102,19 +102,19 @@ interface CRM_Core_Resources_CollectionInterface {
    *   The callback may return one of three values:
    *   - TRUE: The item is OK and belongs in the collection.
    *   - FALSE: The item is not OK and should be omitted from the collection.
-   * @return array
+   * @return iterable
    *   List of matching snippets.
    */
-  public function find($callback);
+  public function find($callback): iterable;
 
   /**
    * Assimilate a list of resources into this list.
    *
-   * @param array $others
+   * @param iterable $others
    *   List of snippets to add.
    * @return static
    * @see CRM_Core_Resources_CollectionInterface::merge()
    */
-  public function merge($others);
+  public function merge(iterable $others);
 
 }

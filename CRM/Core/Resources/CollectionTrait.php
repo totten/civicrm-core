@@ -129,10 +129,10 @@ trait CRM_Core_Resources_CollectionTrait {
   /**
    * Get a list of all snippets in this collection.
    *
-   * @return array
+   * @return iterable
    * @see CRM_Core_Resources_CollectionInterface::add()
    */
-  public function getAll() {
+  public function getAll(): iterable {
     $this->sort();
     return $this->snippets;
   }
@@ -170,11 +170,11 @@ trait CRM_Core_Resources_CollectionTrait {
    * Find all snippets which match the given criterion.
    *
    * @param callable $callback
-   * @return array
+   * @return iterable
    *   List of matching snippets.
    * @see CRM_Core_Resources_CollectionInterface::add()
    */
-  public function find($callback) {
+  public function find($callback): iterable {
     $r = [];
     $this->sort();
     foreach ($this->snippets as $name => $snippet) {
@@ -188,12 +188,12 @@ trait CRM_Core_Resources_CollectionTrait {
   /**
    * Assimilate a list of resources into this list.
    *
-   * @param array $snippets
+   * @param iterable $snippets
    *   List of snippets to add.
    * @return static
    * @see CRM_Core_Resources_CollectionInterface::merge()
    */
-  public function merge($snippets) {
+  public function merge(iterable $snippets) {
     foreach ($snippets as $next) {
       $name = $next['name'];
       $current = $this->snippets[$name] ?? NULL;
@@ -263,14 +263,13 @@ trait CRM_Core_Resources_CollectionTrait {
    * the client can use this info to make the app more secure; however,
    * it can produce a better-tuned (non-broken) UI.
    *
-   * @param array $permNames
+   * @param iterable $permNames
    *   List of permission names to check/export.
    * @return static
    */
-  public function addPermissions($permNames) {
+  public function addPermissions(iterable $permNames) {
     // TODO: Maybe this should be its own resource type to allow smarter management?
 
-    $permNames = (array) $permNames;
     $perms = [];
     foreach ($permNames as $permName) {
       $perms[$permName] = CRM_Core_Permission::check($permName);
@@ -290,7 +289,7 @@ trait CRM_Core_Resources_CollectionTrait {
    *   Ex: ['weight' => 123]
    * @return static
    */
-  public function addScript($code, $options = []) {
+  public function addScript(string $code, array $options = []) {
     $this->add($options + ['script' => $code]);
     return $this;
   }
@@ -315,7 +314,7 @@ trait CRM_Core_Resources_CollectionTrait {
    *
    * @throws \CRM_Core_Exception
    */
-  public function addScriptFile($ext, $file, $options = []) {
+  public function addScriptFile(string $ext, string $file, array $options = []) {
     // TODO: Maybe this should be its own resource type to allow smarter management?
 
     $res = Civi::resources();
@@ -340,7 +339,7 @@ trait CRM_Core_Resources_CollectionTrait {
    *   Ex: ['weight' => 123]
    * @return static
    */
-  public function addScriptUrl($url, $options = []) {
+  public function addScriptUrl(string $url, array $options = []) {
     $this->add($options + ['scriptUrl' => $url]);
     return $this;
   }
@@ -406,7 +405,7 @@ trait CRM_Core_Resources_CollectionTrait {
    *   Ex: ['weight' => 123]
    * @return static
    */
-  public function addStyle($code, $options = []) {
+  public function addStyle(string $code, array $options = []) {
     $this->add($options + ['style' => $code]);
     return $this;
   }
@@ -423,7 +422,7 @@ trait CRM_Core_Resources_CollectionTrait {
    *   Ex: ['weight' => 123]
    * @return static
    */
-  public function addStyleFile($ext, $file, $options = []) {
+  public function addStyleFile(string $ext, string $file, array $options = []) {
     // TODO: Maybe this should be its own resource type to allow smarter management?
 
     /** @var Civi\Core\Themes $theme */
@@ -443,7 +442,7 @@ trait CRM_Core_Resources_CollectionTrait {
    *   Ex: ['weight' => 123]
    * @return static
    */
-  public function addStyleUrl($url, $options = []) {
+  public function addStyleUrl(string $url, array $options = []) {
     $this->add($options + ['styleUrl' => $url]);
     return $this;
   }
@@ -467,7 +466,7 @@ trait CRM_Core_Resources_CollectionTrait {
    *
    * @return static
    */
-  public function addVars($nameSpace, $vars, $region = NULL) {
+  public function addVars(string $nameSpace, array $vars, $region = NULL) {
     $s = &$this->findCreateSettingSnippet($region);
     $s['settings']['vars'][$nameSpace] = $this->mergeSettings(
       $s['settings']['vars'][$nameSpace] ?? [],
@@ -484,7 +483,7 @@ trait CRM_Core_Resources_CollectionTrait {
    * @param array $settings
    * @return static
    */
-  public function addSetting($settings) {
+  public function addSetting(array $settings) {
     $s = &$this->findCreateSettingSnippet();
     $s['settings'] = $this->mergeSettings($s['settings'], $settings);
     return $this;
@@ -508,7 +507,7 @@ trait CRM_Core_Resources_CollectionTrait {
    *
    * @return array
    */
-  public function getSettings() {
+  public function getSettings(): array {
     $s = &$this->findCreateSettingSnippet();
     $result = $s['settings'];
     foreach ($s['settingsFactories'] as $callable) {
@@ -524,7 +523,7 @@ trait CRM_Core_Resources_CollectionTrait {
    * @return array
    *   combination of $settings and $additions
    */
-  private function mergeSettings($settings, $additions) {
+  private function mergeSettings(array $settings, array $additions): array {
     foreach ($additions as $k => $v) {
       if (isset($settings[$k]) && is_array($settings[$k]) && is_array($v)) {
         $v += $settings[$k];
@@ -537,7 +536,7 @@ trait CRM_Core_Resources_CollectionTrait {
   /**
    * @return array
    */
-  private function &findCreateSettingSnippet() {
+  private function &findCreateSettingSnippet(): array {
     $snippet = &$this->get('settings');
     if ($snippet !== NULL) {
       return $snippet;

@@ -147,12 +147,12 @@ class CRM_Core_Resources {
    * the client can use this info to make the app more secure; however,
    * it can produce a better-tuned (non-broken) UI.
    *
-   * @param array $permNames
+   * @param array|string $permNames
    *   List of permission names to check/export.
    * @return CRM_Core_Resources
    */
   public function addPermissions($permNames) {
-    $this->getSettingRegion()->addPermissions($permNames);
+    $this->getSettingRegion()->addPermissions((array) $permNames);
     return $this;
   }
 
