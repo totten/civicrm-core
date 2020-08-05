@@ -107,4 +107,14 @@ interface CRM_Core_Resources_CollectionInterface {
    */
   public function find($callback);
 
+  /**
+   * Assimilate a list of resources into this list.
+   *
+   * @param array $others
+   *   List of snippets to add.
+   * @return static
+   * @see CRM_Core_Resources_CollectionInterface::merge()
+   */
+  public function merge($others);
+
 }

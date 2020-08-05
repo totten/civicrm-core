@@ -82,7 +82,7 @@ trait CRM_Core_Resources_CollectionTrait {
           break;
 
         default:
-          $snippet['name'] = count($this->snippets);
+          $snippet['name'] = $this->createAnonymousName();
           break;
       }
     }
@@ -90,6 +90,17 @@ trait CRM_Core_Resources_CollectionTrait {
     $this->snippets[$snippet['name']] = $snippet;
     $this->isSorted = FALSE;
     return $snippet;
+  }
+
+  protected function createAnonymousName() {
+    if (!isset(Civi::$statics['CRM_Core_Resource_Count'])) {
+      $resId = Civi::$statics['CRM_Core_Resource_Count'] = 1;
+    }
+    else {
+      $resId = ++Civi::$statics['CRM_Core_Resource_Count'];
+    }
+
+    return 'anon_' . $resId;
   }
 
   /**
@@ -172,6 +183,38 @@ trait CRM_Core_Resources_CollectionTrait {
       }
     }
     return $r;
+  }
+
+  /**
+   * Assimilate a list of resources into this list.
+   *
+   * @param array $snippets
+   *   List of snippets to add.
+   * @return static
+   * @see CRM_Core_Resources_CollectionInterface::merge()
+   */
+  public function merge($snippets) {
+    foreach ($snippets as $next) {
+      $name = $next['name'];
+      $current = $this->snippets[$name] ?? NULL;
+      if ($current === NULL) {
+        $this->add($next);
+      }
+      elseif ($current['type'] === 'settings' && $next['type'] === 'settings') {
+        $this->addSetting($next['settings']);
+        foreach ($next['settingsFactories'] as $factory) {
+          $this->addSettingsFactory($factory);
+        }
+        $this->isSorted = FALSE;
+      }
+      elseif ($current['type'] === 'settings' || $next['type'] === 'settings') {
+        throw new \RuntimeException(sprintf("Cannot merge snippets of types [%s] and [%s]" . $current['type'], $next['type']));
+      }
+      else {
+        $this->add($next);
+      }
+    }
+    return $this;
   }
 
   /**
