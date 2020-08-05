@@ -140,6 +140,34 @@ class CRM_Core_Resources {
   }
 
   /**
+   * Assimilate all the resources listed in a bundle.
+   *
+   * @param \CRM_Core_Resources_Bundle $bundle
+   * @return static
+   */
+  public function addBundle($bundle) {
+    $pickRegion = function ($snippet) {
+      if (isset($snippet['settings'])) {
+        return $this->getSettingRegion($snippet['region'] ?? NULL)->_name;
+      }
+      else {
+        return $snippet['region'] ?? self::DEFAULT_REGION;
+      }
+    };
+
+    $byRegion = [];
+    foreach ($bundle->getAll() as $snippet) {
+      $snippet['region'] = $pickRegion($snippet);
+      $byRegion[$snippet['region']][$snippet['name']] = $snippet;
+    }
+
+    foreach ($byRegion as $regionName => $snippets) {
+      CRM_Core_Region::instance($regionName)->merge($snippets);
+    }
+    return $this;
+  }
+
+  /**
    * Export permission data to the client to enable smarter GUIs.
    *
    * Note: Application security stems from the server's enforcement
