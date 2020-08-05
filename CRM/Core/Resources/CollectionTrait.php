@@ -235,6 +235,31 @@ trait CRM_Core_Resources_CollectionTrait {
   // -----------------------------------------------
 
   /**
+   * Export permission data to the client to enable smarter GUIs.
+   *
+   * Note: Application security stems from the server's enforcement
+   * of the security logic (e.g. in the API permissions). There's no way
+   * the client can use this info to make the app more secure; however,
+   * it can produce a better-tuned (non-broken) UI.
+   *
+   * @param array $permNames
+   *   List of permission names to check/export.
+   * @return static
+   */
+  public function addPermissions($permNames) {
+    // TODO: Maybe this should be its own resource type to allow smarter management?
+
+    $permNames = (array) $permNames;
+    $perms = [];
+    foreach ($permNames as $permName) {
+      $perms[$permName] = CRM_Core_Permission::check($permName);
+    }
+    return $this->addSetting([
+      'permissions' => $perms,
+    ]);
+  }
+
+  /**
    * Add a JavaScript file to the current page using <SCRIPT SRC>.
    *
    * @param string $code
@@ -267,6 +292,57 @@ trait CRM_Core_Resources_CollectionTrait {
       'scriptUrl' => $url,
       'weight' => $weight,
     ]);
+    return $this;
+  }
+
+  /**
+   * Add translated string to the js CRM object.
+   * It can then be retrived from the client-side ts() function
+   * Variable substitutions can happen from client-side
+   *
+   * Note: this function rarely needs to be called directly and is mostly for internal use.
+   * See CRM_Core_Resources::addScriptFile which automatically adds translated strings from js files
+   *
+   * Simple example:
+   * // From php:
+   * CRM_Core_Resources::singleton()->addString('Hello');
+   * // The string is now available to javascript code i.e.
+   * ts('Hello');
+   *
+   * Example with client-side substitutions:
+   * // From php:
+   * CRM_Core_Resources::singleton()->addString('Your %1 has been %2');
+   * // ts() in javascript works the same as in php, for example:
+   * ts('Your %1 has been %2', {1: objectName, 2: actionTaken});
+   *
+   * NOTE: This function does not work with server-side substitutions
+   * (as this might result in collisions and unwanted variable injections)
+   * Instead, use code like:
+   * CRM_Core_Resources::singleton()->addSetting(array('myNamespace' => array('myString' => ts('Your %1 has been %2', array(subs)))));
+   * And from javascript access it at CRM.myNamespace.myString
+   *
+   * @param string|array $text
+   * @param string|null $domain
+   * @return static
+   */
+  public function addString($text, $domain = 'civicrm') {
+    // TODO: Maybe this should be its own resource type to allow smarter management?
+
+    foreach ((array) $text as $str) {
+      $translated = ts($str, [
+        'domain' => ($domain == 'civicrm') ? NULL : [$domain, NULL],
+        'raw' => TRUE,
+      ]);
+
+      // We only need to push this string to client if the translation
+      // is actually different from the original
+      if ($translated != $str) {
+        $bucket = $domain == 'civicrm' ? 'strings' : 'strings::' . $domain;
+        $this->addSetting([
+          $bucket => [$str => $translated],
+        ]);
+      }
+    }
     return $this;
   }
 

@@ -152,14 +152,9 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addPermissions($permNames) {
-    $permNames = (array) $permNames;
-    $perms = [];
-    foreach ($permNames as $permName) {
-      $perms[$permName] = CRM_Core_Permission::check($permName);
-    }
-    return $this->addSetting([
-      'permissions' => $perms,
-    ]);
+    $region = self::isAjaxMode() ? 'ajax-snippet' : 'html-header';
+    CRM_Core_Region::instance($region)->addPermissions($permNames);
+    return $this;
   }
 
   /**
@@ -316,21 +311,8 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addString($text, $domain = 'civicrm') {
-    foreach ((array) $text as $str) {
-      $translated = ts($str, [
-        'domain' => ($domain == 'civicrm') ? NULL : [$domain, NULL],
-        'raw' => TRUE,
-      ]);
-
-      // We only need to push this string to client if the translation
-      // is actually different from the original
-      if ($translated != $str) {
-        $bucket = $domain == 'civicrm' ? 'strings' : 'strings::' . $domain;
-        $this->addSetting([
-          $bucket => [$str => $translated],
-        ]);
-      }
-    }
+    $region = self::isAjaxMode() ? 'ajax-snippet' : 'html-header';
+    CRM_Core_Region::instance($region)->addString($text, $domain);
     return $this;
   }
 
