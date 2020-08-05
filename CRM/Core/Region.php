@@ -95,13 +95,14 @@ class CRM_Core_Region {
    *   - script: string, Javascript code
    *   - scriptUrl: string, URL of a Javascript file
    *   - jquery: string, Javascript code which runs inside a jQuery(function($){...}); block
+   *   - settings: array, list of static values to convey.
    *   - style: string, CSS code
    *   - styleUrl: string, URL of a CSS file
    *
    * @return array
    */
   public function add($snippet) {
-    static $types = ['markup', 'template', 'callback', 'scriptUrl', 'script', 'jquery', 'style', 'styleUrl'];
+    static $types = ['markup', 'template', 'callback', 'scriptUrl', 'script', 'jquery', 'settings', 'style', 'styleUrl'];
     $defaults = [
       'region' => $this->_name,
       'weight' => 1,
@@ -139,11 +140,10 @@ class CRM_Core_Region {
    * Get snippet.
    *
    * @param string $name
-   *
-   * @return mixed
+   * @return array|NULL
    */
-  public function get($name) {
-    return !empty($this->_snippets[$name]) ? $this->_snippets[$name] : NULL;
+  public function &get($name) {
+    return $this->_snippets[$name];
   }
 
   /**
@@ -216,6 +216,20 @@ class CRM_Core_Region {
           if (!$allowCmsOverride || !$cms->addStyle($snippet['style'], $this->_name)) {
             $html .= sprintf("<style type=\"text/css\">\n%s\n</style>\n", $snippet['style']);
           }
+          break;
+
+        case 'settings':
+          $settingsData = Civi::resources()->getSettings($this->_name);
+
+          if (($this->_name === 'html-header') || !CRM_Core_Resources::isAjaxMode()) {
+            $js = 'var CRM = ' . json_encode($settingsData) . ';';
+          }
+          // For an ajax request we append to it
+          else {
+            $js = 'CRM.$.extend(true, CRM, ' . json_encode($settingsData) . ');';
+          }
+          $html .= sprintf("<script type=\"text/javascript\">\n%s\n</script>\n", $js);
+
           break;
 
         default:
