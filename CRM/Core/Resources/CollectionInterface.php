@@ -39,7 +39,7 @@ interface CRM_Core_Resources_CollectionInterface {
    *
    * @param array $snippet
    *   Array; keys:.
-   *   - type: string (auto-detected for markup, template, callback, script, scriptUrl, jquery, style, styleUrl)
+   *   - type: string (auto-detected for markup, template, callback, script, scriptFile, scriptUrl, jquery, style, styleFile, styleUrl)
    *   - name: string, optional
    *   - weight: int, optional; default=1
    *   - disabled: int, optional; default=0
@@ -48,10 +48,12 @@ interface CRM_Core_Resources_CollectionInterface {
    *   - callback: mixed; required (for type==callback)
    *   - arguments: array, optional (for type==callback)
    *   - script: string, Javascript code
+   *   - scriptFile: array, the name of the extension and file. Ex: ['civicrm', 'js/foo.js']
    *   - scriptUrl: string, URL of a Javascript file
    *   - jquery: string, Javascript code which runs inside a jQuery(function($){...}); block
    *   - settings: array, list of static values to convey.
    *   - style: string, CSS code
+   *   - styleFile: array, the name of the extension and file. Ex: ['civicrm', 'js/foo.js']
    *   - styleUrl: string, URL of a CSS file
    *
    * @return array
