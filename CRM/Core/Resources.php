@@ -24,7 +24,7 @@ use Civi\Core\Event\GenericHookEvent;
  * @package CRM
  * @copyright CiviCRM LLC https://civicrm.org/licensing
  */
-class CRM_Core_Resources {
+class CRM_Core_Resources implements CRM_Core_Resources_AdderInterface {
   const DEFAULT_WEIGHT = 0;
   const DEFAULT_REGION = 'page-footer';
 
@@ -140,6 +140,34 @@ class CRM_Core_Resources {
   }
 
   /**
+   * Assimilate all the resources listed in a bundle.
+   *
+   * @param \CRM_Core_Resources_Bundle $bundle
+   * @return static
+   */
+  public function addBundle($bundle) {
+    $pickRegion = function ($snippet) {
+      if (isset($snippet['settings'])) {
+        return $this->getSettingRegion($snippet['region'] ?? NULL)->_name;
+      }
+      else {
+        return $snippet['region'] ?? self::DEFAULT_REGION;
+      }
+    };
+
+    $byRegion = [];
+    foreach ($bundle->getAll() as $snippet) {
+      $snippet['region'] = $pickRegion($snippet);
+      $byRegion[$snippet['region']][$snippet['name']] = $snippet;
+    }
+
+    foreach ($byRegion as $regionName => $snippets) {
+      CRM_Core_Region::instance($regionName)->merge($snippets);
+    }
+    return $this;
+  }
+
+  /**
    * Export permission data to the client to enable smarter GUIs.
    *
    * Note: Application security stems from the server's enforcement
@@ -147,19 +175,28 @@ class CRM_Core_Resources {
    * the client can use this info to make the app more secure; however,
    * it can produce a better-tuned (non-broken) UI.
    *
-   * @param array $permNames
+   * @param array|string $permNames
    *   List of permission names to check/export.
    * @return CRM_Core_Resources
    */
   public function addPermissions($permNames) {
-    $permNames = (array) $permNames;
-    $perms = [];
-    foreach ($permNames as $permName) {
-      $perms[$permName] = CRM_Core_Permission::check($permName);
+    $this->getSettingRegion()->addPermissions($permNames);
+    return $this;
+  }
+
+  /**
+   * Add an item to the collection.
+   *
+   * @param array $snippet
+   * @return array
+   *   The full/computed snippet (with defaults applied).
+   * @see CRM_Core_Resources_CollectionInterface::add()
+   */
+  public function add($snippet) {
+    if (!isset($snippet['region'])) {
+      throw new \RuntimeException("CRM_Core_Resources::add() - Missing required \"region\".");
     }
-    return $this->addSetting([
-      'permissions' => $perms,
-    ]);
+    return CRM_Core_Region::instance($snippet['region'])->add($snippet);
   }
 
   /**
@@ -169,47 +206,53 @@ class CRM_Core_Resources {
    *   extension name; use 'civicrm' for core.
    * @param string $file
    *   file path -- relative to the extension base dir.
-   * @param int $weight
-   *   relative weight within a given region.
-   * @param string $region
-   *   location within the file; 'html-header', 'page-header', 'page-footer'.
-   * @param bool|string $translate
-   *   Whether to load translated strings for this file. Use one of:
-   *   - FALSE: Do not load translated strings.
-   *   - TRUE: Load translated strings. Use the $ext's default domain.
-   *   - string: Load translated strings. Use a specific domain.
+   * @param array $options
+   *   Options may be a key-value array or a list of positional arguments.
+   *   Valid options:
+   *     - int $weight (DEFAULT_WEIGHT);
+   *       Relative weight within a given region.
+   *     - string $region (DEFAULT_REGION)
+   *       Location within the output page; 'html-header', 'page-header', 'page-footer'.
+   *     - bool|string $translate
+   *       Whether to load translated strings for this file. Use one of:
+   *       - FALSE: Do not load translated strings.
+   *       - TRUE: Load translated strings. Use the $ext's default domain.
+   *       - string: Load translated strings. Use a specific domain.
    *
    * @return CRM_Core_Resources
    *
    * @throws \CRM_Core_Exception
    */
-  public function addScriptFile($ext, $file, $weight = self::DEFAULT_WEIGHT, $region = self::DEFAULT_REGION, $translate = TRUE) {
-    if ($translate) {
-      $domain = ($translate === TRUE) ? $ext : $translate;
-      $this->addString($this->strings->get($domain, $this->getPath($ext, $file), 'text/javascript'), $domain);
-    }
-    $url = $this->getUrl($ext, $this->filterMinify($ext, $file), TRUE);
-    return $this->addScriptUrl($url, $weight, $region);
+  public function addScriptFile(string $ext, string $file, ...$options) {
+    $this->add(CRM_Core_Resources_CollectionTrait::mergeOptions($options, [
+      'scriptFile' => [$ext, $file],
+      'name' => "$ext:$file",
+      // Setting the name above may appear superfluous, but it preserves a historical quirk
+      // where Region::add() and Resources::addScriptFile() produce slightly different orderings..
+    ]));
+    return $this;
   }
 
   /**
    * Add a JavaScript file to the current page using <SCRIPT SRC>.
    *
    * @param string $url
-   * @param int $weight
-   *   relative weight within a given region.
-   * @param string $region
-   *   location within the file; 'html-header', 'page-header', 'page-footer'.
+   * @param array $options
+   *   Options may be a key-value array or a list of positional arguments.
+   *   Valid options:
+   *     - int $weight (DEFAULT_WEIGHT);
+   *       Relative weight within a given region.
+   *     - string $region (DEFAULT_REGION)
+   *       Location within the output page; 'html-header', 'page-header', 'page-footer'.
    * @return CRM_Core_Resources
    */
-  public function addScriptUrl($url, $weight = self::DEFAULT_WEIGHT, $region = self::DEFAULT_REGION) {
-    CRM_Core_Region::instance($region)->add([
-      'name' => $url,
-      'type' => 'scriptUrl',
+  public function addScriptUrl(string $url, ...$options) {
+    $this->add(CRM_Core_Resources_CollectionTrait::mergeOptions($options, [
       'scriptUrl' => $url,
-      'weight' => $weight,
-      'region' => $region,
-    ]);
+      'name' => $url,
+      // Setting the name above may appear superfluous, but it preserves a historical quirk
+      // where Region::add() and Resources::addScriptUrl() produce slightly different orderings..
+    ]));
     return $this;
   }
 
@@ -218,20 +261,19 @@ class CRM_Core_Resources {
    *
    * @param string $code
    *   JavaScript source code.
-   * @param int $weight
-   *   relative weight within a given region.
-   * @param string $region
-   *   location within the file; 'html-header', 'page-header', 'page-footer'.
+   * @param array $options
+   *   Options may be a key-value array or a list of positional arguments.
+   *   Valid options:
+   *     - int $weight (DEFAULT_WEIGHT);
+   *       Relative weight within a given region.
+   *     - string $region (DEFAULT_REGION)
+   *       Location within the output page; 'html-header', 'page-header', 'page-footer'.
    * @return CRM_Core_Resources
    */
-  public function addScript($code, $weight = self::DEFAULT_WEIGHT, $region = self::DEFAULT_REGION) {
-    CRM_Core_Region::instance($region)->add([
-        // 'name' => automatic
-      'type' => 'script',
+  public function addScript(string $code, ...$options) {
+    $this->add(CRM_Core_Resources_CollectionTrait::mergeOptions($options, [
       'script' => $code,
-      'weight' => $weight,
-      'region' => $region,
-    ]);
+    ]));
     return $this;
   }
 
@@ -254,12 +296,8 @@ class CRM_Core_Resources {
    *
    * @return CRM_Core_Resources
    */
-  public function addVars($nameSpace, $vars, $region = NULL) {
-    $s = &$this->findCreateSettingSnippet($region);
-    $s['settings']['vars'][$nameSpace] = $this->mergeSettings(
-      $s['settings']['vars'][$nameSpace] ?? [],
-      $vars
-    );
+  public function addVars(string $nameSpace, array $vars, $region = NULL) {
+    $this->getSettingRegion($region)->addVars($nameSpace, $vars);
     return $this;
   }
 
@@ -274,9 +312,8 @@ class CRM_Core_Resources {
    *
    * @return CRM_Core_Resources
    */
-  public function addSetting($settings, $region = NULL) {
-    $s = &$this->findCreateSettingSnippet($region);
-    $s['settings'] = $this->mergeSettings($s['settings'], $settings);
+  public function addSetting(array $settings, $region = NULL) {
+    $this->getSettingRegion($region)->addSetting($settings);
     return $this;
   }
 
@@ -284,68 +321,18 @@ class CRM_Core_Resources {
    * Add JavaScript variables to the global CRM object via a callback function.
    *
    * @param callable $callable
-   * @param string|NULL $region
    * @return CRM_Core_Resources
    */
-  public function addSettingsFactory($callable, $region = NULL) {
-    $s = &$this->findCreateSettingSnippet($region);
-    $s['settingsFactories'][] = $callable;
+  public function addSettingsFactory($callable) {
+    $this->getSettingRegion()->addSettingsFactory($callable);
     return $this;
   }
 
   /**
    * Helper fn for addSettingsFactory.
-   * @deprecated
    */
-  public function getSettings($region = NULL) {
-    $s = &$this->findCreateSettingSnippet($region);
-    $result = $s['settings'];
-    foreach ($s['settingsFactories'] as $callable) {
-      $result = $this->mergeSettings($result, $callable());
-    }
-    CRM_Utils_Hook::alterResourceSettings($result);
-    return $result;
-  }
-
-  /**
-   * @param array $settings
-   * @param array $additions
-   * @return array
-   *   combination of $settings and $additions
-   */
-  protected function mergeSettings($settings, $additions) {
-    foreach ($additions as $k => $v) {
-      if (isset($settings[$k]) && is_array($settings[$k]) && is_array($v)) {
-        $v += $settings[$k];
-      }
-      $settings[$k] = $v;
-    }
-    return $settings;
-  }
-
-  /**
-   * @param string $regionName
-   * @return array
-   */
-  private function &findCreateSettingSnippet($regionName) {
-    if (!$regionName) {
-      $regionName = self::isAjaxMode() ? 'ajax-snippet' : 'html-header';
-    }
-
-    $region = CRM_Core_Region::instance($regionName);
-    $snippet = &$region->get('settings');
-    if ($snippet !== NULL) {
-      return $snippet;
-    }
-
-    $region->add([
-      'name' => 'settings',
-      'type' => 'settings',
-      'settings' => [],
-      'settingsFactories' => [],
-      'weight' => -100000,
-    ]);
-    return $region->get('settings');
+  public function getSettings() {
+    return $this->getSettingRegion()->getSettings();
   }
 
   /**
@@ -379,21 +366,7 @@ class CRM_Core_Resources {
    * @return CRM_Core_Resources
    */
   public function addString($text, $domain = 'civicrm') {
-    foreach ((array) $text as $str) {
-      $translated = ts($str, [
-        'domain' => ($domain == 'civicrm') ? NULL : [$domain, NULL],
-        'raw' => TRUE,
-      ]);
-
-      // We only need to push this string to client if the translation
-      // is actually different from the original
-      if ($translated != $str) {
-        $bucket = $domain == 'civicrm' ? 'strings' : 'strings::' . $domain;
-        $this->addSetting([
-          $bucket => [$str => $translated],
-        ]);
-      }
-    }
+    $this->getSettingRegion()->addString($text, $domain);
     return $this;
   }
 
@@ -404,18 +377,22 @@ class CRM_Core_Resources {
    *   extension name; use 'civicrm' for core.
    * @param string $file
    *   file path -- relative to the extension base dir.
-   * @param int $weight
-   *   relative weight within a given region.
-   * @param string $region
-   *   location within the file; 'html-header', 'page-header', 'page-footer'.
+   * @param array $options
+   *   Options may be a key-value array or a list of positional arguments.
+   *   Valid options:
+   *     - int $weight (DEFAULT_WEIGHT);
+   *       Relative weight within a given region.
+   *     - string $region (DEFAULT_REGION)
+   *       Location within the output page; 'html-header', 'page-header', 'page-footer'.
    * @return CRM_Core_Resources
    */
-  public function addStyleFile($ext, $file, $weight = self::DEFAULT_WEIGHT, $region = self::DEFAULT_REGION) {
-    /** @var Civi\Core\Themes $theme */
-    $theme = Civi::service('themes');
-    foreach ($theme->resolveUrls($theme->getActiveThemeKey(), $ext, $file) as $url) {
-      $this->addStyleUrl($url, $weight, $region);
-    }
+  public function addStyleFile(string $ext, string $file, ...$options) {
+    $this->add(CRM_Core_Resources_CollectionTrait::mergeOptions($options, [
+      'styleFile' => [$ext, $file],
+      'name' => "$ext:$file",
+      // Setting the name above may appear superfluous, but it preserves a historical quirk
+      // where Region::add() and Resources::addScriptUrl() produce slightly different orderings..
+    ]));
     return $this;
   }
 
@@ -423,20 +400,22 @@ class CRM_Core_Resources {
    * Add a CSS file to the current page using <LINK HREF>.
    *
    * @param string $url
-   * @param int $weight
-   *   relative weight within a given region.
-   * @param string $region
-   *   location within the file; 'html-header', 'page-header', 'page-footer'.
+   * @param array $options
+   *   Options may be a key-value array or a list of positional arguments.
+   *   Valid options:
+   *     - int $weight (DEFAULT_WEIGHT);
+   *       Relative weight within a given region.
+   *     - string $region (DEFAULT_REGION)
+   *       Location within the output page; 'html-header', 'page-header', 'page-footer'.
    * @return CRM_Core_Resources
    */
-  public function addStyleUrl($url, $weight = self::DEFAULT_WEIGHT, $region = self::DEFAULT_REGION) {
-    CRM_Core_Region::instance($region)->add([
-      'name' => $url,
-      'type' => 'styleUrl',
+  public function addStyleUrl(string $url, ...$options) {
+    $this->add(CRM_Core_Resources_CollectionTrait::mergeOptions($options, [
       'styleUrl' => $url,
-      'weight' => $weight,
-      'region' => $region,
-    ]);
+      'name' => $url,
+      // Setting the name above may appear superfluous, but it preserves a historical quirk
+      // where Region::add() and Resources::addScriptUrl() produce slightly different orderings..
+    ]));
     return $this;
   }
 
@@ -445,20 +424,19 @@ class CRM_Core_Resources {
    *
    * @param string $code
    *   CSS source code.
-   * @param int $weight
-   *   relative weight within a given region.
-   * @param string $region
-   *   location within the file; 'html-header', 'page-header', 'page-footer'.
+   * @param array $options
+   *   Options may be a key-value array or a list of positional arguments.
+   *   Valid options:
+   *     - int $weight (DEFAULT_WEIGHT);
+   *       Relative weight within a given region.
+   *     - string $region (DEFAULT_REGION)
+   *       Location within the output page; 'html-header', 'page-header', 'page-footer'.
    * @return CRM_Core_Resources
    */
-  public function addStyle($code, $weight = self::DEFAULT_WEIGHT, $region = self::DEFAULT_REGION) {
-    CRM_Core_Region::instance($region)->add([
-        // 'name' => automatic
-      'type' => 'style',
+  public function addStyle(string $code, ...$options) {
+    $this->add(CRM_Core_Resources_CollectionTrait::mergeOptions($options, [
       'style' => $code,
-      'weight' => $weight,
-      'region' => $region,
-    ]);
+    ]));
     return $this;
   }
 
@@ -975,6 +953,16 @@ class CRM_Core_Resources {
    */
   public static function isFullyFormedUrl($url) {
     return (substr($url, 0, 4) === 'http') || (substr($url, 0, 1) === '/');
+  }
+
+  /**
+   * @param string|NULL $region
+   *   Optional request for a specific region. If NULL/omitted, use global default.
+   * @return \CRM_Core_Region
+   */
+  private function getSettingRegion($region = NULL) {
+    $region = $region ?: (self::isAjaxMode() ? 'ajax-snippet' : 'html-header');
+    return CRM_Core_Region::instance($region);
   }
 
 }
