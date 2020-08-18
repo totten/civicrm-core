@@ -337,6 +337,16 @@ trait CRM_Core_Resources_CollectionTrait {
   }
 
   /**
+   * Assimilate all the resources listed in a bundle.
+   *
+   * @param \CRM_Core_Resources_Bundle $bundle
+   * @return static
+   */
+  public function addBundle($bundle) {
+    return $this->merge($bundle->getAll());
+  }
+
+  /**
    * Export permission data to the client to enable smarter GUIs.
    *
    * Note: Application security stems from the server's enforcement
