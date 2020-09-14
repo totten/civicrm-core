@@ -204,6 +204,10 @@
         "version": "3.4.1",
         "ignore": ["test", "tasks", "lib"]
       },
+      "ext-greenwich-bootstrap3-select2": {
+        "url": "https://raw.githubusercontent.com/t0m/select2-bootstrap-css/v1.4.6/select2-bootstrap.min.css",
+        "path": "ext/greenwich/extern/select2-bootstrap.min.css"
+      },
       "font-awesome": {
         "url": "https://github.com/FortAwesome/Font-Awesome/archive/v4.7.0.zip",
         "ignore": ["*/.*", "*.json", "src", "*.yml", "Gemfile", "Gemfile.lock", "*.md"]

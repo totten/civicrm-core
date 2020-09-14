@@ -53,6 +53,7 @@ function greenwich_civicrm_alterBundle(CRM_Core_Resources_Bundle $bundle) {
     case 'greenwich:bootstrap3':
       $bundle->clear();
       $bundle->addStyleFile('greenwich', 'dist/bootstrap3.css');
+      $bundle->addStyleFile('greenwich', 'extern/select2-bootstrap.css');
       $bundle->addScriptFile('greenwich', 'extern/bootstrap3/assets/javascripts/bootstrap.min.js', [
         'translate' => FALSE,
       ]);
