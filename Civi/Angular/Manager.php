@@ -100,6 +100,7 @@ class Manager {
 
       $angularModules = [];
       $angularModules['angularFileUpload'] = include "$civicrm_root/ang/angularFileUpload.ang.php";
+      $angularModules['bootstrap3'] = include "$civicrm_root/ang/bootstrap3.ang.php";
       $angularModules['checklist-model'] = include "$civicrm_root/ang/checklist-model.ang.php";
       $angularModules['crmApp'] = include "$civicrm_root/ang/crmApp.ang.php";
       $angularModules['crmAttachment'] = include "$civicrm_root/ang/crmAttachment.ang.php";
