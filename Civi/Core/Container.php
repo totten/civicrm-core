@@ -218,6 +218,9 @@ class Container {
     $container->setDefinition('pear_mail', new Definition('Mail'))
       ->setFactory('CRM_Utils_Mail::createMailer')->setPublic(TRUE);
 
+    $container->setDefinition('crypto', new Definition('Civi\Crypt\Crypto'))
+      ->setFactory(__CLASS__ . '::createCrypto')->setPublic(TRUE);
+
     if (empty(\Civi::$statics[__CLASS__]['boot'])) {
       throw new \RuntimeException('Cannot initialize container. Boot services are undefined.');
     }
@@ -493,6 +496,26 @@ class Container {
     $settings = \CRM_Utils_Cache::getCacheSettings($driver);
     $settings['driver'] = $driver;
     return new \ArrayObject($settings);
+  }
+
+  public static function createCrypto() {
+    $crypto = new \Civi\Crypt\Crypto();
+    $crypto->addCipherSuite('rj256-ecb', new \Civi\Crypt\McryptLegacy());
+    $crypto->addCipherSuite('aes256-cbc', new \Civi\Crypt\PhpseclibAes());
+
+    if (defined('CIVICRM_SITE_KEY')) {
+      $crypto->addSymmetricKey(CIVICRM_SITE_KEY, 'rj256-ecb');
+    }
+    if (defined('CIVICRM_CRYPTO_KEY')) {
+      $crypto->addSymmetricKey(base64_decode(CIVICRM_CRYPTO_KEY), 'aes256-cbc');
+    }
+    if (isset($_COOKIE['CIVICRM_SESSION_KEY'])) {
+      $crypto->addSymmetricKey(base64_decode($_COOKIE['CIVICRM_SESSION_KEY']), 'aes256-cbc');
+    }
+
+    // Allow plugins to add/replace any keys and ciphers.
+    \CRM_Utils_Hook::crypto($crypto);
+    return $crypto;
   }
 
   /**
