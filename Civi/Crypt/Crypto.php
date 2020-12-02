@@ -20,6 +20,8 @@ class Crypto {
    * @param string $cipherSuite
    *   Ex: aes256-cbc
    * @param array $options
+   *   Additional options:
+   *     - aliases: string[]
    *
    * @return static
    */
@@ -44,8 +46,23 @@ class Crypto {
     return $this;
   }
 
-  public function getKeyIds() {
-    return array_keys($this->keys);
+  public function getKeys() {
+    return $this->keys;
+  }
+
+  public function findKey($keyId, $context = NULL) {
+    if ($keyId === NULL) {
+      // TODO Choose a default. This may depend on $context and/or $keys.
+    }
+    if (isset($this->keys[$keyId])) {
+      return $this->keys[$keyId];
+    }
+    foreach ($this->keys as $key) {
+      if (in_array($keyId, $key['aliases'])) {
+        return $key;
+      }
+    }
+    throw new CryptoException("Failed to find key ($keyId)");
   }
 
   /**
@@ -63,10 +80,7 @@ class Crypto {
    *   A token
    */
   public function encrypt($plainText, $context = [], $keyId = NULL) {
-    if ($keyId === NULL) {
-      // TODO Choose a default. This may depend on $context and/or $keys.
-    }
-    $key = $this->keys[$keyId] ?? fatal();
+    $key = $this->findKey($keyId, $context);
     $cipherSuite = $this->cipherSuites[$key['suite']] ?? fatal();
     $cipherText = $cipherSuite->encrypt($plainText, $key, $context);
     return $this->delim . $keyId . $this->delim . $cipherText . $this->delim;

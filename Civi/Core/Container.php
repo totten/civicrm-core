@@ -504,13 +504,14 @@ class Container {
     $crypto->addCipherSuite('aes256-cbc', new \Civi\Crypt\PhpseclibAes());
 
     if (defined('CIVICRM_SITE_KEY')) {
-      $crypto->addSymmetricKey(CIVICRM_SITE_KEY, 'rj256-ecb');
+      $crypto->addSymmetricKey(CIVICRM_SITE_KEY, 'rj256-ecb', ['aliases' => ['SITE_KEY']]);
     }
-    if (defined('CIVICRM_CRYPTO_KEY')) {
-      $crypto->addSymmetricKey(base64_decode(CIVICRM_CRYPTO_KEY), 'aes256-cbc');
+    if (defined('CIVICRM_CRED_KEY')) {
+      $crypto->addSymmetricKey(base64_decode(CIVICRM_CRED_KEY), 'aes256-cbc', ['aliases' => ['CRED_KEY']]);
     }
-    if (isset($_COOKIE['CIVICRM_SESSION_KEY'])) {
-      $crypto->addSymmetricKey(base64_decode($_COOKIE['CIVICRM_SESSION_KEY']), 'aes256-cbc');
+    if (isset($_COOKIE['CIVICRM_FORM_KEY'])) {
+      $crypto->addSymmetricKey(base64_decode($_COOKIE['CIVICRM_FORM_KEY']), 'aes256-cbc', ['aliases' => ['FORM_KEY']]);
+      // else: somewhere in CRM_Core_Form, we may need to initialize CIVICRM_FORM_KEY
     }
 
     // Allow plugins to add/replace any keys and ciphers.
