@@ -652,6 +652,8 @@ class CRM_Utils_System {
    * @return bool
    */
   public static function authenticateScript($abort = TRUE, $name = NULL, $pass = NULL, $storeInSession = TRUE, $loadCMSBootstrap = TRUE, $requireKey = TRUE) {
+    CRM_Core_Session::useFakeSession();
+
     // auth to make sure the user has a login/password to do a shell operation
     // later on we'll link this to acl's
     if (!$name) {
