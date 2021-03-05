@@ -43,6 +43,28 @@ class CRM_Utils_REST {
   }
 
   /**
+   * CSRF occurs when a browser-user is tricked by another website into following
+   * a link (eg <A HREF>, <FORM ACTION>, or `Location:`) to a Civi URL that
+   * would perform an action (deleting contacts, adding events, etc). This can
+   * be particularly problematic if the browser implicitly relays the user's
+   * existing session cookie.
+   *
+   * Good requests should have some kind of indicator that the request really
+   * comes on the user's behalf.
+   *
+   * @return bool
+   */
+  public static function isCsrfVulnerable(): bool {
+    if (CRM_Core_Config::singleton()->debug) {
+      return FALSE;
+    }
+    if (array_key_exists('HTTP_X_REQUESTED_WITH', $_SERVER) && $_SERVER['HTTP_X_REQUESTED_WITH'] === "XMLHttpRequest") {
+      return FALSE;
+    }
+    return TRUE;
+  }
+
+  /**
    * Simple ping function to test for liveness.
    *
    * @param string $var
@@ -433,11 +455,7 @@ class CRM_Utils_REST {
     $requestParams = CRM_Utils_Request::exportValues();
 
     require_once 'api/v3/utils.php';
-    $config = CRM_Core_Config::singleton();
-    if (!$config->debug && (!array_key_exists('HTTP_X_REQUESTED_WITH', $_SERVER) ||
-        $_SERVER['HTTP_X_REQUESTED_WITH'] != "XMLHttpRequest"
-      )
-    ) {
+    if (self::isCsrfVulnerable()) {
       $error = civicrm_api3_create_error("SECURITY ALERT: Ajax requests can only be issued by javascript clients, eg. CRM.api3().",
         [
           'IP' => $_SERVER['REMOTE_ADDR'],
@@ -498,12 +516,7 @@ class CRM_Utils_REST {
     // this is driven by the menu system, so we can use permissioning to
     // restrict calls to this etc
     // the request has to be sent by an ajax call. First line of protection against csrf
-    $config = CRM_Core_Config::singleton();
-    if (!$config->debug &&
-      (!array_key_exists('HTTP_X_REQUESTED_WITH', $_SERVER) ||
-        $_SERVER['HTTP_X_REQUESTED_WITH'] != "XMLHttpRequest"
-      )
-    ) {
+    if (self::isCsrfVulnerable()) {
       require_once 'api/v3/utils.php';
       $error = civicrm_api3_create_error("SECURITY ALERT: Ajax requests can only be issued by javascript clients, eg. CRM.api3().",
         [
