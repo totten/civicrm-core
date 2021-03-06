@@ -57,7 +57,7 @@ class Authenticator {
    * @throws \Exception
    */
   public function auth($e, $details) {
-    $tgt = AuthenticatorTarget::create([
+    $tgt = Authentication::create([
       'flow' => $details['flow'],
       'cred' => $details['cred'],
       'siteKey' => $details['siteKey'] ?? NULL,
@@ -74,12 +74,12 @@ class Authenticator {
   /**
    * Assess the credential ($tgt->cred) and determine the matching principal.
    *
-   * @param \Civi\Authx\AuthenticatorTarget $tgt
+   * @param \Civi\Authx\Authentication $tgt
    * @return array|NULL
    *   Array describing the authenticated principal represented by this credential.
    *   Ex: ['userId' => 123]
    *   Format should match setPrincipal().
-   * @see \Civi\Authx\AuthenticatorTarget::setPrincipal()
+   * @see \Civi\Authx\Authentication::setPrincipal()
    */
   protected function checkCredential($tgt) {
     [$credFmt, $credValue] = explode(' ', $tgt->cred, 2);
@@ -125,9 +125,9 @@ class Authenticator {
   /**
    * Does our policy permit this login?
    *
-   * @param \Civi\Authx\AuthenticatorTarget $tgt
+   * @param \Civi\Authx\Authentication $tgt
    */
-  protected function checkPolicy(AuthenticatorTarget $tgt) {
+  protected function checkPolicy(Authentication $tgt) {
     if (!$tgt->hasPrincipal()) {
       $this->reject('Invalid credential');
     }
@@ -171,11 +171,11 @@ class Authenticator {
   /**
    * Update Civi and UF to recognize the authenticated user.
    *
-   * @param AuthenticatorTarget $tgt
+   * @param Authentication $tgt
    *   Summary of the authentication request
    * @throws \Exception
    */
-  protected function login(AuthenticatorTarget $tgt) {
+  protected function login(Authentication $tgt) {
     $isSameValue = function($a, $b) {
       return !empty($a) && (string) $a === (string) $b;
     };
@@ -234,7 +234,7 @@ class Authenticator {
 
 }
 
-class AuthenticatorTarget {
+class Authentication {
 
   /**
    * The authentication-flow by which we received the credential.
