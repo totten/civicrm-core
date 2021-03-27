@@ -304,8 +304,8 @@ trait CRM_Core_Resources_CollectionTrait {
    *
    * @return static
    */
-  protected function sort() {
-    if (!$this->isSorted) {
+  public function sort($force = TRUE) {
+    if ($force || !$this->isSorted) {
       uasort($this->snippets, [__CLASS__, '_cmpSnippet']);
       $this->isSorted = TRUE;
     }

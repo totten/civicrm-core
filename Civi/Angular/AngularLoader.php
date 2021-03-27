@@ -357,6 +357,7 @@ class AngularLoader {
     if ($e->region->_name === $this->region && ($this->modules || $this->crmApp)) {
       $this->load();
       $this->res->addScriptFile('civicrm', 'js/crm-angularjs-loader.js', 200, $this->getRegion(), FALSE);
+      $e->region->sort();
     }
   }
 
