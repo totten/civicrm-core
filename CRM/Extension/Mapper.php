@@ -585,9 +585,21 @@ class CRM_Extension_Mapper {
 
       if (!empty($info->upgrader)) {
         $class = $info->upgrader;
-        $u = new $class();
-        $u->init(['key' => $key]);
-        $this->upgraders[$key] = $u;
+        if (class_exists($class)) {
+          $u = new $class();
+          $u->init(['key' => $key]);
+          $this->upgraders[$key] = $u;
+        }
+        else {
+          // This could happen if there was a dirty removal (i.e. deleting ext-code before uninstalling).
+          $msg = ts('Extension (%1) specifies an invalid upgrader (%2)', [
+            1 => $key,
+            2 => $class,
+          ]);
+          CRM_Core_Session::setStatus($msg, '', 'error');
+          Civi::log()->error($msg);
+          return NULL;
+        }
       }
     }
     return $this->upgraders[$key];
