@@ -131,6 +131,18 @@ class StringsTest extends UnitTestCase {
     return $es;
   }
 
+  public function getUpdateBadExamples() {
+    $createOk = $this->getCreateOKExamples()['asDraft'][0];
+    $bads = $this->getCreateBadExamples();
+
+    $es = [];
+    foreach ($bads as $id => $bad) {
+      array_unshift($bad, $createOk);
+      $es[$id] = $bad;
+    }
+    return $es;
+  }
+
   protected function setUp() {
     parent::setUp();
     $this->ids = [];
@@ -155,26 +167,56 @@ class StringsTest extends UnitTestCase {
     }
   }
 
-  ///**
-  // * @dataProvider getCreateBadExamples
-  // * @param array $record
-  // * @param string $errorRegex
-  // *   Regular expression to compare against the error message.
-  // */
-  // FIXME: validation
-  //public function testCreateBad($record, $errorRegex) {
-  //  $record = $this->fillRecord($record);
-  //  try {
-  //    \civicrm_api4('Strings', 'create', [
-  //      'checkPermissions' => FALSE,
-  //      'values' => $record,
-  //    ]);
-  //    $this->fail('Create should have failed');
-  //  }
-  //  catch (\API_Exception $e) {
-  //    $this->assertRegExp($errorRegex, $e->getMessage());
-  //  }
-  //}
+  /**
+   * @dataProvider getCreateBadExamples
+   * @param array $record
+   * @param string $errorRegex
+   *   Regular expression to compare against the error message.
+   */
+  public function testCreateBad($record, $errorRegex) {
+    $record = $this->fillRecord($record);
+    try {
+      \civicrm_api4('Strings', 'create', [
+        'checkPermissions' => FALSE,
+        'values' => $record,
+      ]);
+      $this->fail('Create should have failed');
+    }
+    catch (\API_Exception $e) {
+      $this->assertRegExp($errorRegex, $e->getMessage());
+    }
+  }
+
+  /**
+   * @dataProvider getUpdateBadExamples
+   * @param $createRecord
+   * @param $badUpdate
+   * @param $errorRegex
+   *
+   * @throws \API_Exception
+   * @throws \Civi\API\Exception\NotImplementedException
+   */
+  public function testUpdateBad($createRecord, $badUpdate, $errorRegex) {
+    $record = $this->fillRecord($createRecord);
+    $createResults = \civicrm_api4('Strings', 'create', [
+      'checkPermissions' => FALSE,
+      'values' => $record,
+    ]);
+    $this->assertEquals(1, $createResults->count());
+    foreach ($createResults as $createResult) {
+      $badUpdate = $this->fillRecord($badUpdate);
+      try {
+        \civicrm_api4('Strings', 'update', [
+          'where' => [['id', '=', $createResult['id']]],
+          'values' => $badUpdate,
+        ]);
+        $this->fail('Update should fail');
+      }
+      catch (\API_Exception $e) {
+        $this->assertRegExp($errorRegex, $e->getMessage());
+      }
+    }
+  }
 
   /**
    * Fill in mocked values for the would-be record..
