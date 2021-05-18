@@ -151,6 +151,8 @@ class ConformanceTest extends UnitTestCase implements HookInterface {
 
     $this->checkCreationDenied($entity, $entityClass);
     $id2 = $this->checkCreationAllowed($entity, $entityClass);
+    $this->checkGetDenied($entityClass, $id2, $entity);
+    $this->checkGetAllowed($entityClass, $id2, $entity);
     $this->checkDeletionDenied($entityClass, $id2, $entity);
     $this->checkDeletionAllowed($entityClass, $id2, $entity);
     $this->checkPostDelete($entityClass, $id2, $entity);
@@ -307,6 +309,57 @@ class ConformanceTest extends UnitTestCase implements HookInterface {
     $errMsg = sprintf('Failed to fetch a %s after creation', $entity);
     $this->assertEquals($id, $getResult->first()['id'], $errMsg);
     $this->assertEquals(1, $getResult->count(), $errMsg);
+  }
+
+  /**
+   * @param \Civi\Api4\Generic\AbstractEntity|string $entityClass
+   * @param int $id
+   * @param string $entity
+   */
+  protected function checkGetDenied($entityClass, $id, $entity) {
+    $this->setCheckAccessGrants(["{$entity}::get" => FALSE]);
+    $this->assertEquals(0, $this->checkAccessCounts["{$entity}::get"]);
+
+    // Not clear - is this supposed to fail explicitly - or fail by omitted results?
+    //$getResult = $entityClass::get()
+    //  ->addWhere('id', '=', $id)
+    //  ->execute();
+    //$errMsg = "{$entity}::get() should return any records - no permission granted";
+    //$this->assertEquals(0, $getResult->count(), $errMsg);
+
+    try {
+      $entityClass::get()
+        ->addWhere('id', '=', $id)
+        ->execute();
+      $this->fail("{$entity}::get() should raise UnauthorizedException");
+    }
+    catch (UnauthorizedException $e) {
+      // OK
+    }
+
+    $this->assertEquals(1, $this->checkAccessCounts["{$entity}::get"]);
+    $this->resetCheckAccess();
+  }
+
+  /**
+   * @param \Civi\Api4\Generic\AbstractEntity|string $entityClass
+   * @param int $id
+   * @param string $entity
+   */
+  protected function checkGetAllowed($entityClass, $id, $entity) {
+    $this->setCheckAccessGrants(["{$entity}::get" => TRUE]);
+    $this->assertEquals(0, $this->checkAccessCounts["{$entity}::get"]);
+
+    $getResult = $entityClass::get()
+      ->addWhere('id', '=', $id)
+      ->execute();
+
+    $errMsg = sprintf('Failed to fetch a %s after creation', $entity);
+    $this->assertEquals($id, $getResult->first()['id'], $errMsg);
+    $this->assertEquals(1, $getResult->count(), $errMsg);
+
+    $this->assertEquals(1, $this->checkAccessCounts["{$entity}::get"]);
+    $this->resetCheckAccess();
   }
 
   /**
