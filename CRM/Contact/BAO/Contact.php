@@ -3690,6 +3690,8 @@ LEFT JOIN civicrm_address ON ( civicrm_address.contact_id = civicrm_contact.id )
    * @param string $action
    * @param array $record
    * @param $userID
+   * @return bool
+   * @see CRM_Core_DAO::checkAccess
    */
   public static function _checkAccess(string $action, array $record, $userID) {
     switch ($action) {
