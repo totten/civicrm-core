@@ -19,6 +19,8 @@
 
 namespace Civi\Api4\Generic;
 
+use Civi\Api4\Event\ValidateValuesEvent;
+
 /**
  * Create or update one or more $ENTITIES.
  *
@@ -93,6 +95,7 @@ abstract class AbstractSaveAction extends AbstractAction {
    * @throws \API_Exception
    */
   protected function validateValues() {
+    // FIXME: There should be a protocol to report a full list of errors... Perhaps a subclass of API_Exception?
     $unmatched = [];
     foreach ($this->records as $record) {
       if (empty($record[$this->idField])) {
@@ -101,6 +104,24 @@ abstract class AbstractSaveAction extends AbstractAction {
     }
     if ($unmatched) {
       throw new \API_Exception("Mandatory values missing from Api4 {$this->getEntityName()}::{$this->getActionName()}: " . implode(", ", $unmatched), "mandatory_missing", ["fields" => $unmatched]);
+    }
+    $e = new ValidateValuesEvent($this, $this->records, new \CRM_Utils_LazyArray(function() {
+      $existingIds = array_column($this->records, $this->idField);
+      $existing = civicrm_api4($this->getEntityName(), 'get', [
+        'checkPermissions' => $this->checkPermissions,
+        'where' => [[$this->idField, 'IN', $existingIds]],
+      ], $this->idField);
+
+      $result = [];
+      foreach ($this->records as $k => $new) {
+        $old = isset($new[$this->idField]) ? $existing[$new[$this->idField]] : NULL;
+        $result[$k] = ['old' => $old, 'new' => $new];
+      }
+      return $result;
+    }));
+    \Civi::dispatcher()->dispatch('civi.api4.validate', $e);
+    if (!empty($e->errors)) {
+      throw $e->toException();
     }
   }
 
