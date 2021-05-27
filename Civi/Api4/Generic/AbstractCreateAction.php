@@ -31,6 +31,8 @@ use Civi\Api4\Event\ValidateValuesEvent;
  */
 abstract class AbstractCreateAction extends AbstractAction {
 
+  use \Civi\Api4\Generic\Traits\CheckRequiredTrait;
+
   /**
    * Field values to set for the new $ENTITY.
    *
@@ -61,11 +63,7 @@ abstract class AbstractCreateAction extends AbstractAction {
    * @throws \API_Exception
    */
   protected function validateValues() {
-    // FIXME: There should be a protocol to report a full list of errors... Perhaps a subclass of API_Exception?
-    $unmatched = $this->checkRequiredFields($this->getValues());
-    if ($unmatched) {
-      throw new \API_Exception("Mandatory values missing from Api4 {$this->getEntityName()}::{$this->getActionName()}: " . implode(", ", $unmatched), "mandatory_missing", ["fields" => $unmatched]);
-    }
+    $this->checkRequired([$this->values]);
     $e = new ValidateValuesEvent($this, [$this->getValues()], new \CRM_Utils_LazyArray(function () {
       return [['old' => NULL, 'new' => $this->getValues()]];
     }));

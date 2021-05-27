@@ -457,30 +457,6 @@ abstract class AbstractAction implements \ArrayAccess {
   }
 
   /**
-   * Validates required fields for actions which create a new object.
-   *
-   * @param $values
-   * @return array
-   * @throws \API_Exception
-   */
-  protected function checkRequiredFields($values) {
-    $unmatched = [];
-    foreach ($this->entityFields() as $fieldName => $fieldInfo) {
-      if (!isset($values[$fieldName]) || $values[$fieldName] === '') {
-        if (!empty($fieldInfo['required']) && !isset($fieldInfo['default_value'])) {
-          $unmatched[] = $fieldName;
-        }
-        elseif (!empty($fieldInfo['required_if'])) {
-          if ($this->evaluateCondition($fieldInfo['required_if'], ['values' => $values])) {
-            $unmatched[] = $fieldName;
-          }
-        }
-      }
-    }
-    return $unmatched;
-  }
-
-  /**
    * Replaces pseudoconstants in input values
    *
    * @param array $record
