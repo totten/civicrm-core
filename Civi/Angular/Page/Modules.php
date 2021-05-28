@@ -2,6 +2,8 @@
 
 namespace Civi\Angular\Page;
 
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
 /**
  * This page aggregates data from Angular modules.
  *
@@ -17,7 +19,7 @@ namespace Civi\Angular\Page;
  * Example: Aggregate *.css files for all modules.
  *   civicrm/ajax/angular-modules?format=css
  */
-class Modules extends \CRM_Core_Page {
+class Modules extends \CRM_Core_Page implements EventSubscriberInterface {
 
   /**
    * Generate asset content (when accessed via older, custom
@@ -62,6 +64,14 @@ class Modules extends \CRM_Core_Page {
     }
 
     \CRM_Utils_System::civiExit();
+  }
+
+  public static function getSubscribedEvents() {
+    return [
+      'hook_civicrm_buildAsset::angular-modules.json' => 'buildAngularModules',
+      'hook_civicrm_buildAsset::angular-modules.js' => 'buildAngularModules',
+      'hook_civicrm_buildAsset::angular-modules.css' => 'buildAngularModules',
+    ];
   }
 
   /**

@@ -339,6 +339,7 @@ class Container {
       ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
     }
 
+    $this->addStaticListeners($container, 'Civi\Angular\Page\Modules');
     foreach (\CRM_Core_DAO_AllCoreTables::getBaoClasses() as $baoEntity => $baoClass) {
       $this->addStaticListeners($container, $baoClass, $baoEntity);
     }
@@ -406,7 +407,6 @@ class Container {
     // TODO We need a better code-convention for metadata about non-hook events.
     $dispatcher->addListener('hook_civicrm_eventDefs', ['\Civi\API\Events', 'hookEventDefs']);
     $dispatcher->addListener('hook_civicrm_eventDefs', ['\Civi\Core\Event\SystemInstallEvent', 'hookEventDefs']);
-    $dispatcher->addListener('hook_civicrm_buildAsset', ['\Civi\Angular\Page\Modules', 'buildAngularModules']);
     $dispatcher->addListenerService('civi.region.render', ['angularjs.loader', 'onRegionRender']);
     $dispatcher->addListener('hook_civicrm_buildAsset', ['\CRM_Utils_VisualBundle', 'buildAssetJs']);
     $dispatcher->addListener('hook_civicrm_buildAsset', ['\CRM_Utils_VisualBundle', 'buildAssetCss']);
