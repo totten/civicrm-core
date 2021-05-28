@@ -341,6 +341,7 @@ class Container {
 
     $this->addStaticListeners($container, 'Civi\Angular\Page\Modules');
     $this->addStaticListeners($container, 'CRM_Utils_VisualBundle');
+    $this->addStaticListeners($container, 'CRM_Core_Permission_List');
     $this->addStaticListeners($container, 'CRM_Core_Resources_BuildAssets');
     foreach (\CRM_Core_DAO_AllCoreTables::getBaoClasses() as $baoEntity => $baoClass) {
       $this->addStaticListeners($container, $baoClass, $baoEntity);
@@ -413,9 +414,6 @@ class Container {
     $dispatcher->addListener('hook_civicrm_coreResourceList', ['\CRM_Utils_System', 'appendCoreResources']);
     $dispatcher->addListener('hook_civicrm_getAssetUrl', ['\CRM_Utils_System', 'alterAssetUrl']);
     $dispatcher->addListener('hook_civicrm_alterExternUrl', ['\CRM_Utils_System', 'migrateExternUrl'], 1000);
-    $dispatcher->addListener('hook_civicrm_permissionList', ['CRM_Core_Permission_List', 'findConstPermissions'], 975);
-    $dispatcher->addListener('hook_civicrm_permissionList', ['CRM_Core_Permission_List', 'findCiviPermissions'], 950);
-    $dispatcher->addListener('hook_civicrm_permissionList', ['CRM_Core_Permission_List', 'findCmsPermissions'], 925);
 
     $dispatcher->addListener('hook_civicrm_postSave_civicrm_domain', ['\CRM_Core_BAO_Domain', 'onPostSave']);
     $dispatcher->addListener('hook_civicrm_unhandled_exception', [

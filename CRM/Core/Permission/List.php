@@ -22,7 +22,17 @@ use Civi\Core\Event\GenericHookEvent;
  *
  * @see \Civi\Api4\Action\Permission\Get
  */
-class CRM_Core_Permission_List {
+class CRM_Core_Permission_List implements \Symfony\Component\EventDispatcher\EventSubscriberInterface {
+
+  public static function getSubscribedEvents() {
+    return [
+      'hook_civicrm_permissionList' => [
+        ['findConstPermissions', 975],
+        ['findCiviPermissions', 950],
+        ['findCmsPermissions', 925],
+      ],
+    ];
+  }
 
   /**
    * Enumerate concrete permissions that originate in CiviCRM (core or extension).
