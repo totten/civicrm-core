@@ -2463,6 +2463,8 @@ abstract class CRM_Utils_Hook {
    * This hook is called whenever the system builds a new copy of
    * semi-static asset.
    *
+   * This hook is additionally dispatched under the alias `hook_civicrm_buildAsset::$ASSET_NAME`.
+   *
    * @param string $asset
    *   The name of the asset.
    *   Ex: 'angular.json'
