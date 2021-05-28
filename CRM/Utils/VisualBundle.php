@@ -17,11 +17,18 @@
  * @package CRM
  * @copyright CiviCRM LLC https://civicrm.org/licensing
  */
-class CRM_Utils_VisualBundle {
+class CRM_Utils_VisualBundle implements \Symfony\Component\EventDispatcher\EventSubscriberInterface {
 
   public static function register() {
     Civi::resources()->addScriptUrl(Civi::service('asset_manager')->getUrl('visual-bundle.js'));
     Civi::resources()->addStyleUrl(Civi::service('asset_manager')->getUrl('visual-bundle.css'));
+  }
+
+  public static function getSubscribedEvents() {
+    return [
+      'hook_civicrm_buildAsset::visual-bundle.js' => 'buildAssetJs',
+      'hook_civicrm_buildAsset::visual-bundle.css' => 'buildAssetCss',
+    ];
   }
 
   /**
@@ -32,10 +39,6 @@ class CRM_Utils_VisualBundle {
    * @see \Civi\Core\AssetBuilder
    */
   public static function buildAssetJs($event) {
-    if ($event->asset !== 'visual-bundle.js') {
-      return;
-    }
-
     $files = [
       'crossfilter' => '[civicrm.bower]/crossfilter-1.3.x/crossfilter.min.js',
       'd3' => '[civicrm.bower]/d3-3.5.x/d3.min.js',
@@ -71,10 +74,6 @@ class CRM_Utils_VisualBundle {
    * @see \Civi\Core\AssetBuilder
    */
   public static function buildAssetCss($event) {
-    if ($event->asset !== 'visual-bundle.css') {
-      return;
-    }
-
     $files = [
       '[civicrm.bower]/dc-2.1.x/dc.min.css',
     ];
