@@ -10,12 +10,25 @@
  */
 namespace Civi\CCase;
 
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
 /**
  * Class Events
  *
  * @package Civi\CCase
  */
-class Events {
+class Events implements EventSubscriberInterface {
+
+  public static function getSubscribedEvents() {
+    return [
+      'hook_civicrm_post::Activity' => 'fireCaseChange',
+      'hook_civicrm_post::Case' => 'fireCaseChange',
+      'hook_civicrm_caseChange' => [
+        ['delegateToXmlListeners'],
+        ['delegateToSequenceListener'],
+      ],
+    ];
+  }
 
   /**
    * List of cases for which we are actively firing case-change event
@@ -100,6 +113,14 @@ class Events {
       /** @var $listener \Civi\CCase\CaseChangeListener */
       $listener->onCaseChange($event);
     }
+  }
+
+  /**
+   * @param \Civi\CCase\Event\CaseChangeEvent $event
+   */
+  public static function delegateToSequenceListener(\Civi\CCase\Event\CaseChangeEvent $event) {
+    // TODO There's probably prettier to glue this, but it parallels the XML listener.
+    SequenceListener::singleton()->onCaseChange($event);
   }
 
 }

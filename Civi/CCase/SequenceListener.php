@@ -26,13 +26,6 @@ class SequenceListener implements CaseChangeListener {
   }
 
   /**
-   * @param \Civi\CCase\Event\CaseChangeEvent $event
-   */
-  public static function onCaseChange_static(\Civi\CCase\Event\CaseChangeEvent $event) {
-    self::singleton()->onCaseChange($event);
-  }
-
-  /**
    * Triggers next case activity in sequence if current activity status is updated
    * to type=COMPLETED(See CRM-21598). The adjoining activity is created according
    * to the sequence configured in case type.
