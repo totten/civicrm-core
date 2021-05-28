@@ -15,10 +15,12 @@
  * @copyright CiviCRM LLC https://civicrm.org/licensing
  */
 
+use Civi\Test\HookInterface;
+
 /**
  *
  */
-class CRM_Core_BAO_Domain extends CRM_Core_DAO_Domain {
+class CRM_Core_BAO_Domain extends CRM_Core_DAO_Domain implements HookInterface {
 
   /**
    * Cache for a domain's location array
@@ -32,7 +34,7 @@ class CRM_Core_BAO_Domain extends CRM_Core_DAO_Domain {
    * @see CRM_Core_BAO_Domain::getDomain()
    * @param CRM_Core_DAO_Domain $domain
    */
-  public static function onPostSave($domain) {
+  public static function hook_civicrm_postSave_civicrm_domain($domain) {
     Civi::$statics[__CLASS__]['current'] = NULL;
   }
 
