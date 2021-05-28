@@ -8,7 +8,6 @@
  | and copyright information, see https://civicrm.org/licensing       |
  +--------------------------------------------------------------------+
  */
-use Civi\Core\Event\GenericHookEvent;
 
 /**
  * This class facilitates the loading of resources
@@ -418,23 +417,6 @@ class CRM_Core_Resources implements CRM_Core_Resources_CollectionAdderInterface 
   }
 
   /**
-   * Create dynamic script for localizing js widgets.
-   */
-  public static function renderL10nJs(GenericHookEvent $e) {
-    if ($e->asset !== 'crm-l10n.js') {
-      return;
-    }
-    $e->mimeType = 'application/javascript';
-    $params = $e->params;
-    $params += [
-      'contactSearch' => json_encode($params['includeEmailInName'] ? ts('Search by name/email or id...') : ts('Search by name or id...')),
-      'otherSearch' => json_encode(ts('Enter search term or id...')),
-      'entityRef' => self::getEntityRefMetadata(),
-    ];
-    $e->content = CRM_Core_Smarty::singleton()->fetchWith('CRM/common/l10n.js.tpl', $params);
-  }
-
-  /**
    * @return bool
    *   is this page request an ajax snippet?
    */
@@ -449,44 +431,6 @@ class CRM_Core_Resources implements CRM_Core_Resources_CollectionAdderInterface 
     }
     list($arg0, $arg1) = array_pad(explode('/', CRM_Utils_System::currentPath()), 2, '');
     return ($arg0 === 'civicrm' && in_array($arg1, ['ajax', 'angularprofiles', 'asset']));
-  }
-
-  /**
-   * @param \Civi\Core\Event\GenericHookEvent $e
-   * @see \CRM_Utils_Hook::buildAsset()
-   */
-  public static function renderMenubarStylesheet(GenericHookEvent $e) {
-    if ($e->asset !== 'crm-menubar.css') {
-      return;
-    }
-    $e->mimeType = 'text/css';
-    $content = '';
-    $config = CRM_Core_Config::singleton();
-    $cms = strtolower($config->userFramework);
-    $cms = $cms === 'drupal' ? 'drupal7' : $cms;
-    $items = [
-      'bower_components/smartmenus/dist/css/sm-core-css.css',
-      'css/crm-menubar.css',
-      "css/menubar-$cms.css",
-    ];
-    foreach ($items as $item) {
-      $content .= file_get_contents(self::singleton()->getPath('civicrm', $item));
-    }
-    $params = $e->params;
-    // "color" is deprecated in favor of the more specific "menubarColor"
-    $menubarColor = $params['color'] ?? $params['menubarColor'];
-    $vars = [
-      '$resourceBase' => rtrim($config->resourceBase, '/'),
-      '$menubarHeight' => $params['height'] . 'px',
-      '$breakMin' => $params['breakpoint'] . 'px',
-      '$breakMax' => ($params['breakpoint'] - 1) . 'px',
-      '$menubarColor' => $menubarColor,
-      '$menuItemColor' => $params['menuItemColor'] ?? $menubarColor,
-      '$highlightColor' => $params['highlightColor'] ?? CRM_Utils_Color::getHighlight($menubarColor),
-      '$textColor' => $params['textColor'] ?? CRM_Utils_Color::getContrast($menubarColor, '#333', '#ddd'),
-    ];
-    $vars['$highlightTextColor'] = $params['highlightTextColor'] ?? CRM_Utils_Color::getContrast($vars['$highlightColor'], '#333', '#ddd');
-    $e->content = str_replace(array_keys($vars), array_values($vars), $content);
   }
 
   /**
