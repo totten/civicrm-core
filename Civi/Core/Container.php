@@ -339,14 +339,8 @@ class Container {
       ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
     }
 
-    $dispatcherDefn = $container->getDefinition('dispatcher');
     foreach (\CRM_Core_DAO_AllCoreTables::getBaoClasses() as $baoEntity => $baoClass) {
-      $listenerMap = EventScanner::findListeners($baoClass, $baoEntity);
-      if ($listenerMap) {
-        $file = (new \ReflectionClass($baoClass))->getFileName();
-        $container->addResource(new \Symfony\Component\Config\Resource\FileResource($file));
-        $dispatcherDefn->addMethodCall('addListenerMap', [$baoClass, $listenerMap]);
-      }
+      $this->addStaticListeners($container, $baoClass, $baoEntity);
     }
 
     \CRM_Api4_Services::hook_container($container);
@@ -354,6 +348,22 @@ class Container {
     \CRM_Utils_Hook::container($container);
 
     return $container;
+  }
+
+  /**
+   * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
+   * @param string $class
+   * @param string|null $self
+   *
+   * @throws \ReflectionException
+   */
+  private function addStaticListeners($container, $class, $self = NULL) {
+    $listenerMap = EventScanner::findListeners($class, $self);
+    if ($listenerMap) {
+      $file = (new \ReflectionClass($class))->getFileName();
+      $container->addResource(new \Symfony\Component\Config\Resource\FileResource($file));
+      $container->getDefinition('dispatcher')->addMethodCall('addListenerMap', [$class, $listenerMap]);
+    }
   }
 
   /**
