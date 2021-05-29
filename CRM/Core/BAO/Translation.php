@@ -81,17 +81,21 @@ class CRM_Core_BAO_Translation extends CRM_Core_DAO_Translation implements \Civi
   }
 
   /**
+   * @param string|null $table
+   *   The name of the entity_table for which we want translations.
+   *   NULL to get all tables.
    * @return array
    *   List of data fields to translate, organized by table and column.
    *   Omitted/unlisted fields are not translated. Any listed field may be translated.
    *   Values should be TRUE.
-   *   Ex: $fields['civicrm_event']['summary'] = TRUE
+   *   Ex (all tables): $fields['civicrm_event']['summary'] = TRUE
+   *   Ex (single table): $fields['summary'] = TRUE
    */
-  public static function getTranslatedFields() {
+  public static function getTranslatedFields($table = NULL) {
     $key = 'translatedFields';
     $cache = Civi::cache('fields');
     if (($r = $cache->get($key)) !== NULL) {
-      return $r;
+      return $table ? ($r[$table] ?? []) : $r;
     }
 
     $f = [];
@@ -101,7 +105,7 @@ class CRM_Core_BAO_Translation extends CRM_Core_DAO_Translation implements \Civi
     // e.g. CRM_Core_I18n_SchemaStructure::columns() will grab core fields
 
     $cache->set($key, $f);
-    return $f;
+    return $table ? ($f[$table] ?? []) : $f;
   }
 
   /**
