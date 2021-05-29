@@ -984,6 +984,28 @@ class CRM_Utils_Array {
   }
 
   /**
+   * Given a list of records, extract a full list of columns.
+   *
+   * Note: If you have reason to believe that the records are homogeneous (well-formed matrix), then it may be
+   * slightly more efficient to do `array_keys()` on the first record. But if you expect the records to be
+   * heterogeneous, then use this for a full scan.
+   *
+   * @param array $matrix
+   *   Ex: [['a'=>1, 'b'=>2], ['a'=>100, 'c'=>300]]
+   * @return array
+   *   Ex: ['a', 'b'', 'c']
+   */
+  public static function findColumns($matrix) {
+    $columns = [];
+    foreach ($matrix as $row) {
+      foreach ($row as $key => $value) {
+        $columns[$key] = TRUE;
+      }
+    }
+    return array_keys($columns);
+  }
+
+  /**
    * Rewrite the keys in an array.
    *
    * @param array $array
