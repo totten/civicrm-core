@@ -13,41 +13,8 @@
  */
 class {$table.className} extends CRM_Core_DAO {ldelim}
 
-     const EXT = {$ext};
-     const TABLE_ADDED = '{$table.add}';
-     {if !empty($table.component)}const COMPONENT = '{$table.component}';{/if}
 
-     /**
-      * Static instance to hold the table name.
-      *
-      * @var string
-      */
-      public static $_tableName = '{$table.name}';
-
-   {if $table.icon}
-     /**
-      * Icon associated with this entity.
-      *
-      * @var string
-      */
-      public static $_icon = '{$table.icon}';
-   {/if}
-
-   {if $table.labelField}
-     /**
-      * Field to show when displaying a record.
-      *
-      * @var string
-      */
-      public static $_labelField = '{$table.labelField}';
-   {/if}
-      /**
-       * Should CiviCRM log any modifications to this table in the civicrm_log table.
-       *
-       * @var bool
-       */
-      public static $_log = {$table.log|strtoupper};
-      {if $table.paths}
+    {if $table.paths}
      /**
       * Paths for accessing this entity in the UI.
       *
@@ -55,48 +22,6 @@ class {$table.className} extends CRM_Core_DAO {ldelim}
       */
       protected static $_paths = {$table.paths|@print_array};
    {/if}
-
-{foreach from=$table.fields item=field}
-    /**
-{if $field.comment}
-     * {$field.comment|regex_replace:"/\n[ ]*/":"\n* "}
-     *
-{/if}
-     * @var {$field.phpType}
-     */
-    public ${$field.name};
-
-{/foreach} {* table.fields *}
-
-    /**
-     * Class constructor.
-     */
-    public function __construct( ) {ldelim}
-        $this->__table = '{$table.name}';
-
-        parent::__construct( );
-    {rdelim}
-
-    /**
-     * Returns localized title of this entity.
-     *
-     * @param bool $plural
-     *   Whether to return the plural version of the title.
-     */
-    public static function getEntityTitle($plural = FALSE) {ldelim}
-        return $plural ? {$tsFunctionName}('{$table.titlePlural}') : {$tsFunctionName}('{$table.title}');
-    {rdelim}
-
-{if !empty($table.description)}
-  /**
-  * Returns user-friendly description of this entity.
-  *
-  * @return string
-  */
-  public static function getEntityDescription() {ldelim}
-    return {$tsFunctionName}('{$table.description|replace:"'":"\'"}');
-  {rdelim}
-{/if}
 
 
 {if !empty($table.foreignKey) || !empty($table.dynamicForeignKey)}
@@ -231,19 +156,6 @@ class {$table.className} extends CRM_Core_DAO {ldelim}
       {rdelim}
 
       /**
-       * Return a mapping from field-name to the corresponding key (as used in fields()).
-       *
-       * @return array
-       *   Array(string $name => string $uniqueName).
-       */
-      public static function &fieldKeys( ) {ldelim}
-        if (!isset(Civi::$statics[__CLASS__]['fieldKeys'])) {ldelim}
-          Civi::$statics[__CLASS__]['fieldKeys'] = array_flip(CRM_Utils_Array::collect('name', self::fields()));
-        {rdelim}
-        return Civi::$statics[__CLASS__]['fieldKeys'];
-      {rdelim}
-
-      /**
        * Returns the names of this table
        *
        * @return string
@@ -256,16 +168,7 @@ class {$table.className} extends CRM_Core_DAO {ldelim}
         {/if}
       {rdelim}
 
-      /**
-       * Returns if this table needs to be logged
-       *
-       * @return bool
-       */
-      public function getLog( ) {ldelim}
-          return self::$_log;
-      {rdelim}
-
-      /**
+ /**
        * Returns the list of fields that can be imported
        *
        * @param bool $prefix

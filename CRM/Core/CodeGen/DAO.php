@@ -80,7 +80,7 @@ class CRM_Core_CodeGen_DAO extends CRM_Core_CodeGen_BaseTask {
 
     $template = $this->getTemplate();
     $template->assign('genCodeChecksum', $this->getTableChecksum());
-    $template->run('dao.tpl', $this->getAbsFileName());
+    $template->run('dao.php', $this->getAbsFileName());
   }
 
   /**
@@ -92,16 +92,16 @@ class CRM_Core_CodeGen_DAO extends CRM_Core_CodeGen_BaseTask {
     if (!$this->raw) {
       $template = $this->getTemplate();
       $template->assign('genCodeChecksum', 'NEW');
-      $this->raw = $template->fetch('dao.tpl');
+      $this->raw = $template->fetch('dao.php');
     }
     return $this->raw;
   }
 
   /**
-   * @return CRM_Core_CodeGen_Util_Template
+   * @return CRM_Core_CodeGen_Util_PhpTemplate
    */
   private function getTemplate() {
-    $template = new CRM_Core_CodeGen_Util_Template('php');
+    $template = new CRM_Core_CodeGen_Util_PhpTemplate();
     $template->assign('table', $this->tables[$this->name]);
     if (empty($this->tables[$this->name]['index'])) {
       $template->assign('indicesPhp', var_export([], 1));
