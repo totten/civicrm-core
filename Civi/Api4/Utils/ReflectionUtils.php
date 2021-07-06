@@ -11,6 +11,8 @@
 
 namespace Civi\Api4\Utils;
 
+use Civi\Api4\Service\Spec\FieldSpec;
+
 /**
  * Just another place to put static functions...
  */
@@ -155,6 +157,71 @@ class ReflectionUtils {
       $traits = array_merge(class_uses($trait), $traits);
     }
     return $traits;
+  }
+
+  /**
+   * Examine a class, obtaining a full/parsed list of fields.
+   *
+   * TIP: Only read properties on business-classes (e.g. forms or entities)
+   * that are specifically relevant to the current request. Alternatively,
+   * read properties during an occasional scan (and then cache the needful).
+   * Avoid gratuitous reading.
+   *
+   * @param string|\ReflectionClass $class
+   * @param int $filter
+   *   Ex: \ReflectionProperty::IS_PUBLIC ,\ReflectionProperty::IS_PRIVATE
+   * @param string $fieldSpecClass
+   *   Ex: '\Civi\WorkflowMessage\FieldSpec' or 'Civi\Api4\Service\Spec\FieldSpec'
+   * @return array
+   *   Several instances of $fieldSpecType.
+   * @throws \ReflectionException
+   */
+  public static function getFields($class, int $filter, string $fieldSpecClass = FieldSpec::class) {
+    $className = $class instanceof \ReflectionClass ? $class->getName() : $class;
+    $cacheKey = $className . '::' . $filter . '::' . $fieldSpecClass;
+
+    if (!isset(\Civi::$statics[__CLASS__][$cacheKey])) {
+      $fields = [];
+      $classObj = $class instanceof \ReflectionClass ? $class : new \ReflectionClass($class);
+      // WISHLIST: Detect '@property' annotations in the class-level.
+      foreach ($classObj->getProperties($filter) as $property) {
+        if ($property->isStatic() || $property->getName()[0] === '_') {
+          continue;
+        }
+        $parsed = ReflectionUtils::getCodeDocs($property, 'Property');
+        $field = new $fieldSpecClass();
+        $field->setName($property->getName())->loadArray($parsed);
+        $fields[$field->getName()] = $field;
+      }
+      \Civi::$statics[__CLASS__][$cacheKey] = $fields;
+    }
+
+    return \Civi::$statics[__CLASS__][$cacheKey];
+  }
+
+  /**
+   * Find any methods in this class which match the given prefix.
+   *
+   * @param string|\ReflectionClass $class
+   * @param string $prefix
+   * @param int|null $filter
+   *   Ex: \ReflectionMethod::IS_PUBLIC, \ReflectionMethod::IS_PRIVATE
+   * @return \ReflectionMethod[]
+   * @throws \ReflectionException
+   */
+  public static function findMethodPrefix($class, string $prefix, ?int $filter = NULL): array {
+    $clazz = is_string($class) ? new \ReflectionClass($class) : $class;
+
+    $methods = array_filter(
+      $clazz->getMethods($filter),
+      function(\ReflectionMethod $m) use ($prefix) {
+        return \CRM_Utils_String::startsWith($m->getName(), $prefix);
+      }
+    );
+    usort($methods, function ($a, $b) {
+      return strnatcmp($a->getName(), $b->getName());
+    });
+    return $methods;
   }
 
 }
