@@ -496,6 +496,30 @@ class CRM_Core_BAO_MessageTemplate extends CRM_Core_DAO_MessageTemplate {
   }
 
   /**
+   * @return array
+   *   Array(string $workflowName => string $className).
+   *   Ex: ["case_activity" => "CRM_Case_WorkflowMessage_CaseActivity"]
+   * @internal
+   */
+  public static function getWorkflowNameClassMap() {
+    $cache = \Civi::cache('long');
+    $cacheKey = __CLASS__ . '-' . __FUNCTION__;
+    $map = $cache->get($cacheKey);
+    if ($map === NULL) {
+      $map = [];
+      $baseDirs = explode(PATH_SEPARATOR, get_include_path());
+      foreach ($baseDirs as $baseDir) {
+        $glob = (array) glob($baseDir . 'CRM/*/WorkflowMessage/*.php');
+        foreach ($glob as $file) {
+          $class = strtr(preg_replace('/\.php$/', '', CRM_Utils_File::relativize($file, $baseDir)), ['/' => '_', '\\' => '_']);
+          $map[$class::WORKFLOW] = $class;
+        }
+      }
+    }
+    return $map;
+  }
+
+  /**
    * Load the specified template.
    *
    * @param string $workflowName
