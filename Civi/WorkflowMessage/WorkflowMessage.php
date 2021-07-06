@@ -32,6 +32,7 @@ class WorkflowMessage implements WorkflowMessageInterface {
 
   use ReflectiveWorkflowTrait;
   use FluentGetterSetterTrait;
+  use FinalHelperTrait;
 
   /**
    * WorkflowMessage constructor.
