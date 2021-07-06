@@ -402,7 +402,7 @@ class CRM_Core_BAO_MessageTemplate extends CRM_Core_DAO_MessageTemplate {
   public static function sendTemplate($params) {
     $modelDefaults = [
       // instance of WorkflowMessageInterface, containing a list of data to provide to the message-template
-      'messageData' => NULL,
+      'model' => NULL,
       // Symbolic name of the workflow step. Matches the option-value-name of the template.
       'valueName' => NULL,
       // additional template params (other than the ones already set in the template singleton)
