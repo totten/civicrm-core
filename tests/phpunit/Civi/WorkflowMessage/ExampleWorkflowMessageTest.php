@@ -219,7 +219,7 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     $cid = $this->individualCreate(['first_name' => 'Foo', 'last_name' => 'Bar' . $rand, 'prefix_id' => NULL, 'suffix_id' => NULL]);
     /** @var \Civi\WorkflowMessage\GenericWorkflowMessage $ex */
     $ex = WorkflowMessage::create('some_impromptu_wf', [
-      'envelope' => ['contactId' => $cid],
+      'tokenContext' => ['contactId' => $cid],
     ]);
     $rendered = $ex->renderTemplate([
       'messageTemplate' => [
@@ -234,7 +234,7 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     $cid = $this->individualCreate(['first_name' => 'Foo', 'last_name' => 'Bar' . $rand, 'prefix_id' => NULL, 'suffix_id' => NULL]);
     /** @var \Civi\WorkflowMessage\GenericWorkflowMessage $ex */
     $ex = WorkflowMessage::create('petition_sign', [
-      'envelope' => ['contactId' => $cid],
+      'tokenContext' => ['contactId' => $cid],
       'tplParams' => [
         'greeting' => 'Greetings yo',
         'petition' => ['title' => 'The Fake Petition'],
