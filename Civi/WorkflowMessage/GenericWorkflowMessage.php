@@ -24,7 +24,7 @@ class GenericWorkflowMessage extends WorkflowMessage {
    * The contact receiving this message.
    *
    * @var int
-   * @scope tokenContext, envelope
+   * @scope tokenContext
    */
   protected $contactId;
 
