@@ -25,7 +25,7 @@ class CRM_Case_WorkflowMessage_CaseActivity extends Civi\WorkflowMessage\Workflo
    * Recipient's contact ID.
    *
    * @var int
-   * @scope tokenContext, envelope
+   * @scope tokenContext
    * @required
    */
   public $contactId;
