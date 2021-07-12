@@ -70,7 +70,7 @@ trait FinalHelperTrait {
   }
 
   /**
-   * @param array $envelope
+   * @param array $params
    *   List of extra parameters to pass to `sendTemplate()`. Ex:
    *   - from
    *   - toName
@@ -79,12 +79,13 @@ trait FinalHelperTrait {
    *   - bcc
    *   - replyTo
    *   - isTest
+   *
    * @return array
    *   Array of four parameters: a boolean whether the email was sent, and the subject, text and HTML templates
    * @see \CRM_Core_BAO_MessageTemplate::sendTemplate()
    */
-  final public function sendTemplate(array $envelope = []): array {
-    return \CRM_Core_BAO_MessageTemplate::sendTemplate($envelope + ['model' => $this]);
+  final public function sendTemplate(array $params = []): array {
+    return \CRM_Core_BAO_MessageTemplate::sendTemplate($params + ['model' => $this]);
   }
 
   ///**
