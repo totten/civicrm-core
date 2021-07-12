@@ -42,9 +42,7 @@ class WorkflowMessage implements WorkflowMessageInterface {
    *   Ex: ['tplParams' => [...tplValues...], 'tokenContext' => [...tokenData...]]
    */
   public function __construct(array $imports = []) {
-    if (!empty($imports)) {
-      $this->import('medley', $imports);
-    }
+    $this->import('*', $imports);
   }
 
   /**
@@ -53,7 +51,7 @@ class WorkflowMessage implements WorkflowMessageInterface {
    * @param string $wfName
    *   Name of the workflow.
    *   Ex: 'case_activity'
-   * @param array|null $imports
+   * @param array $imports
    *   List of data to use when populating the message.
    *
    *   The parameters may be given in a mix of formats. This mix reflects two modes of operation:
@@ -69,7 +67,7 @@ class WorkflowMessage implements WorkflowMessageInterface {
    *   - `tplParams` (array): Smarty data. These values go to `$smarty->assign()`.
    *   - `tokenContext` (array): Token-processing data. These values go to `$tokenProcessor->context`.
    *   - `envelope` (array): Email delivery data. These values go to `sendTemplate(...)`
-   *   - `class` (array): Formal parameters defined by a class.
+   *   - `modelProps` (array): Formal parameters defined by a class.
    *
    *   Informal workflow-messages ONLY support 'tplParams', 'tokenContext', and/or 'envelope'.
    *   Formal workflow-messages accept any format.
@@ -78,10 +76,10 @@ class WorkflowMessage implements WorkflowMessageInterface {
    *   If there is a workflow-message class, then it will return an instance of that class.
    *   Otherwise, it will return an instance of `GenericWorkflowMessage`.
    */
-  public static function create(string $wfName, ?array $imports = []) {
+  public static function create(string $wfName, array $imports = []) {
     $classMap = \CRM_Core_BAO_MessageTemplate::getWorkflowNameClassMap();
     $class = $classMap[$wfName] ?? 'Civi\WorkflowMessage\GenericWorkflowMessage';
-    $imports['valueName'] = $wfName;
+    $imports['envelope']['valueName'] = $wfName;
     return new $class($imports);
   }
 
