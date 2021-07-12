@@ -191,7 +191,8 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
   public function testImpromptuImportExport() {
     /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $ex */
     $ex = WorkflowMessage::create('some_impromptu_wf', [
-      'contactId' => 123,
+      'envelope' => ['from' => 'foo@example.com'],
+      'tokenContext' => ['contactId' => 123],
       'tplParams' => [
         'myImpromputInt' => 456,
         'impromptu_smarty_data' => ['is not mentioned anywhere'],
@@ -206,7 +207,7 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
 
     $envelope = $ex->export('envelope');
     $this->assertEquals('some_impromptu_wf', $envelope['valueName']);
-    $this->assertEquals(123, $envelope['contactId']);
+    $this->assertEquals('foo@example.com', $envelope['from']);
     $this->assertTrue(!isset($envelope['myProtectedInt']));
 
     $tokenCtx = $ex->export('tokenContext');
