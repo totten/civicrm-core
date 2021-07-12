@@ -97,12 +97,8 @@ trait ReflectiveWorkflowTrait {
         return $values;
 
       case 'medley':
-        // The "medley" format is defined to match the traditional format of CRM_Core_BAO_MessageTemplate::sendTemplate().
-        // It contains a mix of information from the other formats, and we split them apart.
-        $values = $this->export('envelope');
-        $values['tplParams'] = $this->export('tplParams');
-        $values['tokenContext'] = $this->export('tokenContext');
-        return $values;
+      case 'stuffedEnvelope':
+        throw new \CRM_Core_Exception("Rmoved: medley/stuffedEnvelope");
 
       default:
         return NULL;
@@ -145,31 +141,23 @@ trait ReflectiveWorkflowTrait {
         }
         break;
 
-      case 'medley':
-        // The "medley" format is defined to match the traditional format of CRM_Core_BAO_MessageTemplate::sendTemplate().
+      case '*':
+        // The "*" format is a collection of other import formats. Walk the list, checking off any recognized items.
         if (isset($values['model'])) {
           if ($values['model'] !== $this) {
             throw new \CRM_Core_Exception(sprintf("%s: Cannot apply mismatched model", get_class($this)));
           }
           unset($values['model']);
         }
-        if (isset($values['tplParams'])) {
-          $this->import('tplParams', $values['tplParams']);
-          unset($values['tplParams']);
+        foreach (['tplParams', 'tokenContext', 'modelProps', 'envelope'] as $format) {
+          if (isset($values[$format])) {
+            $this->import($format, $values[$format]);
+            unset($values[$format]);
+          }
         }
-        if (isset($values['tokenContext'])) {
-          $this->import('tokenContext', $values['tokenContext']);
-          unset($values['tokenContext']);
+        if (!empty($values)) {
+          throw new \CRM_Core_Exception(sprintf('Unrecognized import format (%s)', implode(' ', array_keys($values))));
         }
-        if (isset($values['modelProps'])) {
-          $this->import('modelProps', $values['modelProps']);
-          unset($values['modelProps']);
-        }
-        if (isset($values['envelope'])) {
-          $this->import('envelope', $values['envelope']);
-          unset($values['envelope']);
-        }
-        $this->import('envelope', $values);
         break;
 
     }

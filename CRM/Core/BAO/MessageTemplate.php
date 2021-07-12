@@ -400,66 +400,56 @@ class CRM_Core_BAO_MessageTemplate extends CRM_Core_DAO_MessageTemplate {
    * @throws \API_Exception
    */
   public static function sendTemplate($params) {
-    $modelDefaults = [
+    $paramDefns = [
       // instance of WorkflowMessageInterface, containing a list of data to provide to the message-template
-      'model' => NULL,
-      // Symbolic name of the workflow step. Matches the option-value-name of the template.
-      'valueName' => NULL,
+      'model' => ['group' => 'model', 'default' => NULL],
       // additional template params (other than the ones already set in the template singleton)
-      'tplParams' => [],
+      'tplParams' => ['group' => 'model', 'default' => []],
       // additional token params (passed to the TokenProcessor)
-      'tokenContext' => [],
+      'tokenContext' => ['group' => 'model', 'default' => []],
       // properties to import directly to the model object
-      'modelProps' => NULL,
-      // contact id if contact tokens are to be replaced
-      'contactId' => NULL,
-    ];
-    $viewDefaults = [
+      'modelProps' => ['group' => 'model', 'default' => NULL],
+      // contact id if contact tokens are to be replaced; alias for tokenContext.contactId
+      'contactId' => ['group' => 'ignore', 'default' => NULL],
+
       // ID of the specific template to load
-      'messageTemplateID' => NULL,
+      'messageTemplateID' => ['group' => 'view', 'default' => NULL],
       // content of the message template
       // Ex: ['msg_subject' => 'Hello {contact.display_name}', 'msg_html' => '...', 'msg_text' => '...']
-      'messageTemplate' => NULL,
+      'messageTemplate' => ['group' => 'view', 'default' => NULL],
       // whether this is a test email (and hence should include the test banner)
-      'isTest' => FALSE,
+      'isTest' => ['group' => 'view', 'default' => FALSE],
       // Disable Smarty?
-      'disableSmarty' => FALSE,
-    ];
-    $envelopeDefaults = [
-      // the From: header
-      'from' => NULL,
-      // the recipient’s name
-      'toName' => NULL,
-      // the recipient’s email - mail is sent only if set
-      'toEmail' => NULL,
-      // the Cc: header
-      'cc' => NULL,
-      // the Bcc: header
-      'bcc' => NULL,
-      // the Reply-To: header
-      'replyTo' => NULL,
-      // email attachments
-      'attachments' => NULL,
-      // filename of optional PDF version to add as attachment (do not include path)
-      'PDFFilename' => NULL,
-    ];
+      'disableSmarty' => ['group' => 'view', 'default' => FALSE],
 
-    $params = array_merge($modelDefaults, $viewDefaults, $envelopeDefaults, $params);
+      // Symbolic name of the workflow step. Matches the option-value-name of the template.
+      'valueName' => ['group' => 'envelope', 'default' => NULL],
+      // the From: header
+      'from' => ['group' => 'envelope', 'default' => NULL],
+      // the recipient’s name
+      'toName' => ['group' => 'envelope', 'default' => NULL],
+      // the recipient’s email - mail is sent only if set
+      'toEmail' => ['group' => 'envelope', 'default' => NULL],
+      // the Cc: header
+      'cc' => ['group' => 'envelope', 'default' => NULL],
+      // the Bcc: header
+      'bcc' => ['group' => 'envelope', 'default' => NULL],
+      // the Reply-To: header
+      'replyTo' => ['group' => 'envelope', 'default' => NULL],
+      // email attachments
+      'attachments' => ['group' => 'envelope', 'default' => NULL],
+      // filename of optional PDF version to add as attachment (do not include path)
+      'PDFFilename' => ['group' => 'envelope', 'default' => NULL],
+    ];
 
     // Core#644 - handle Email ID passed as "From".
     if (isset($params['from'])) {
       $params['from'] = CRM_Utils_Mail::formatFromAddress($params['from']);
     }
 
-    // Ensure that the WorkflowMessage has a chance to filter/map/cleanup all inputs.
-    if (empty($params['model'])) {
-      $params['model'] = \Civi\WorkflowMessage\WorkflowMessage::create($params['valueName'] ?? 'UNKNOWN');
-    }
-    $params['model']->import('medley', array_filter($params, function($v) {
-      return $v !== NULL;
-    }));
-    $params = array_merge($params, $params['model']->export('medley'));
-
+    CRM_Utils_Array::pathMove($params, ['contactId'], ['tokenContext', 'contactId']);
+    $params = static::filterWorkflowModel($params, $paramDefns);
+    $params['contactId'] = $params['tokenContext']['contactId'] ?? NULL;
     CRM_Utils_Hook::alterMailParams($params, 'messageTemplate');
     if (!is_int($params['messageTemplateID']) && !is_null($params['messageTemplateID'])) {
       CRM_Core_Error::deprecatedWarning('message template id should be an integer');
@@ -493,6 +483,7 @@ class CRM_Core_BAO_MessageTemplate extends CRM_Core_DAO_MessageTemplate {
 
       $config = CRM_Core_Config::singleton();
       if (isset($params['isEmailPdf']) && $params['isEmailPdf'] == 1) {
+        // FIXME: $params['contributionId'] is not modeled in the parameter list. When is it supplied? Should probably move to tokenContext.contributionId.
         $pdfHtml = CRM_Contribute_BAO_ContributionPage::addInvoicePdfToEmail($params['contributionId'], $params['contactId']);
         if (empty($params['attachments'])) {
           $params['attachments'] = [];
@@ -522,6 +513,62 @@ class CRM_Core_BAO_MessageTemplate extends CRM_Core_DAO_MessageTemplate {
     }
 
     return [$sent, $mailContent['subject'], $mailContent['text'], $mailContent['html']];
+  }
+
+  protected static function filterWorkflowModel(array $params, array $paramDefns) {
+    // Split params by group - and apply defaults.
+    // Ex: $params['disableSmarty'] ====> $byGrp['view']['disableSmarty']
+    $byGrp = [];
+    $defaults = [];
+    foreach ($paramDefns as $paramName => $paramDefn) {
+      $grp = $paramDefn['group'] ?? 'envelope';
+      if (isset($params[$paramName])) {
+        $byGrp[$grp][$paramName] = $params[$paramName];
+      }
+      elseif (array_key_exists('default', $paramDefn)) {
+        $defaults[$grp][$paramName] = $paramDefn['default'];
+      }
+    }
+    unset($byGrp['ignore']);
+
+    // Ensure that the WorkflowMessage has a chance to filter/map/cleanup all inputs.
+    /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $model */
+    if (!empty($byGrp['model']['model'])) {
+      if (count($byGrp['model']) > 1) {
+        throw new \CRM_Core_Exception('MessageTemplate: Do not mix formal \'model\' with adhoc data parameters (\'tplParams\', \'tokenContext\', \'modelProps\')');
+      }
+      $model = $byGrp['model']['model'];
+      unset($byGrp['model']);
+      $model->import('envelope', $defaults['envelope'] ?? []);
+      $model->import('envelope', $byGrp['envelope'] ?? []);
+      unset($byGrp['envelope']);
+    }
+    else {
+      $model = \Civi\WorkflowMessage\WorkflowMessage::create($params['valueName'] ?? 'UNKNOWN');
+      $model->import('*', $defaults['model'] ?? []);
+      $model->import('envelope', $defaults['envelope'], []);
+      $model->import($byGrp['model'] ?? []);
+      unset($byGrp['model']);
+      $model->import('envelope', $byGrp['envelope'] ?? []);
+      unset($byGrp['envelope']);
+    }
+
+    // Model class has now had a chance to filter/rearrange everything relevant.
+
+    $newParams = array_merge(
+      $defaults['view'] ?? [],
+      $byGrp['view'] ?? [],
+      $model->export('envelope')
+    );
+    $newParams['model'] = $model;
+    $newParams['tplParams'] = $model->export('tplParams');
+    $newParams['tokenContext'] = $model->export('tokenContext');
+    unset($byGrp['view']);
+
+    if (!empty($byGrp)) {
+      throw new \CRM_Core_Exception(sprintf('Error: Unhandled group of parameters (%s)', implode(' ', array_keys($byGrp))));
+    }
+    return $newParams;
   }
 
   /**
