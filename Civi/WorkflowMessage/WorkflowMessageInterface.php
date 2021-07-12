@@ -36,7 +36,7 @@ interface WorkflowMessageInterface {
    * Ex: $message->import('tplParams', ['sm_art_stuff' => 123]);
    *
    * @param string $format
-   *   Ex: 'tplParams', 'tokenContext', 'modelProps', 'envelope'
+   *   Ex: 'tplParams', 'tokenContext', 'modelProps', 'envelope', '*'
    * @param array $values
    *
    * @return $this
