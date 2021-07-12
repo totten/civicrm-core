@@ -400,22 +400,32 @@ class CRM_Core_BAO_MessageTemplate extends CRM_Core_DAO_MessageTemplate {
    * @throws \API_Exception
    */
   public static function sendTemplate($params) {
-    $defaults = [
+    $modelDefaults = [
       // instance of WorkflowMessageInterface, containing a list of data to provide to the message-template
       'model' => NULL,
-      // option value name of the template
+      // Symbolic name of the workflow step. Matches the option-value-name of the template.
       'valueName' => NULL,
-      // ID of the template
-      'messageTemplateID' => NULL,
-      // content of the message template
-      // Ex: ['msg_subject' => 'Hello {contact.display_name}', 'msg_html' => '...', 'msg_text' => '...']
-      'messageTemplate' => NULL,
-      // contact id if contact tokens are to be replaced
-      'contactId' => NULL,
       // additional template params (other than the ones already set in the template singleton)
       'tplParams' => [],
       // additional token params (passed to the TokenProcessor)
       'tokenContext' => [],
+      // properties to import directly to the model object
+      'modelProps' => NULL,
+      // contact id if contact tokens are to be replaced; alias for tokenContext.contactId
+      'contactId' => NULL,
+    ];
+    $viewDefaults = [
+      // ID of the specific template to load
+      'messageTemplateID' => NULL,
+      // content of the message template
+      // Ex: ['msg_subject' => 'Hello {contact.display_name}', 'msg_html' => '...', 'msg_text' => '...']
+      'messageTemplate' => NULL,
+      // whether this is a test email (and hence should include the test banner)
+      'isTest' => FALSE,
+      // Disable Smarty?
+      'disableSmarty' => FALSE,
+    ];
+    $envelopeDefaults = [
       // the From: header
       'from' => NULL,
       // the recipient’s name
@@ -430,14 +440,11 @@ class CRM_Core_BAO_MessageTemplate extends CRM_Core_DAO_MessageTemplate {
       'replyTo' => NULL,
       // email attachments
       'attachments' => NULL,
-      // whether this is a test email (and hence should include the test banner)
-      'isTest' => FALSE,
       // filename of optional PDF version to add as attachment (do not include path)
       'PDFFilename' => NULL,
-      // Disable Smarty?
-      'disableSmarty' => FALSE,
     ];
-    $params = array_merge($defaults, $params);
+
+    $params = array_merge($modelDefaults, $viewDefaults, $envelopeDefaults, $params);
 
     // Core#644 - handle Email ID passed as "From".
     if (isset($params['from'])) {
@@ -486,6 +493,7 @@ class CRM_Core_BAO_MessageTemplate extends CRM_Core_DAO_MessageTemplate {
 
       $config = CRM_Core_Config::singleton();
       if (isset($params['isEmailPdf']) && $params['isEmailPdf'] == 1) {
+        // FIXME: $params['contributionId'] is not modeled in the parameter list. When is it supplied? Should probably move to tokenContext.contributionId.
         $pdfHtml = CRM_Contribute_BAO_ContributionPage::addInvoicePdfToEmail($params['contributionId'], $params['contactId']);
         if (empty($params['attachments'])) {
           $params['attachments'] = [];
