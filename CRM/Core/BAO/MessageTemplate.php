@@ -377,6 +377,8 @@ class CRM_Core_BAO_MessageTemplate extends CRM_Core_DAO_MessageTemplate {
    */
   public static function sendTemplate($params) {
     $defaults = [
+      // instance of WorkflowMessageInterface, containing a list of data to provide to the message-template
+      'model' => NULL,
       // option value name of the template
       'valueName' => NULL,
       // ID of the template
@@ -417,6 +419,15 @@ class CRM_Core_BAO_MessageTemplate extends CRM_Core_DAO_MessageTemplate {
     if (isset($params['from'])) {
       $params['from'] = CRM_Utils_Mail::formatFromAddress($params['from']);
     }
+
+    // Ensure that the WorkflowMessage has a chance to filter/map/cleanup all inputs.
+    if (empty($params['model'])) {
+      $params['model'] = \Civi\WorkflowMessage\WorkflowMessage::create($params['valueName'] ?? 'UNKNOWN');
+    }
+    $params['model']->import('medley', array_filter($params, function($v) {
+      return $v !== NULL;
+    }));
+    $params = array_merge($params, $params['model']->export('medley'));
 
     CRM_Utils_Hook::alterMailParams($params, 'messageTemplate');
     if (!is_int($params['messageTemplateID']) && !is_null($params['messageTemplateID'])) {
