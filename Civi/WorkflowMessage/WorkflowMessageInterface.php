@@ -14,22 +14,17 @@ namespace Civi\WorkflowMessage;
 interface WorkflowMessageInterface {
 
   /**
-   * @return \Civi\WorkflowMessage\FieldSpec[]
+   * @return \Civi\Schema\MappedFieldSpec[]
    *   A list of field-specs that are used in the given format, keyed by their name in that format.
    *   If the implementation does not understand a specific format, return NULL.
    */
   public function getFields(): array;
 
   /**
-   * @param string|null $scope
-   *   If NULL, the format matches the sendTemplate/renderTemplate format.
-   *   Otherwise, it is limited to a particular key.
-   *   Ex: 'tplParams', 'tokenContext'
-   *
    * @return array
    * @see \Civi\WorkflowMessage\Traits\ScopedWorkflowMessageTrait::export()
    */
-  public function export(?string $scope = NULL): array;
+  public function exportArray(): array;
 
   /**
    * Import values from some scope.
@@ -37,11 +32,10 @@ interface WorkflowMessageInterface {
    * Ex: $message->import(['tplParams' => ['sm_art_stuff' => 123]]);
    *
    * @param array $values
-   *
    * @return $this
    * @see \Civi\WorkflowMessage\Traits\ScopedWorkflowMessageTrait::import()
    */
-  public function import(array $values);
+  public function importArray(array $values);
 
   /**
    * Determine if the data for this workflow message is complete/well-formed.

@@ -455,10 +455,10 @@ class CRM_Core_BAO_MessageTemplate extends CRM_Core_DAO_MessageTemplate {
     if (empty($params['model'])) {
       $params['model'] = \Civi\WorkflowMessage\WorkflowMessage::create($params['valueName'] ?? 'UNKNOWN');
     }
-    $params['model']->import(array_filter($params, function ($v) {
+    $params['model']->importArray(array_filter($params, function ($v) {
       return $v !== NULL;
     }));
-    $params = array_merge($params, $params['model']->export());
+    $params = array_merge($params, $params['model']->exportArray());
 
     CRM_Utils_Hook::alterMailParams($params, 'messageTemplate');
     if (!is_int($params['messageTemplateID']) && !is_null($params['messageTemplateID'])) {

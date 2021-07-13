@@ -12,10 +12,9 @@
 
 namespace Civi\WorkflowMessage;
 
+use Civi\Schema\Traits\ArrayMappingTrait;
 use Civi\Schema\Traits\FluentGetterSetterTrait;
 use Civi\WorkflowMessage\Traits\FinalHelperTrait;
-use Civi\WorkflowMessage\Traits\ScopedFieldTrait;
-use Civi\WorkflowMessage\Traits\ScopedWorkflowMessageTrait;
 
 /**
  * A WorkflowMessage describes the inputs to an automated email messages.
@@ -33,8 +32,7 @@ use Civi\WorkflowMessage\Traits\ScopedWorkflowMessageTrait;
  */
 class WorkflowMessage implements WorkflowMessageInterface {
 
-  use ScopedFieldTrait;
-  use ScopedWorkflowMessageTrait;
+  use ArrayMappingTrait;
   use FluentGetterSetterTrait;
   use FinalHelperTrait;
 
@@ -46,7 +44,7 @@ class WorkflowMessage implements WorkflowMessageInterface {
    *   Ex: ['tplParams' => [...tplValues...], 'tokenContext' => [...tokenData...]]
    */
   public function __construct(array $imports = []) {
-    $this->import($imports);
+    $this->importArray($imports);
   }
 
   /**
@@ -85,6 +83,56 @@ class WorkflowMessage implements WorkflowMessageInterface {
     $class = $classMap[$wfName] ?? 'Civi\WorkflowMessage\GenericWorkflowMessage';
     $imports['envelope']['valueName'] = $wfName;
     return new $class($imports);
+  }
+
+  /**
+   * Determine if the data for this workflow message is complete/well-formed.
+   *
+   * @return array
+   *   A list of errors and warnings. Each record defines
+   *   - severity: string, 'error' or 'warning'
+   *   - fields: string[], list of fields implicated in the error
+   *   - name: string, symbolic name of the error/warning
+   *   - message: string, printable message describing the problem
+   * @see \Civi\WorkflowMessage\WorkflowMessageInterface::validate()
+   */
+  public function validate(): array {
+    // TODO
+    return [];
+  }
+
+  /**
+   * Get a list of key-value pairs to add to the token-context.
+   *
+   * @param array $export
+   *   Modifiable list of export-values.
+   */
+  protected function exportArrayExtraTokenContext(array &$export): void {
+    $export['tokenContext']['controller'] = static::CLASS;
+    $export['tokenContext']['smarty'] = TRUE;
+    // Hmm ^^?
+  }
+
+  protected function exportArrayExtraEnvelope(array &$export): void {
+    if ($wfName = \CRM_Utils_Constant::value(static::CLASS . '::WORKFLOW')) {
+      $export['valueName'] = $wfName;
+    }
+    if ($wfGroup = \CRM_Utils_Constant::value(static::CLASS . '::GROUP')) {
+      $export['groupName'] = $wfGroup;
+    }
+  }
+
+  protected function importArrayExtraEnvelope(array &$values): void {
+    if ($wfName = \CRM_Utils_Constant::value(static::CLASS . '::WORKFLOW')) {
+      if (isset($values['valueName']) && $wfName === $values['valueName']) {
+        unset($values['valueName']);
+      }
+    }
+    if ($wfGroup = \CRM_Utils_Constant::value(static::CLASS . '::GROUP')) {
+      if (isset($values['groupName']) && $wfGroup === $values['groupName']) {
+        unset($values['groupName']);
+      }
+    }
   }
 
 }

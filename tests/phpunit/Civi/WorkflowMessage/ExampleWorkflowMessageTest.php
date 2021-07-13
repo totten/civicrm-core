@@ -37,13 +37,13 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
 
       /**
        * @var string
-       * @scope tpl as my_public_string
+       * @mapping tplParams.my_public_string
        */
       public $myPublicString;
 
       /**
        * @var int
-       * @scope tpl as my_int
+       * @mapping tplParams.my_int
        */
       protected $myProtectedInt;
 
@@ -61,12 +61,12 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
 
       /**
        * @var int
-       * @scope tpl as some.deep.thing
+       * @mapping tplParams.some.deep.thing
        */
       protected $deepValue;
 
-      protected function exportExtraTplParams(array &$export): void {
-        $export['some_extra_tpl_stuff'] = 100;
+      protected function exportArrayExtraTplParams(array &$export): void {
+        $export['tplParams']['some_extra_tpl_stuff'] = 100;
       }
 
     };
@@ -79,7 +79,7 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $ex */
     $ex = static::createExample();
     $fields = $ex->getFields();
-    /** @var \Civi\WorkflowMessage\FieldSpec $field */
+    /** @var \Civi\Schema\MappedFieldSpec[] $field */
 
     $field = $fields['myPublicString'];
     $this->assertEquals(['string'], $field->getType());
@@ -109,8 +109,8 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $ex */
     $ex = static::createExample();
 
-    $ex->setmyProtectedInt(5);
-    $this->assertEquals(5, $ex->getmyProtectedInt());
+    $ex->setMyProtectedInt(5);
+    $this->assertEquals(5, $ex->getMyProtectedInt());
     $this->assertEquals(5, Invasive::get([$ex, 'myProtectedInt']));
 
     $ex->setMyPublicString('hello');
@@ -125,7 +125,7 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $ex */
     $ex = static::createExample();
 
-    $ex->import([
+    $ex->importArray([
       'tplParams' => [
         'my_public_string' => 'hello world',
         'my_int' => 10,
@@ -140,15 +140,16 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     $ex->myPublicString .= ' and stuff';
     $ex->setDeepValue(22);
 
-    $tpl = $ex->export('tplParams');
+    $export = $ex->exportArray();
+    $tpl = $export['tplParams'];
+
     $this->assertEquals('hello world and stuff', $tpl['my_public_string']);
     $this->assertEquals(10, $tpl['my_int']);
     $this->assertEquals(22, $tpl['some']['deep']['thing']);
     $this->assertEquals(100, $tpl['some_extra_tpl_stuff']);
 
-    $envelope = $ex->export('envelope');
-    $this->assertEquals('my_example_wf', $envelope['valueName']);
-    $this->assertEquals('my_example_grp', $envelope['groupName']);
+    $this->assertEquals('my_example_wf', $export['valueName']);
+    $this->assertEquals('my_example_grp', $export['groupName']);
   }
 
   /**
@@ -158,13 +159,13 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $ex */
     $ex = static::createExample();
 
-    $ex->import([
+    $ex->importArray([
       'tplParams' => [
         'my.st!er_y' => ['is not mentioned anywhere'],
       ],
     ]);
 
-    $tpl = $ex->export('tplParams');
+    $tpl = $ex->exportArray()['tplParams'];
     $this->assertEquals(['is not mentioned anywhere'], $tpl['my.st!er_y']);
   }
 
@@ -175,7 +176,7 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $ex */
     $ex = static::createExample();
 
-    $ex->import([
+    $ex->importArray([
       'tplParams' => [
         'implicitStringArray' => ['is not mapped between class and tpl'],
       ],
@@ -184,10 +185,10 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     $this->assertEquals(NULL, $ex->getImplicitStringArray());
     $ex->setImplicitStringArray(['this is the real class field']);
 
-    $tpl = $ex->export('tplParams');
+    $tpl = $ex->exportArray()['tplParams'];
     $this->assertEquals(['is not mapped between class and tpl'], $tpl['implicitStringArray']);
 
-    $classData = $ex->export('modelProps');
+    $classData = $ex->exportArray()['modelProps'];
     $this->assertEquals(['this is the real class field'], $classData['implicitStringArray']);
   }
 
@@ -206,17 +207,19 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     ]);
     $this->assertTrue($ex instanceof GenericWorkflowMessage);
 
-    $tpl = $ex->export('tplParams');
+    $export = $ex->exportArray();
+
+    $tpl = $export['tplParams'];
     $this->assertEquals(456, $tpl['myImpromputInt']);
     $this->assertEquals(['is not mentioned anywhere'], $tpl['impromptu_smarty_data']);
     $this->assertTrue(!isset($tpl['valueName']));
 
-    $envelope = $ex->export('envelope');
+    $envelope = $export['envelope'];
     $this->assertEquals('some_impromptu_wf', $envelope['valueName']);
     $this->assertEquals('foo@example.com', $envelope['from']);
     $this->assertTrue(!isset($envelope['myProtectedInt']));
 
-    $tokenCtx = $ex->export('tokenContext');
+    $tokenCtx = $export['tokenContext'];
     $this->assertEquals(123, $tokenCtx['contactId']);
     $this->assertTrue(!isset($envelope['myProtectedInt']));
   }

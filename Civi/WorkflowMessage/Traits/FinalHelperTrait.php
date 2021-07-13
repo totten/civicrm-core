@@ -25,10 +25,10 @@ namespace Civi\WorkflowMessage\Traits;
 trait FinalHelperTrait {
 
   /**
-   * @see \Civi\WorkflowMessage\WorkflowMessageInterface::export()
-   * @see \Civi\WorkflowMessage\Traits\ScopedFieldTrait::export()
+   * @see \Civi\WorkflowMessage\WorkflowMessageInterface::exportArray()
+   * @see \Civi\Schema\Traits\ArrayMappingTrait::exportArray()
    */
-  abstract public function export(?string $scope = NULL): array;
+  abstract public function exportArray(): array;
 
   /**
    * @see \Civi\WorkflowMessage\WorkflowMessageInterface::validate()
