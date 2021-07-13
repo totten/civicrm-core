@@ -10,7 +10,7 @@
  +--------------------------------------------------------------------+
  */
 
-namespace Civi\WorkflowMessage;
+namespace Civi\WorkflowMessage\Traits;
 
 /**
  * Define a series of high-level, non-extensible helpers for WorkflowMessages,
@@ -26,13 +26,13 @@ trait FinalHelperTrait {
 
   /**
    * @see \Civi\WorkflowMessage\WorkflowMessageInterface::export()
-   * @see \Civi\WorkflowMessage\ReflectiveWorkflowTrait::export()
+   * @see \Civi\WorkflowMessage\Traits\ScopedFieldTrait::export()
    */
-  abstract public function export(string $format = NULL): ?array;
+  abstract public function export(?string $scope = NULL): array;
 
   /**
    * @see \Civi\WorkflowMessage\WorkflowMessageInterface::validate()
-   * @see \Civi\WorkflowMessage\ReflectiveWorkflowTrait::validate()
+   * @see \Civi\WorkflowMessage\Traits\ScopedFieldTrait::validate()
    */
   abstract public function validate(): array;
 

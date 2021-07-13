@@ -21,28 +21,27 @@ interface WorkflowMessageInterface {
   public function getFields(): array;
 
   /**
-   * @param string $format
-   *   Ex: 'tplParams', 'tokenContext', 'modelProps', 'envelope', 'stuffedEnvelope'
-   * @return array|null
-   *   A list of field-values that are used in the given format, keyed by their name in that format.
-   *   If the implementation does not understand a specific format, return NULL.
-   * @see \Civi\WorkflowMessage\ReflectiveWorkflowTrait::export()
+   * @param string|null $scope
+   *   If NULL, the format matches the sendTemplate/renderTemplate format.
+   *   Otherwise, it is limited to a particular key.
+   *   Ex: 'tplParams', 'tokenContext'
+   *
+   * @return array
+   * @see \Civi\WorkflowMessage\Traits\ScopedWorkflowMessageTrait::export()
    */
-  public function export(string $format = NULL): ?array;
+  public function export(?string $scope = NULL): array;
 
   /**
    * Import values from some scope.
    *
-   * Ex: $message->import('tplParams', ['sm_art_stuff' => 123]);
+   * Ex: $message->import(['tplParams' => ['sm_art_stuff' => 123]]);
    *
-   * @param string $format
-   *   Ex: 'tplParams', 'tokenContext', 'modelProps', 'envelope', 'stuffedEnvelope'
    * @param array $values
    *
    * @return $this
-   * @see \Civi\WorkflowMessage\ReflectiveWorkflowTrait::import()
+   * @see \Civi\WorkflowMessage\Traits\ScopedWorkflowMessageTrait::import()
    */
-  public function import(string $format, array $values);
+  public function import(array $values);
 
   /**
    * Determine if the data for this workflow message is complete/well-formed.

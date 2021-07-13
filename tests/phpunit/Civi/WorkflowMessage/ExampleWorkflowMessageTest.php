@@ -125,10 +125,12 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $ex */
     $ex = static::createExample();
 
-    $ex->import('tplParams', [
-      'my_public_string' => 'hello world',
-      'my_int' => 10,
-      'some' => ['deep' => ['thing' => 20]],
+    $ex->import([
+      'tplParams' => [
+        'my_public_string' => 'hello world',
+        'my_int' => 10,
+        'some' => ['deep' => ['thing' => 20]],
+      ],
     ]);
 
     $this->assertEquals('hello world', $ex->getMyPublicString());
@@ -156,8 +158,10 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $ex */
     $ex = static::createExample();
 
-    $ex->import('tplParams', [
-      'my.st!er_y' => ['is not mentioned anywhere'],
+    $ex->import([
+      'tplParams' => [
+        'my.st!er_y' => ['is not mentioned anywhere'],
+      ],
     ]);
 
     $tpl = $ex->export('tplParams');
@@ -171,12 +175,14 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
     /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $ex */
     $ex = static::createExample();
 
-    $ex->import('tplParams', [
-      'implicitStringArray' => ['is not mapped between class and tpl'],
+    $ex->import([
+      'tplParams' => [
+        'implicitStringArray' => ['is not mapped between class and tpl'],
+      ],
     ]);
 
-    $this->assertEquals(NULL, $ex->getimplicitStringArray());
-    $ex->setimplicitStringArray(['this is the real class field']);
+    $this->assertEquals(NULL, $ex->getImplicitStringArray());
+    $ex->setImplicitStringArray(['this is the real class field']);
 
     $tpl = $ex->export('tplParams');
     $this->assertEquals(['is not mapped between class and tpl'], $tpl['implicitStringArray']);
@@ -191,7 +197,7 @@ class ExampleWorkflowMessageTest extends \CiviUnitTestCase {
   public function testImpromptuImportExport() {
     /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $ex */
     $ex = WorkflowMessage::create('some_impromptu_wf', [
-      'envelope' => ['from' => 'foo@example.com'],
+      'from' => 'foo@example.com',
       'tokenContext' => ['contactId' => 123],
       'tplParams' => [
         'myImpromputInt' => 456,

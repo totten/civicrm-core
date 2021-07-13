@@ -13,6 +13,9 @@
 namespace Civi\WorkflowMessage;
 
 use Civi\Schema\Traits\FluentGetterSetterTrait;
+use Civi\WorkflowMessage\Traits\FinalHelperTrait;
+use Civi\WorkflowMessage\Traits\ScopedFieldTrait;
+use Civi\WorkflowMessage\Traits\ScopedWorkflowMessageTrait;
 
 /**
  * A WorkflowMessage describes the inputs to an automated email messages.
@@ -30,7 +33,8 @@ use Civi\Schema\Traits\FluentGetterSetterTrait;
  */
 class WorkflowMessage implements WorkflowMessageInterface {
 
-  use ReflectiveWorkflowTrait;
+  use ScopedFieldTrait;
+  use ScopedWorkflowMessageTrait;
   use FluentGetterSetterTrait;
   use FinalHelperTrait;
 
@@ -42,7 +46,7 @@ class WorkflowMessage implements WorkflowMessageInterface {
    *   Ex: ['tplParams' => [...tplValues...], 'tokenContext' => [...tokenData...]]
    */
   public function __construct(array $imports = []) {
-    $this->import('stuffedEnvelope', $imports);
+    $this->import($imports);
   }
 
   /**
