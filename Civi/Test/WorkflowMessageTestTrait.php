@@ -15,21 +15,48 @@ use Civi\WorkflowMessage\WorkflowMessage;
 
 trait WorkflowMessageTestTrait {
 
-  /**
-   * @var string|null
-   */
-  protected $examplesDir;
+  abstract public function getWorkflowClass(): string;
 
   /**
-   * @return string
-   * @throws \ReflectionException
+   * Ensure that various methods of constructing a WorkflowMessage all produce similar results.
+   *
+   * To see this, we take all the example data
    */
-  protected function getExamplesDir() {
-    if ($this->examplesDir === NULL) {
-      $c = new \ReflectionClass(get_class($this));
-      $this->examplesDir = preg_replace('/\.php$', '', $c->getFileName());
+  public function testConstructorEquivalence() {
+    $examples = \Civi\Api4\WorkflowMessageExample::get(0)
+      ->setSelect(['name', 'params', 'asserts'])
+      ->addWhere('workflow', '=', 'case_activity')
+      ->addWhere('tags', 'CONTAINS', 'phpunit')
+      ->execute()
+      ->indexBy('name')
+      ->column('params');
+    $this->assertTrue(count($examples) > 1, 'Must have at least one example data-set');
+
+    $class = $this->getWorkflowClass();
+    $instances = [];
+    foreach ($examples as $exampleName => $exampleProps) {
+      $instances["factory_$exampleName"] = WorkflowMessage::create($class::WORKFLOW, $exampleProps);
+      $instances["class_$exampleName"] = new $class($exampleProps);
     }
-    return $this->examplesDir;
+
+    /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $refInstance */
+    /** @var \Civi\WorkflowMessage\WorkflowMessageInterface $cmpInstance */
+
+    // FIXME: we should use $example['asserts'] and check for specific equivalences rather than assuming all examples equiv.
+
+    $refName = $refInstance = NULL;
+    $comparisons = 0;
+    foreach ($instances as $cmpName => $cmpInstance) {
+      if ($refName === NULL) {
+        $refName = $cmpName;
+        $refInstance = $cmpInstance;
+        continue;
+      }
+
+      $this->assertSameWorkflowMessage($refInstance, $cmpInstance, "Compare $refName vs $cmpName: ");
+      $comparisons++;
+    }
+    $this->assertTrue($comparisons > 0 && $comparisons === (2 * count($examples) - 1));
   }
 
   /**

@@ -1,0 +1,29 @@
+{
+  "tags": ["phpunit", "preview"],
+  "params": {
+    "tokenContext": {
+      "contactId": 100
+    },
+    "tplParams": {
+      "isCaseActivity": 1,
+      "client_id": 101,
+      "activityTypeName": "Follow up",
+      "activitySubject": "Test 123",
+      "idHash": "abcdefg",
+      "activity": {
+        "fields": [
+          {
+            "label": "Case ID",
+            "type": "String",
+            "value": "1234"
+          }
+        ]
+      }
+    }
+  },
+  "asserts": {
+    "default": [
+      {"field": "msg_text", "regex": ""}
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "tags": ["phpunit", "preview"],
+  "params": {
+    "modelProps": {
+      "contactId": 100,
+      "isCaseActivity": 1,
+      "clientId": 101,
+      "activityTypeName": "Follow up",
+      "activityFields": [
+        {
+          "label": "Case ID",
+          "type": "String",
+          "value": "1234"
+        }
+      ],
+      "activitySubject": "Test 123",
+      "idHash": "abcdefg"
+    }
+  }
+}

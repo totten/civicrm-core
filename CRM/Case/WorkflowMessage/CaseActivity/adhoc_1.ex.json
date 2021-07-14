@@ -1,0 +1,22 @@
+{
+  "tags": ["phpunit", "preview"],
+  "params": {
+    "contactId": 100,
+    "tplParams": {
+      "isCaseActivity": 1,
+      "client_id": 101,
+      "activityTypeName": "Follow up",
+      "activitySubject": "Test 123",
+      "idHash": "abcdefg",
+      "activity": {
+        "fields": [
+          {
+            "label": "Case ID",
+            "type": "String",
+            "value": "1234"
+          }
+        ]
+      }
+    }
+  }
+}
