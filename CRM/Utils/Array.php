@@ -651,6 +651,25 @@ class CRM_Utils_Array {
   }
 
   /**
+   * Split an array into separate groupings.
+   *
+   * @param iterable $array
+   *   Ex: [10,11,12,13]
+   * @param callable $pickGroup
+   *   Ex: function($v,$k) { return $v%2 === 0 ? 'even' : 'odd'; }
+   * @return array
+   *   Ex: ['even'=>[10,12], 'odd'=>[11,13]]
+   */
+  public static function groupBy(iterable $array, callable $pickGroup) {
+    $result = [];
+    foreach ($array as $key => $value) {
+      $group = $pickGroup($value, $key);
+      $result[$group][$key] = $value;
+    }
+    return $result;
+  }
+
+  /**
    * Iterates over a list of records and returns the value of some property.
    *
    * @param string $prop
