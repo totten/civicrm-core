@@ -224,7 +224,9 @@ class CRM_Contribute_Tokens extends AbstractTokenSubscriber {
     elseif ($cfID = \CRM_Core_BAO_CustomField::getKeyID($field)) {
       $row->customToken($entity, $cfID, $entityId);
     }
-    elseif (in_array($field, array_keys($this->getBasicTokens()))) {
+    // At a high level, this feels weird to me. However, it is necessary to resolve the branch-merge and also pass ByTypeTest::testTokenRendering()
+    //
+    elseif (in_array($field, array_keys($this->getBasicTokens())) && !preg_match('/_date$/', $field)) {
       // For now we just ensure that the label fields do not override the
       // id field here.
       // Later we will add support for contribution_status_id:label
