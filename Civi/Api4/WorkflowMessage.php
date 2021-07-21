@@ -24,14 +24,15 @@ namespace Civi\Api4;
  * @searchable none
  * @package Civi\Api4
  */
-class TokenProcessor extends Generic\AbstractEntity {
+class WorkflowMessage extends Generic\AbstractEntity {
 
   /**
    * @param bool $checkPermissions
-   * @return Action\TokenProcessor\Render
+   *
+   * @return \Civi\Api4\Action\WorkflowMessage\Render
    */
   public static function render($checkPermissions = TRUE) {
-    return (new Action\TokenProcessor\Render(__CLASS__, __FUNCTION__))
+    return (new Action\WorkflowMessage\Render(__CLASS__, __FUNCTION__))
       ->setCheckPermissions($checkPermissions);
   }
 
