@@ -27,13 +27,51 @@ use Civi\Api4\Utils\ReflectionUtils;
  *  - Expose the param in the Api Explorer (be sure to add a doc-block as it displays in the help panel).
  *  - Require a value for the param if you add the "@required" annotation.
  *
- * @method bool getCheckPermissions()
- * @method $this setDebug(bool $value) Enable/disable debug output
- * @method bool getDebug()
- * @method $this setChain(array $chain)
- * @method array getChain()
  */
 abstract class AbstractAction implements \ArrayAccess {
+
+  /**
+   * @return array
+   */
+  public function getChain() {
+    return $this->chain;
+  }
+
+  /**
+   * @param array $chain
+   */
+  public function setChain($chain) {
+    $this->chain = $chain;
+    return $this;
+  }
+
+  /**
+   * @return bool
+   */
+  public function getDebug() {
+    return $this->debug;
+  }
+
+  /**
+   * @param bool $debug
+   */
+  public function setDebug($debug) {
+    $this->debug = $debug;
+    return $this;
+  }
+  /**
+   * @return bool
+   */
+  public function getCheckPermissions() {
+    return $this->checkPermissions;
+  }
+
+  /**
+   * @return int
+   */
+  public function getVersion() {
+    return $this->version;
+  }
 
   use \Civi\Schema\Traits\MagicGetterSetterTrait;
 
@@ -173,7 +211,7 @@ abstract class AbstractAction implements \ArrayAccess {
    * @param bool $checkPermissions
    * @return $this
    */
-  public function setCheckPermissions(bool $checkPermissions) {
+  public function setCheckPermissions($checkPermissions) {
     $this->checkPermissions = $checkPermissions;
     return $this;
   }

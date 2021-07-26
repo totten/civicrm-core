@@ -18,10 +18,23 @@ use Civi\Api4\Utils\FormattingUtil;
 use Civi\Api4\Utils\CoreUtil;
 
 /**
- * @method string getLanguage()
- * @method $this setLanguage(string $language)
  */
 trait DAOActionTrait {
+
+  /**
+   * @return string
+   */
+  public function getLanguage() {
+    return $this->language;
+  }
+
+  /**
+   * @param string $language
+   */
+  public function setLanguage(?string $language) {
+    $this->language = $language;
+    return $this;
+  }
 
   /**
    * Specify the language to use if this is a multi-lingual environment.

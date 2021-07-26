@@ -18,9 +18,6 @@ use Civi\Api4\Utils\SelectUtil;
  * Base class for all `Get` api actions.
  *
  * @package Civi\Api4\Generic
- *
- * @method $this setSelect(array $selects) Set array of fields to be selected (wildcard * allowed)
- * @method array getSelect()
  */
 abstract class AbstractGetAction extends AbstractQueryAction {
 
@@ -35,6 +32,21 @@ abstract class AbstractGetAction extends AbstractQueryAction {
    * @var array
    */
   protected $select = [];
+
+  /**
+   * @return array
+   */
+  public function getSelect() {
+    return $this->select;
+  }
+
+  /**
+   * @param array $select
+   */
+  public function setSelect(?array $select) {
+    $this->select = $select;
+    return $this;
+  }
 
   /**
    * Only return the number of found items.

@@ -19,12 +19,24 @@ use Civi\Api4\Utils\CoreUtil;
 /**
  * Base class for all `Create` api actions.
  *
- * @method $this setValues(array $values) Set all field values from an array of key => value pairs.
- * @method array getValues() Get field values.
- *
  * @package Civi\Api4\Generic
  */
 abstract class AbstractCreateAction extends AbstractAction {
+
+  /**
+   * @return array
+   */
+  public function getValues() {
+    return $this->values;
+  }
+
+  /**
+   * @param array $values
+   */
+  public function setValues(?array $values) {
+    $this->values = $values;
+    return $this;
+  }
 
   /**
    * Field values to set for the new $ENTITY.

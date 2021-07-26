@@ -19,16 +19,68 @@ use Civi\Api4\Utils\CoreUtil;
  *
  * @package Civi\Api4\Generic
  *
- * @method $this setWhere(array $wheres)
- * @method array getWhere()
- * @method $this setOrderBy(array $order)
- * @method array getOrderBy()
- * @method $this setLimit(int $limit)
- * @method int getLimit()
- * @method $this setOffset(int $offset)
- * @method int getOffset()
  */
 abstract class AbstractQueryAction extends AbstractAction {
+
+  /**
+   * @return array
+   */
+  public function getWhere() {
+    return $this->where;
+  }
+
+  /**
+   * @param array $where
+   */
+  public function setWhere(?array $where) {
+    $this->where = $where;
+    return $this;
+  }
+
+  /**
+   * @return array
+   */
+  public function getOrderBy() {
+    return $this->orderBy;
+  }
+
+  /**
+   * @param array $orderBy
+   */
+  public function setOrderBy(?array $orderBy) {
+    $this->orderBy = $orderBy;
+    return $this;
+  }
+
+  /**
+   * @return int
+   */
+  public function getLimit() {
+    return $this->limit;
+  }
+
+  /**
+   * @param int $limit
+   */
+  public function setLimit(?int $limit) {
+    $this->limit = $limit;
+    return $this;
+  }
+
+  /**
+   * @return int
+   */
+  public function getOffset() {
+    return $this->offset;
+  }
+
+  /**
+   * @param int $offset
+   */
+  public function setOffset(?int $offset) {
+    $this->offset = $offset;
+    return $this;
+  }
 
   /**
    * Criteria for selecting $ENTITIES.

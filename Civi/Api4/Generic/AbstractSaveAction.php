@@ -26,16 +26,55 @@ use Civi\Api4\Utils\CoreUtil;
  * Set `reload` if you need the api to return complete records for each saved $ENTITY
  * (including values that were unchanged in from updated $ENTITIES).
  *
- * @method $this setRecords(array $records) Set array of records to be saved.
- * @method array getRecords()
- * @method $this setDefaults(array $defaults) Array of defaults.
- * @method array getDefaults()
- * @method $this setReload(bool $reload) Specify whether complete objects will be returned after saving.
- * @method bool getReload()
  *
  * @package Civi\Api4\Generic
  */
 abstract class AbstractSaveAction extends AbstractAction {
+
+  /**
+   * @return array
+   */
+  public function getRecords() {
+    return $this->records;
+  }
+
+  /**
+   * @param array $records
+   */
+  public function setRecords(?array $records) {
+    $this->records = $records;
+    return $this;
+  }
+
+  /**
+   * @return array
+   */
+  public function getDefaults() {
+    return $this->defaults;
+  }
+
+  /**
+   * @param array $defaults
+   */
+  public function setDefaults(?array $defaults) {
+    $this->defaults = $defaults;
+    return $this;
+  }
+
+  /**
+   * @return bool
+   */
+  public function getReload() {
+    return $this->reload;
+  }
+
+  /**
+   * @param bool $reload
+   */
+  public function setReload(?bool $reload) {
+    $this->reload = $reload;
+    return $this;
+  }
 
   /**
    * Array of $ENTITIES to save.

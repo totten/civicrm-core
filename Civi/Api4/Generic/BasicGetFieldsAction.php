@@ -22,14 +22,46 @@ use Civi\API\Exception\NotImplementedException;
  * Note that different actions may support different lists of fields.
  * By default this will fetch the field list relevant to `get`,
  * but a different list may be returned if you specify another action.
- *
- * @method $this setLoadOptions(bool|array $value)
- * @method bool|array getLoadOptions()
- * @method $this setAction(string $value)
- * @method $this setValues(array $values)
- * @method array getValues()
  */
 class BasicGetFieldsAction extends BasicGetAction {
+
+  /**
+   * @return array|bool
+   */
+  public function getLoadOptions() {
+    return $this->loadOptions;
+  }
+
+  /**
+   * @param array|bool $loadOptions
+   */
+  public function setLoadOptions($loadOptions) {
+    $this->loadOptions = $loadOptions;
+    return $this;
+  }
+
+  /**
+   * @return array
+   */
+  public function getValues() {
+    return $this->values;
+  }
+
+  /**
+   * @param array $values
+   */
+  public function setValues(?array $values) {
+    $this->values = $values;
+    return $this;
+  }
+
+  /**
+   * @param string $action
+   */
+  public function setAction(?string $action) {
+    $this->action = $action;
+    return $this;
+  }
 
   /**
    * Fetch option lists for fields?
