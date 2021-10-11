@@ -24,6 +24,8 @@ class CRM_Pledge_Form_PledgeTest extends CiviUnitTestCase {
       'installments' => 1,
       'contact_id' => $this->individualCreate(),
       'is_acknowledge' => 1,
+      'start_date' => '2021-01-04',
+      'create_date' => '2021-01-04',
       'from_email_address' => Email::get()
         ->addWhere('contact_id', '=', $loggedInUser)
         ->addSelect('id')->execute()->first()['id'],

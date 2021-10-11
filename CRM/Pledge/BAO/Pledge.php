@@ -569,33 +569,12 @@ GROUP BY  currency
       $form->assign('payments', $payments);
     }
 
-    // handle domain token values
-    $domain = CRM_Core_BAO_Domain::getDomain();
-    $tokens = [
-      'domain' => ['name', 'phone', 'address', 'email'],
-      'contact' => CRM_Core_SelectValues::contactTokens(),
-    ];
     $domainValues = [];
-    foreach ($tokens['domain'] as $token) {
-      $domainValues[$token] = CRM_Utils_Token::getDomainTokenReplacement($token, $domain);
+    foreach (['name', 'phone', 'address', 'email'] as $token) {
+      $domainValues[$token] = CRM_Core_DomainTokens::getDomainTokenValues()[$token];
     }
-    $form->assign('domain', $domainValues);
 
-    // handle contact token values.
-    $ids = [$params['contact_id']];
-    $fields = array_merge(array_keys(CRM_Contact_BAO_Contact::importableFields()),
-      ['display_name', 'checksum', 'contact_id']
-    );
-    foreach ($fields as $key => $val) {
-      $returnProperties[$val] = TRUE;
-    }
-    [$details] = CRM_Utils_Token::getTokenDetails($ids,
-      $returnProperties,
-      TRUE, TRUE, NULL,
-      $tokens,
-      get_class($form)
-    );
-    $form->assign('contact', $details[$params['contact_id']]);
+    $form->assign('domain', $domainValues);
 
     // handle custom data.
     if (!empty($params['hidden_custom'])) {
