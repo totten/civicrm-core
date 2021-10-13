@@ -574,6 +574,10 @@ GROUP BY  currency
       $domainValues[$token] = CRM_Core_DomainTokens::getDomainTokenValues()[$token];
     }
 
+    $form->assign('contact', new CRM_Utils_GhostArray(function($op, $field) {
+      $badExpr = '{$contact.' . $field . '}';
+      CRM_Core_Error::deprecatedWarning("The automated message (\"pledge_acknowledgement\") attempted to use $badExpr. This is no longer supported. Please convert to a {contact.*} token.");
+    }));
     $form->assign('domain', $domainValues);
 
     // handle custom data.
