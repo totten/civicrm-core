@@ -5,10 +5,24 @@ require_once 'queuebench.civix.php';
 use CRM_Queuebench_ExtensionUtil as E;
 // phpcs:enable
 
+if (!function_exists('queuebench_log_file')) {
+  function queuebench_log_file() {
+    return '/tmp/queuebench.txt';
+  }
+}
+
 function queuebench_doSomething($ctx, $contactId) {
-  $msg = CRM_Core_TokenSmarty::render(['html' => 'Hello {contact.display_name}!'], ['contactId' => $contactId]);
-  // \Civi::log()->info(sprintf('Add message for %s: %s', $contactId, $msg['html']));
-  // \Civi::log()->info('Hello world');
+  // printf("<%.3f> [#%d] %s(...%s)\n", microtime(1), posix_getpid(), __FUNCTION__, $contactId);
+
+  // Do some Civi stuff, just to make sure it's all working.
+  CRM_Core_TokenSmarty::render(['html' => 'Hello {contact.display_name}!'], ['contactId' => $contactId]);
+
+  // Create some record that we were executed.
+  file_put_contents(
+    queuebench_log_file(),
+    $contactId . "\n",
+    FILE_APPEND
+  );
 }
 
 /**

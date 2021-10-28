@@ -5,11 +5,17 @@ use React\EventLoop\Loop;
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../CmsBootstrap.php';
 
+if (!function_exists('queuebench_log_file')) {
+  function queuebench_log_file() {
+    return '/tmp/queuebench.txt';
+  }
+}
+
 trait ChattyTrait {
 
   protected function verbose($msg, ...$args) {
-    $msg = sprintf('[#%d %s] ', posix_getpid(), static::CLASS) . $msg;
-    call_user_func('printf', $msg, ...$args);
+//    $msg = sprintf('<%.3f> [#%d %s] ', microtime(1), posix_getpid(), static::CLASS) . $msg;
+//    call_user_func('printf', $msg, ...$args);
   }
 
 }
@@ -44,6 +50,11 @@ abstract class BaseBenchmark {
   protected $finishedTasks = [];
 
   /**
+   * @var array
+   */
+  protected $expectedOutputs = [];
+
+  /**
    * @var float
    */
   protected $startTime, $endTime;
@@ -52,16 +63,39 @@ abstract class BaseBenchmark {
     foreach ($tasks as $task) {
       $this->pendingTasks[] = $task;
     }
+    return $this;
   }
 
-  public function start() {
+  public function addExpectedOutputs(iterable $outputs) {
+    foreach ($outputs as $output) {
+      $this->expectedOutputs[] = $output;
+    }
+    return $this;
+  }
+
+  public function bootApp() {
+    if (Civi\Core\Container::isContainerBooted()) {
+      throw new \RuntimeException('Error: The system somehow booted prematurely.');
+    }
+    \Civi\Cv\CmsBootstrap::singleton()->bootCms()->bootCivi();
+  }
+
+  public function start(array $options = []) {
+    @unlink(queuebench_log_file());
     $this->startTime = microtime(1);
     $this->verbose("Start %s\n", get_class($this));
+    if (!empty($options['bootApp'])) {
+      $this->bootApp();
+    }
     $this->timer = Loop::addPeriodicTimer(0.1, [$this, 'checkTasks']);
   }
 
+  public function isComplete() {
+    return empty($this->pendingTasks) && empty($this->activeTasks);
+  }
+
   public function checkTasks() {
-    if (empty($this->pendingTasks) && empty($this->activeTasks)) {
+    if ($this->isComplete()) {
       return $this->stop();
     }
 
@@ -84,23 +118,48 @@ abstract class BaseBenchmark {
   public function stop() {
     Loop::cancelTimer($this->timer);
     $this->endTime = microtime(1);
-    printf("Report (%s)\n", get_class($this));
-    printf("- Total runtime: %.4f\n", $this->endTime - $this->startTime);
-    // Misleading printf("- Time per item: %.4f\n", ($this->endTime - $this->startTime) / count($this->finishedTasks));
-    printf("- Items per second: %.4f\n", count($this->finishedTasks) / ($this->endTime - $this->startTime));
+
+    $actualOutputs = file_exists(queuebench_log_file()) ? explode("\n",  file_get_contents(queuebench_log_file())) : [];
+    sort($actualOutputs);
+    sort($this->expectedOutputs);
+    $actualOutputs = preg_grep('/^$/', $actualOutputs, PREG_GREP_INVERT);
+    $common = array_intersect($actualOutputs, $this->expectedOutputs);
+    $extra = array_diff($actualOutputs, $this->expectedOutputs);
+    $missing = array_diff($this->expectedOutputs, $actualOutputs);
+    $isPassing = empty($extra) && empty($missing);
+
+    $report = [
+      'outcome' => $isPassing ? 'pass' : 'fail',
+      'class' => get_class($this),
+      'setup_maxWorkers' => $this->maxConcurrentTasks,
+      'setup_taskCount' => count($this->finishedTasks),
+      'measure_runTime' => sprintf('%.4f', $this->endTime - $this->startTime),
+      'measure_tasksPerSecond' => count($this->finishedTasks) / ($this->endTime - $this->startTime),
+      // We give this a funny name. It's not really "time per task", because tasks are parallel and may individually take longer.
+      'measure_proratedSecondsPerTask' => sprintf('%.4f', ($this->endTime - $this->startTime) / count($this->finishedTasks)),
+    ];
+    fputcsv(STDOUT, array_keys($report));
+    fputcsv(STDOUT, array_values($report));
+
+    if (!$isPassing) {
+      $this->verbose("%s Failure report: %s\n", get_class($this), print_r([
+        'common' => implode(", ", $common),
+        'extra' => implode(", ", $extra),
+        'missing' => implode(", ", $missing),
+      ], 1));
+    }
   }
 
 }
 
 class ThreadLocalBenchmark extends BaseBenchmark {
 
-  public function start() {
-    \Civi\Cv\CmsBootstrap::singleton()->bootCms()->bootCivi();
-    parent::start();
+  public function start(array $options = []) {
+    parent::start(['bootApp' => TRUE] /* boot once in local thread */);
   }
 
   public function runTask(CRM_Queue_Task $task): \React\Promise\PromiseInterface {
-    $task->run(new CRM_Queue_TaskContext());
+    $task->run(new \CRM_Queue_TaskContext());
 
     $deferred = new React\Promise\Deferred();
     $deferred->resolve();
@@ -115,14 +174,19 @@ class ShellProcessBenchmark extends BaseBenchmark {
     $deferred = new React\Promise\Deferred();
 
     $cmd = sprintf('cv ev %s', escapeshellarg(
-      sprintf('unserialize(%s)->run(new CRM_Queue_TaskContext())', serialize($task))
+      'unserialize(getenv("BNCH_TASK"))->run(new CRM_Queue_TaskContext());'
     ));
     $this->verbose("Run: %s\n", json_encode($task));
     $this->verbose("   $ %s\n", $cmd);
 
-    $process = new React\ChildProcess\Process($cmd);
+    $process = new React\ChildProcess\Process($cmd, NULL,
+      array_merge(getenv(), ['BNCH_TASK' => serialize($task)])
+    );
     $process->start();
-    $process->on('exit', function ($exitCode, $termSignal) use ($deferred) {
+    $process->on('exit', function ($exitCode, $termSignal) use ($deferred, $cmd) {
+      if ($exitCode === 0) {
+        $this->verbose("Command failed: $cmd");
+      }
       $deferred->resolve();
     });
 
@@ -133,7 +197,7 @@ class ShellProcessBenchmark extends BaseBenchmark {
 
 class ForkPerTaskBenchmark extends BaseBenchmark {
 
-  const INTERVAL = 0.1;
+  const INTERVAL = 0.1; // 0.01
 
   public function runTask(CRM_Queue_Task $task): \React\Promise\PromiseInterface {
 
@@ -145,11 +209,13 @@ class ForkPerTaskBenchmark extends BaseBenchmark {
     }
     elseif ($childProcess > 0) {
       // I am the parent. Watch the child.
-      $forkTimer = Loop::addPeriodicTimer(self::INTERVAL, function () use ($childProcess, $deferred, &$forkTimer) {
-        pcntl_waitpid($childProcess, $status, WNOHANG);
-        if (pcntl_wifexited($status)) {
-          Loop::cancelTimer($forkTimer);
-          $deferred->resolve();
+      $forkTimer = Loop::addPeriodicTimer(self::INTERVAL, function () use ($childProcess, $deferred, &$forkTimer, $task) {
+        if (pcntl_waitpid($childProcess, $status, WNOHANG)) {
+          if (pcntl_wifexited($status)) {
+            // $this->verbose("Cancel timer for task (%d): %s\n", $status, json_encode([$task->callback, $task->arguments]));
+            Loop::cancelTimer($forkTimer);
+            $deferred->resolve();
+          }
         }
       });
       return $deferred->promise();
@@ -157,8 +223,9 @@ class ForkPerTaskBenchmark extends BaseBenchmark {
     else {
       // I am the child.
       Loop::stop();
-      \Civi\Cv\CmsBootstrap::singleton()->bootCms()->bootCivi();
+      $this->bootApp();
       $task->run(new CRM_Queue_TaskContext());
+      // flush();
       exit(0);
     }
   }
@@ -169,50 +236,48 @@ class ForkPoolWorkerMain {
 
   use ChattyTrait;
 
-  protected $rx, $tx;
+  /**
+   * @var resource
+   */
+  protected $stream;
 
-  public function __construct($rx, $tx) {
-    $this->rx = $rx;
-    $this->tx = $tx;
+  public function __construct($stream) {
+    $this->stream = $stream;
   }
 
   public function main() {
     register_shutdown_function(function (){
       $this->verbose('Shutdown');
     });
-    $this->verbose("Booting\n");
-//    \Civi\Cv\CmsBootstrap::singleton()->bootCms()->bootCivi();
 
     while (TRUE) {
-//      if (feof($this->rx)) {
-//        $this->verbose("Closed\n");
-//        $this->onQuit();
-//        return;
-//      }
+      if (feof($this->stream)) {
+        $this->verbose("Closed\n");
+        $this->onQuit();
+        return;
+      }
 
       $this->verbose("Get line\n");
-      $msg = stream_get_line($this->rx, 4096);
+      $msg = stream_get_line($this->stream, 4096, "\n");
       $this->verbose("Received: %s\n", $msg);
-//      [$verb, $args] = $this->parseCmd($msg);
-//      switch ($verb) {
-//        case 'QUIT':
-//          printf("[%s @ %d]: Quit\n", static::CLASS, posix_getpid());
-//          fwrite($this->tx, serialize("ACK") . "\n");
-//          $this->onQuit();
-//          return;
-//
-//        case 'RUN':
-//          // TODO: unserialize, execute, respond
-//          //      sleep(1);
-//          $task = unserialize($args);
-//          print_r($task);
-//          printf("[%s @ %d]: Run it!\n", static::CLASS, posix_getpid());
-//          fwrite($this->tx, serialize("ACK") . "\n");
-//          break;
-//
-//        default:
-//          fwrite(STDERR, "Unrecognized command: $msg");
-//      }
+      [$verb, $args] = $this->parseCmd($msg);
+      switch ($verb) {
+        case 'QUIT':
+          $this->verbose("Quit");
+          fwrite($this->stream, serialize("ACK") . "\n");
+          $this->onQuit();
+          return;
+
+        case 'RUN':
+          $task = unserialize($args);
+          $this->verbose("Run it! %s\n", print_r($task, 1));
+          $task->run(new CRM_Queue_TaskContext());
+          fwrite($this->stream, serialize("ACK") . "\n");
+          break;
+
+        default:
+          fwrite(STDERR, "Unrecognized command: $msg");
+      }
     }
 
     $this->verbose("Done\n");
@@ -224,9 +289,8 @@ class ForkPoolWorkerMain {
   }
 
   public function onQuit() {
-    socket_close($this->tx);
-    socket_close($this->rx);
-    $this->tx = $this->rx = NULL;
+    socket_close($this->stream);
+    $this->stream = NULL;
   }
 
 }
@@ -235,32 +299,28 @@ class ForkPoolWorkerStub {
 
   use ChattyTrait;
 
-  const INTERVAL = 0.1;
+  const INTERVAL = 0.01;
 
-  protected $rx, $tx, $pid;
-
+  protected $stream;
+  public $pid;
   protected $deferred;
 
-  public function __construct($rx, $tx, $pid) {
-    $this->rx = new \React\Stream\ReadableResourceStream($rx);
-    $this->rx->on('data', [$this, 'onReceive']);
-    $this->tx = new \React\Stream\WritableResourceStream($tx);
+  public function __construct($stream, $pid) {
+    $this->stream = new \React\Stream\DuplexResourceStream($stream);
+    $this->stream->on('data', [$this, 'onReceive']);
     $this->pid = $pid;
     $this->deferred = NULL;
   }
 
   public function stop() {
-    if ($this->tx === NULL) {
+    if ($this->stream === NULL) {
       return;
     }
-//    posix_kill($this->pid, SIGTERM);
-//    $this->tx->write('QUIT');
-//    $this->rx->close();
-//    $this->tx->close();
-//    $this->tx = $this->rx = NULL;
-//    sleep(0.5);
-//    posix_kill($this->pid, SIGKILL);
-//    pcntl_signal()
+    $this->stream->write('QUIT');
+    usleep(0.01);
+    posix_kill($this->pid, SIGTERM);
+    $this->stream->close();
+    $this->stream = NULL;
   }
 
   public function isAvailable() {
@@ -276,14 +336,15 @@ class ForkPoolWorkerStub {
 
     $this->deferred = new React\Promise\Deferred();
 
-    pcntl_waitpid($this->pid, $status, WNOHANG);
-    if (pcntl_wifstopped($status)) {
-      $this->verbose("Worker disappeared. Cannot send: %s\n", $msg);
-      return $this->deferred->reject();
+    if (pcntl_waitpid($this->pid, $status, WNOHANG)) {
+      if (pcntl_wifexited($status)) {
+        $this->verbose("Worker disappeared. Cannot send: %s\n", $msg);
+        return $this->deferred->reject();
+      }
     }
 
     $this->verbose("Send %s\n", $msg);
-    $this->tx->write('RUN ' . $msg);
+    $this->stream->write('RUN ' . $msg);
     return $this->deferred->promise();
   }
 
@@ -309,7 +370,8 @@ class ForkPoolBenchmark extends BaseBenchmark {
 
   protected $workerStubs = [];
 
-  public function start() {
+  public function start(array $options = []) {
+    parent::start(['bootApp' => FALSE] /* only child boots */);
 
     for ($i = 0; $i < $this->maxConcurrentTasks; $i++) {
       $sockets = stream_socket_pair(AF_UNIX, SOCK_STREAM, 0);
@@ -319,16 +381,16 @@ class ForkPoolBenchmark extends BaseBenchmark {
         throw new \RuntimeException('Cannot fork process');
       }
       elseif ($childProcess > 0) {
-        $this->workerStubs[$i] = new ForkPoolWorkerStub($sockets[1], $sockets[1], $childProcess);
+        $this->workerStubs[$i] = new ForkPoolWorkerStub($sockets[0], $childProcess);
       }
       else {
         Loop::stop();
-        (new ForkPoolWorkerMain($sockets[1], $sockets[1]))->main();
+        $this->bootApp();
+        (new ForkPoolWorkerMain($sockets[1]))->main();
         exit(0);
       }
     }
 
-    parent::start();
   }
 
   public function runTask(CRM_Queue_Task $task): \React\Promise\PromiseInterface {
@@ -344,8 +406,9 @@ class ForkPoolBenchmark extends BaseBenchmark {
     parent::stop();
     $oldWorkers = $this->workerStubs;
     $this->workerStubs = [];
-    foreach ($oldWorkers as $worker) {
+    foreach ($oldWorkers as $id => $worker) {
       /** @var \ForkPoolWorkerStub $worker */
+      $this->verbose("Stop worker #%d (pid %d)\n", $id, $worker->pid);
       $worker->stop();
     }
   }
@@ -362,13 +425,16 @@ switch ($class = getenv('CLASS')) {
     /** @var \BaseBenchmark $benchmark */
     $benchmark = new $class();
     $benchmark->maxConcurrentTasks = getenv('MAX_WORKERS') ?: 3;
+    $taskCount = getenv('TASK_COUNT') ?: 10;
     $benchmark->addTasks(array_map(
       // `queuebench_doSomething()` has to be defined in the main module file.
-      function($num) { return new CRM_Queue_Task('queuebench_doSomething', [1+$num]); },
-      range(0, getenv('TASK_COUNT') ?: 10)
+      function($num) { return new CRM_Queue_Task('queuebench_doSomething', [$num]); },
+      range(1, $taskCount)
     ));
+    $benchmark->addExpectedOutputs(range(1, $taskCount));
+//    print_r($benchmark);exit();
     $benchmark->start();
-    Loop::run();
+//    Loop::run();
     break;
   default:
     throw new \Exception('Unrecognized benchmark class');
