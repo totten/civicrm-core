@@ -1,0 +1,14 @@
+{
+    "name": "civicrm/queuex",
+    "authors": [
+        {
+            "name": "Tim Otten",
+            "email": "totten@civicrm.org"
+        }
+    ],
+    "require": {
+        "react/http": "^1.5",
+        "react/child-process": "^0.6.4",
+        "react/promise": "^2.8"
+    }
+}
