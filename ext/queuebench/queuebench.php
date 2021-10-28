@@ -5,6 +5,12 @@ require_once 'queuebench.civix.php';
 use CRM_Queuebench_ExtensionUtil as E;
 // phpcs:enable
 
+function queuebench_doSomething($ctx, $contactId) {
+  $msg = CRM_Core_TokenSmarty::render(['html' => 'Hello {contact.display_name}!'], ['contactId' => $contactId]);
+  // \Civi::log()->info(sprintf('Add message for %s: %s', $contactId, $msg['html']));
+  // \Civi::log()->info('Hello world');
+}
+
 /**
  * Implements hook_civicrm_config().
  *
