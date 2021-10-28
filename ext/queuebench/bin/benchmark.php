@@ -14,8 +14,10 @@ if (!function_exists('queuebench_log_file')) {
 trait ChattyTrait {
 
   protected function verbose($msg, ...$args) {
-//    $msg = sprintf('<%.3f> [#%d %s] ', microtime(1), posix_getpid(), static::CLASS) . $msg;
-//    call_user_func('printf', $msg, ...$args);
+    if (getenv('VERBOSE')) {
+      $msg = sprintf('<%.3f> [#%d %s] ', microtime(1), posix_getpid(), static::CLASS) . $msg;
+      call_user_func('printf', $msg, ...$args);
+    }
   }
 
 }
@@ -105,11 +107,18 @@ abstract class BaseBenchmark {
 
       $this->verbose("Running task: %s\n", json_encode($task));
       $this->activeTasks[] = $task;
-      $this->runTask($task)->then(function () use ($task) {
-        unset($this->activeTasks[array_search($task, $this->activeTasks)]);
-        $this->finishedTasks[] = $task;
-        $this->verbose("Finished task: %s\n", json_encode($task));
-      });
+      $this->runTask($task)->then(
+        function () use ($task) {
+          unset($this->activeTasks[array_search($task, $this->activeTasks)]);
+          $this->finishedTasks[] = $task;
+          $this->verbose("Finished task: %s\n", json_encode($task));
+        },
+        function () use ($task) {
+          unset($this->activeTasks[array_search($task, $this->activeTasks)]);
+          $this->finishedTasks[] = $task;
+          $this->verbose("Failed task: %s\n", json_encode($task));
+        }
+      );
     }
   }
 
@@ -152,7 +161,7 @@ abstract class BaseBenchmark {
 
 }
 
-class ThreadLocalBenchmark extends BaseBenchmark {
+class SingleThreadBenchmark extends BaseBenchmark {
 
   public function start(array $options = []) {
     parent::start(['bootApp' => TRUE] /* boot once in local thread */);
@@ -168,7 +177,7 @@ class ThreadLocalBenchmark extends BaseBenchmark {
 
 }
 
-class ShellProcessBenchmark extends BaseBenchmark {
+class ProcessPerTaskBenchmark extends BaseBenchmark {
 
   public function runTask(CRM_Queue_Task $task): \React\Promise\PromiseInterface {
     $deferred = new React\Promise\Deferred();
@@ -191,6 +200,38 @@ class ShellProcessBenchmark extends BaseBenchmark {
     });
 
     return $deferred->promise();
+  }
+
+}
+
+class HttpPerTaskBenchmark extends BaseBenchmark {
+
+  /**
+   * @var \React\Http\Browser
+   */
+  protected $browser;
+
+  public function start(array $options = []) {
+    parent::start(['bootApp' => TRUE] /* need well-formed URLs and JWTs */);
+    $this->browser = new \React\Http\Browser();
+  }
+
+  public function runTask(CRM_Queue_Task $task): \React\Promise\PromiseInterface {
+    /** @var \Civi\Crypto\CryptoJwt $jwt */
+    $jwt = Civi::service('crypto.jwt');
+
+    $url = CRM_Utils_System::url('civicrm/queuebench/task', NULL, TRUE, NULL, FALSE);
+    $data = http_build_query([
+      'jwtask' => $jwt->encode([
+        'scope' => 'queuebench_task',
+        'exp' => time() + 36000,
+        'queuebench_task' => (array) $task,
+      ]),
+    ]);
+
+    $this->verbose("curl -X POST -d %s %s\n", escapeshellarg($data), escapeshellarg($url));
+
+    return $this->browser->post($url, ['Content-type' => 'application/x-www-form-urlencoded'], $data);
   }
 
 }
@@ -418,10 +459,11 @@ class ForkPoolBenchmark extends BaseBenchmark {
 eval(`cv php:boot --level=classloader`);
 //eval(`cv php:boot`);
 switch ($class = getenv('CLASS')) {
-  case 'ThreadLocalBenchmark':
-  case 'ShellProcessBenchmark':
+  case 'SingleThreadBenchmark':
+  case 'ProcessPerTaskBenchmark':
   case 'ForkPerTaskBenchmark':
   case 'ForkPoolBenchmark':
+  case 'HttpPerTaskBenchmark':
     /** @var \BaseBenchmark $benchmark */
     $benchmark = new $class();
     $benchmark->maxConcurrentTasks = getenv('MAX_WORKERS') ?: 3;

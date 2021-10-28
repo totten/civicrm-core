@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/queuebench/task</path>
+    <page_callback>CRM_Queuebench_Page_QueueJson</page_callback>
+    <title>QueueJson</title>
+    <!-- Page has extra JWT check -->
+    <access_arguments>*always allow*</access_arguments>
+  </item>
+</menu>
