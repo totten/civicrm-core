@@ -13,6 +13,7 @@
 /ext/greenwich/extern
 !/ext/message_admin
 !/ext/oauth-client
+!/ext/queuebench
 !/ext/search_kit
 !/ext/financialacls
 !/ext/contributioncancelactions
