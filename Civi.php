@@ -106,6 +106,26 @@ class Civi {
   }
 
   /**
+   * @param string $spec
+   *  Ex: 'bg/foo-bar?linear'
+   *  Ex: 'bg/foo-bar?parallel'
+   *  Ex: ['name' => 'task/foo-bar', 'type' => 'SqlParallel']
+   * @return \CRM_Queue_Queue
+   */
+  public static function queue($spec): CRM_Queue_Queue {
+    if (!isset(Civi::$statics['queue'][$spec])) {
+      $specQuery = parse_url($spec, PHP_URL_QUERY);
+      $types = ['linear' => 'Sql', 'parallel' => 'SqlParallel'];
+      Civi::$statics['queue'][$spec] = \CRM_Queue_Service::singleton()->create([
+        'type' => $types[$specQuery],
+        'name' => parse_url($spec, PHP_URL_PATH),
+        'reset' => FALSE,
+      ]);
+    }
+    return Civi::$statics['queue'][$spec];
+   }
+
+  /**
    * Obtain the formatting object.
    *
    * @return \Civi\Core\Format
