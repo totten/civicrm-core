@@ -73,7 +73,7 @@ class CRM_Extension_MixinScanner {
       }
     }
 
-    $l->addFunctionFiles($this->findFunctionFiles(Civi::paths()->getPath('[civicrm.root]/mixin/*.mixin.php')));
+    $l->addFunctionFiles($this->findFunctionFiles(Civi::paths()->getPath('[civicrm.root]/mixin/*.mixin.php')), TRUE);
 
     return $l->compile();
   }

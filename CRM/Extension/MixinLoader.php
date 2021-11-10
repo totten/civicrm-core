@@ -46,19 +46,42 @@ class CRM_Extension_MixinLoader {
   /**
    * @param array|string $files
    *   Ex: 'path/to/some/file@1.0.0.mixin.php'
+   * @param bool $deepRead
+   *   If TRUE, then the file will be read to find metadata.
    * @return $this
    */
-  public function addFunctionFiles($files) {
+  public function addFunctionFiles($files, $deepRead = FALSE) {
     $files = (array) $files;
     foreach ($files as $file) {
-      if (preg_match(';([^@]+)@([^@]+)\.mixin\.php;', basename($file), $m)) {
+      if (preg_match(';^([^@]+)@([^@]+)\.mixin\.php$;', basename($file), $m)) {
         $this->allFuncFiles[$m[1]][$m[2]] = $file;
+        continue;
       }
-      else {
-        error_log(sprintf('MixinLoader: Function file has invalid name \"%s\"', $file));
+
+      if ($deepRead && preg_match(';^([^@]+)\.mixin\.php$;', basename($file), $m)) {
+        $header = $this->loadFunctionFileHeader($file);
+        if (isset($header['version'])) {
+          $this->allFuncFiles[$m[1]][$header['version']] = $file;
+          continue;
+        }
+        else {
+
+        }
       }
+
+      error_log(sprintf('MixinLoader: Function file \"%s\" cannot be parsed.', $file));
     }
     return $this;
+  }
+
+  private function loadFunctionFileHeader($file) {
+    $php = file_get_contents($file);
+    foreach (token_get_all($php) as $token) {
+      if (is_array($token) && in_array($token[0], [T_DOC_COMMENT, T_COMMENT, T_FUNC_C, T_METHOD_C, T_TRAIT_C, T_CLASS_C])) {
+        return \Civi\Api4\Utils\ReflectionUtils::parseDocBlock($token[1]);
+      }
+    }
+    return [];
   }
 
   /**
