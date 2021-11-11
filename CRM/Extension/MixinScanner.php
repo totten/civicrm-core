@@ -66,14 +66,16 @@ class CRM_Extension_MixinScanner {
       try {
         $path = $this->mapper->keyToBasePath($key);
         $l->addMixInfo($this->createMixInfo($path . DIRECTORY_SEPARATOR . CRM_Extension_Info::FILENAME));
-        $l->addFunctionFiles($this->findFunctionFiles("$path/mixin/*.mixin.php"));
+        $l->addFunctionFiles($this->findFunctionFiles("$path/mixin/*@*.mixin.php"));
+        $l->addFunctionFiles($this->findFunctionFiles("$path/mixin/*@*/mixin.php"), TRUE);
       }
       catch (CRM_Extension_Exception_ParseException $e) {
         error_log(sprintf('MixinScanner: Failed to read extension (%s)', $key));
       }
     }
 
-    $l->addFunctionFiles($this->findFunctionFiles(Civi::paths()->getPath('[civicrm.root]/mixin/*.mixin.php')), TRUE);
+    // $l->addFunctionFiles($this->findFunctionFiles(Civi::paths()->getPath('[civicrm.root]/mixin/*@*.mixin.php')));
+    // $l->addFunctionFiles($this->findFunctionFiles(Civi::paths()->getPath('[civicrm.root]/mixin/*@*/mixin.php')), TRUE);
 
     return $l->compile();
   }
