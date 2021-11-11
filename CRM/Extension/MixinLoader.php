@@ -58,24 +58,25 @@ class CRM_Extension_MixinLoader {
         continue;
       }
 
-      if ($deepRead && preg_match(';^([^@]+)\.mixin\.php$;', basename($file), $m)) {
+      if ($deepRead) {
         $header = $this->loadFunctionFileHeader($file);
-        if (isset($header['version'])) {
-          $this->allFuncFiles[$m[1]][$header['version']] = $file;
+        if (isset($header['mixinName'], $header['mixinVersion'])) {
+          $this->allFuncFiles[$header['mixinName']][$header['mixinVersion']] = $file;
           continue;
         }
         else {
-
+          error_log(sprintf('MixinLoader: Invalid mixin header for "%s". @mixinName and @mixinVersion required.', $file));
+          continue;
         }
       }
 
-      error_log(sprintf('MixinLoader: Function file \"%s\" cannot be parsed.', $file));
+      error_log(sprintf('MixinLoader: File \"%s\" cannot be parsed.', $file));
     }
     return $this;
   }
 
   private function loadFunctionFileHeader($file) {
-    $php = file_get_contents($file);
+    $php = file_get_contents($file, TRUE);
     foreach (token_get_all($php) as $token) {
       if (is_array($token) && in_array($token[0], [T_DOC_COMMENT, T_COMMENT, T_FUNC_C, T_METHOD_C, T_TRAIT_C, T_CLASS_C])) {
         return \Civi\Api4\Utils\ReflectionUtils::parseDocBlock($token[1]);
