@@ -18,8 +18,8 @@ EXT_DIR=$(cv path -c extensionsDir)/example-mixin
 JUNIT_DIR="$1"
 
 ## TODO: Once the managed-entity regression is examined/fixed, remove the MY_MIXINS list. Then it will test all mixins.
-# MY_MIXINS='ang-php@1 case-xml@1 menu-xml@1 setting-php@1 theme-php@1'
-MY_MIXINS=''
+MY_MIXINS='ang-php@1 case-xml@1 menu-xml@1 setting-php@1 theme-php@1'
+#MY_MIXINS=''
 
 ###############################################################################
 
