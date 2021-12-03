@@ -228,6 +228,7 @@ function _search_kit_civix_find_files($dir, $pattern) {
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_managed
  */
 function _search_kit_civix_civicrm_managed(&$entities) {
+  dbglogfq("=> _search_kit_civix_civicrm_managed");
   $mgdFiles = _search_kit_civix_find_files(__DIR__, '*.mgd.php');
   sort($mgdFiles);
   foreach ($mgdFiles as $file) {

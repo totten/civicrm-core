@@ -129,9 +129,24 @@ class CRM_Core_ManagedEntities {
       throw new CRM_Core_Exception($error);
     }
     $this->loadManagedEntityActions();
+    $this->logDeclarations();
     $this->reconcileEnabledModules();
     $this->reconcileDisabledModules();
     $this->reconcileUnknownModules();
+  }
+
+  protected function logDeclarations() {
+    $log = fopen(dbglogfile(), 'a+');
+    fprintf($log, "Reconcile declarations:");
+    fwrite($log, CRM_Core_Error::formatBacktrace(\debug_backtrace()). "\n");
+    try {
+      foreach ($this->getDeclarations() as $decl) {
+        fwrite($log, '- ' . json_encode($decl) . "\n");
+      }
+    } finally {
+      fwrite($log, "\n");
+      fclose($log);
+    }
   }
 
   /**

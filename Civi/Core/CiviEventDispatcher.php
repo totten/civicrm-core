@@ -51,6 +51,10 @@ class CiviEventDispatcher extends EventDispatcher {
    */
   private $dispatchPolicyRegex = NULL;
 
+  public function __construct() {
+    dbglogf("CiviEventDispatcher::__construct\n");
+  }
+
   /**
    * Determine whether $eventName should delegate to the CMS hook system.
    *

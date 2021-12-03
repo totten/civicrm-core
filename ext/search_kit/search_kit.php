@@ -47,7 +47,8 @@ function search_kit_civicrm_alterApiRoutePermissions(&$permissions, $entity, $ac
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_managed
  */
 function search_kit_civicrm_managed(&$entities) {
-  _search_kit_civix_civicrm_managed($entities);
+  echo '';
+//  _search_kit_civix_civicrm_managed($entities);
 }
 
 /**
