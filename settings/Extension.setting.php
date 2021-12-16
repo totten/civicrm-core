@@ -35,5 +35,8 @@ return [
     'is_domain' => 1,
     'is_contact' => 0,
     'help_text' => '',
+    'on_change' => [
+      ['CRM_Extension_System', 'onChangeDefaultRepo'],
+    ],
   ],
 ];

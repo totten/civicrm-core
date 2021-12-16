@@ -291,6 +291,12 @@ class CRM_Extension_System {
     return $this->_repoUrl;
   }
 
+  public static function onChangeDefaultRepo($newRepoUrl) {
+    $sys = CRM_Extension_System::singleton();
+    $sys->_repoUrl = NULL;
+    $sys->browser = NULL;
+  }
+
   /**
    * Returns a list keyed by extension key
    *
