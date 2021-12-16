@@ -77,6 +77,17 @@ class CRM_Extension_Browser {
   }
 
   /**
+   * Change the repository URL.
+   *
+   * @param string $url
+   * @return $this
+   */
+  public function setRepositoryUrl(string $url) {
+    $this->repoUrl = $url;
+    return $this;
+  }
+
+  /**
    * Refresh the cache of remotely-available extensions.
    */
   public function refresh() {
@@ -254,7 +265,7 @@ class CRM_Extension_Browser {
    * @return string
    */
   private function getTsPath() {
-    return $this->cacheDir . DIRECTORY_SEPARATOR . 'timestamp.txt';
+    return $this->cacheDir . DIRECTORY_SEPARATOR . 'timestamp.txt.' . md5($this->getRepositoryUrl());
   }
 
   /**
