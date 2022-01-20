@@ -13,6 +13,7 @@ namespace Civi\Api4;
 use Civi\Api4\Action\Queue\ClaimItem;
 use Civi\Api4\Action\Queue\DeleteItem;
 use Civi\Api4\Action\Queue\ReleaseItem;
+use Civi\Api4\Action\Queue\RunItem;
 
 /**
  * Track a list of durable/scannable queues.
@@ -33,6 +34,7 @@ class Queue extends \Civi\Api4\Generic\DAOEntity {
     return [
       'meta' => ['access CiviCRM'],
       'default' => ['administer queues'],
+      'runItem' => [\CRM_Core_Permission::ALWAYS_DENY_PERMISSION],
     ];
   }
 
@@ -66,6 +68,17 @@ class Queue extends \Civi\Api4\Generic\DAOEntity {
    */
   public static function releaseItem($checkPermissions = TRUE) {
     return (new ReleaseItem(static::getEntityName(), __FUNCTION__))
+      ->setCheckPermissions($checkPermissions);
+  }
+
+  /**
+   * Abort work on a claimed item. Releases the item for another attempt.
+   *
+   * @param bool $checkPermissions
+   * @return \Civi\Api4\Action\Queue\RunItem
+   */
+  public static function runItem($checkPermissions = TRUE) {
+    return (new RunItem(static::getEntityName(), __FUNCTION__))
       ->setCheckPermissions($checkPermissions);
   }
 
