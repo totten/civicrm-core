@@ -29,27 +29,27 @@ class CRM_Queue_FacadeTest extends CiviUnitTestCase {
   public function testCreate() {
     $this->assertQueueStats([]);
 
-    $apple = Civi::queue('apple?bg');
+    $apple = Civi::queue('autorun:apple');
     $this->assertInstanceOf(CRM_Queue_Queue_SqlParallel::class, $apple);
-    $this->assertDBQuery(1, 'SELECT is_autorun FROM civicrm_queue WHERE name = "apple?bg"');
+    $this->assertDBQuery(1, 'SELECT is_autorun FROM civicrm_queue WHERE name = "autorun:apple"');
     // $this->assertCount(1, Civi\Api4\Queue::get(0)->addWhere('name', 'LIKE', 'apple%')->execute());
     $apple->createItem(new CRM_Queue_Task([__CLASS__, 'trueFunc'], []));
-    $this->assertQueueStats(['apple?bg' => 1]);
+    $this->assertQueueStats(['autorun:apple' => 1]);
 
-    $banana = Civi::queue('banana?fg');
+    $banana = Civi::queue('/ajax/banana');
     $this->assertInstanceOf(CRM_Queue_Queue_Sql::class, $banana);
     $this->assertDBQuery(0, 'SELECT count(*) FROM civicrm_queue WHERE name LIKE "banana%"');
     // $this->assertCount(0, Civi\Api4\Queue::get(0)->addWhere('name', 'LIKE', 'banana%')->execute());
     $banana->createItem(new CRM_Queue_Task([__CLASS__, 'trueFunc'], []));
     $banana->createItem(new CRM_Queue_Task([__CLASS__, 'trueFunc'], []));
-    $this->assertQueueStats(['apple?bg' => 1, 'banana?fg' => 2]);
+    $this->assertQueueStats(['autorun:apple' => 1, '/ajax/banana' => 2]);
 
-    $apple2 = Civi::queue('apple?bg');
+    $apple2 = Civi::queue('autorun:apple');
     $this->assertEquals($apple, $apple2);
     $apple2->createItem(new CRM_Queue_Task([__CLASS__, 'trueFunc'], []));
-    $this->assertQueueStats(['apple?bg' => 2, 'banana?fg' => 2]);
+    $this->assertQueueStats(['autorun:apple' => 2, '/ajax/banana' => 2]);
 
-    // $queue = Civi::queue('cherry?bg,linear');
+    // $queue = Civi::queue('autorun+sync/cherry');
     // $this->assertInstanceOf(CRM_Queue_Queue_Sql::class, $queue);
     // $this->assertDBQuery(1, 'SELECT is_autorun FROM civicrm_queue WHERE name LIKE "cherry%"');
     // $this->assertCount(0, Civi\Api4\Queue::get(1)->addWhere('name', 'LIKE', 'cherry%')->execute());

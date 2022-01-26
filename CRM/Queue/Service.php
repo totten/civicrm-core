@@ -63,6 +63,32 @@ class CRM_Queue_Service {
   public $queues;
 
   /**
+   * Defaults (by bucket)
+   *
+   * Ex: The queue 'foo/bar' lives in the 'foo' bucket, so it will use
+   * the defaults from `$defaults['foo']`.
+   *
+   * @var \string[][]
+   */
+  protected $defaults = [
+    'sync' => [
+      'type' => 'Sql',
+      'is_autorun' => FALSE,
+      'is_persistent' => TRUE,
+    ],
+    'async' => [
+      'type' => 'SqlParallel',
+      'is_autorun' => FALSE,
+      'is_persistent' => TRUE,
+    ],
+    NULL => [
+      'type' => 'Sql',
+      'is_autorun' => FALSE,
+      'is_persistent' => FALSE,
+    ],
+  ];
+
+  /**
    * Class constructor.
    */
   public function __construct() {
@@ -74,8 +100,7 @@ class CRM_Queue_Service {
    *
    * @param array $queueSpec
    *   Array with keys:
-   *   - type: string, required, e.g. "interactive", "immediate", "stomp",
-   *    "beanstalk"
+   *   - type: string, required, e.g. `Sql`, `SqlParallel`, `Memory`
    *   - name: string, required, e.g. "upgrade-tasks"
    *   - reset: bool, optional; if a queue is found, then it should be
    *     flushed; default to TRUE
@@ -90,7 +115,7 @@ class CRM_Queue_Service {
     if (is_object($this->queues[$queueSpec['name']] ?? NULL) && empty($queueSpec['reset'])) {
       return $this->queues[$queueSpec['name']];
     }
-    $queueSpec = array_merge($this->getDefaultSpec($queueSpec['name']), $queueSpec);
+    $queueSpec = $this->filterQueueSpec($queueSpec);
 
     if (!empty($queueSpec['is_persistent'])) {
       $this->registerPersistentQueue($queueSpec);
@@ -113,40 +138,21 @@ class CRM_Queue_Service {
   }
 
   /**
-   * Determine default settings based on the name of queue.
+   * Examine the requested queue. Fill-in missing details.
    *
-   * Flags:
-   *   - `?bg` ("Background") implies persistent, auto-running queue with parallel tasks
-   *   - `?fg` ("Foreground") implies ephemeral queue with linear tasks
-   *
-   * @param string $name
-   *   Ex: 'foo?bg'
+   * @param array $queueSpec
+   *   Ex: ['name' => 'async/my-import']
    * @return array
-   *   Ex: ['type' => 'SqlParallel', 'is_persistent' => TRUE, 'is_autorun' => TRUE]
+   *   Updated queue specification.
+   *   Ex: ['name' => 'async/my-import', 'type' => 'SqlParallel', 'is_persistent' => TRUE, 'is_autorun' => FALSE]
    */
-  protected function getDefaultSpec(string $name): array {
-    $defaults = ['is_autorun' => FALSE];
-    if (FALSE !== ($questionPos = strpos($name, '?'))) {
-      $flags = explode(',', substr($name, 1 + $questionPos));
-
-      $flagDefs = [
-        'bg' => ['is_persistent' => TRUE, 'is_autorun' => TRUE, 'type' => 'SqlParallel'],
-        'fg' => ['is_persistent' => FALSE, 'is_autorun' => FALSE, 'type' => 'Sql'],
-        'parallel' => ['type' => 'SqlParallel'],
-        'linear' => ['type' => 'Sql'],
-        'persist' => ['is_persistent' => TRUE],
-        'autorun' => ['is_autorun' => TRUE],
-      ];
-
-      foreach (array_intersect($flags, array_keys($flagDefs)) as $flag) {
-        $defaults = array_merge($defaults, $flagDefs[$flag]);
-      }
+  protected function filterQueueSpec(array $queueSpec): array {
+    $bucket = NULL;
+    if (preg_match(';^(\w+)/;', $queueSpec['name'], $m)) {
+      $bucket = $m[1];
     }
-
-    if (!isset($defaults['is_persistent'])) {
-      $defaults['is_persistent'] = $defaults['is_autorun'];
-    }
-    return $defaults;
+    $defaults = $this->defaults[$bucket] ?? $this->defaults[NULL];
+    return array_merge($defaults, $queueSpec);
   }
 
   protected function registerPersistentQueue(array $queueSpec): void {
