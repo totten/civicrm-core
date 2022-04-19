@@ -11,7 +11,6 @@
 
 namespace Civi\Authx;
 
-use Civi\Crypto\Exception\CryptoException;
 use GuzzleHttp\Psr7\Response;
 
 /**
@@ -109,45 +108,13 @@ class Authenticator {
    *   Format should match setPrincipal().
    * @see \Civi\Authx\AuthenticatorTarget::setPrincipal()
    */
-  protected function checkCredential($tgt) {
-    [$credFmt, $credValue] = explode(' ', $tgt->cred, 2);
-
-    switch ($credFmt) {
-      case 'Basic':
-        [$user, $pass] = explode(':', base64_decode($credValue), 2);
-        if ($userId = $this->authxUf->checkPassword($user, $pass)) {
-          return ['userId' => $userId, 'credType' => 'pass'];
-        }
-        break;
-
-      case 'Bearer':
-        $c = \CRM_Core_DAO::singleValueQuery('SELECT id FROM civicrm_contact WHERE api_key = %1', [
-          1 => [$credValue, 'String'],
-        ]);
-        if ($c) {
-          return ['contactId' => $c, 'credType' => 'api_key'];
-        }
-
-        try {
-          $claims = \Civi::service('crypto.jwt')->decode($credValue);
-          $scopes = isset($claims['scope']) ? explode(' ', $claims['scope']) : [];
-          if (!in_array('authx', $scopes)) {
-            $this->reject('JWT does not permit general authentication');
-          }
-          if (empty($claims['sub']) || substr($claims['sub'], 0, 4) !== 'cid:') {
-            $this->reject('JWT does not specify the contact ID (sub)');
-          }
-          $contactId = substr($claims['sub'], 4);
-          return ['contactId' => $contactId, 'credType' => 'jwt', 'jwt' => $claims];
-        }
-        catch (CryptoException $e) {
-          // Invalid JWT. Proceed to check any other token sources.
-        }
-
-        break;
+  protected function checkCredential($tgt): ?array {
+    $check = new CheckCredentialEvent($tgt->cred);
+    \Civi::dispatcher()->dispatch('civi.authx.checkCredential', $check);
+    if ($check->getRejection()) {
+      $this->reject($check->getRejection());
     }
-
-    return NULL;
+    return $check->getPrincipal();
   }
 
   /**
