@@ -1,5 +1,5 @@
 <?php
-namespace api\v4\SearchDisplay;
+namespace E2E\SearchDisplay;
 
 use Civi\Api4\Contact;
 use Civi\Test\HeadlessInterface;
@@ -10,11 +10,32 @@ use Civi\Test\TransactionalInterface;
  */
 class SearchDownloadTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, TransactionalInterface {
 
+  protected static $lastName;
+  protected static $sampleData;
+
+  protected static function getLastName(): string {
+    if (static::$lastName === NULL) {
+      static::$lastName = uniqid(__FUNCTION__);
+    }
+    return static::$lastName;
+  }
+
   public function setUpHeadless() {
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
     // See: https://docs.civicrm.org/dev/en/latest/testing/phpunit/#civitest
+    $lastName = static::getLastName();
+
     return \Civi\Test::headless()
       ->installMe(__DIR__)
+      ->callback(function() use ($lastName) {
+        static::$sampleData = [
+          ['first_name' => 'One', 'last_name' => $lastName],
+          ['first_name' => 'Two', 'last_name' => $lastName],
+          ['first_name' => 'Three', 'last_name' => $lastName],
+          ['first_name' => 'Four', 'last_name' => $lastName],
+        ];
+        Contact::save(FALSE)->setRecords(static::$sampleData)->execute();
+      }, $lastName)
       ->apply();
   }
 
@@ -22,15 +43,7 @@ class SearchDownloadTest extends \PHPUnit\Framework\TestCase implements Headless
    * Test downloading array format.
    */
   public function testDownloadArray() {
-    $lastName = uniqid(__FUNCTION__);
-    $sampleData = [
-      ['first_name' => 'One', 'last_name' => $lastName],
-      ['first_name' => 'Two', 'last_name' => $lastName],
-      ['first_name' => 'Three', 'last_name' => $lastName],
-      ['first_name' => 'Four', 'last_name' => $lastName],
-    ];
-    Contact::save(FALSE)->setRecords($sampleData)->execute();
-
+    $lastName = static::getLastName();
     $params = [
       'checkPermissions' => FALSE,
       'format' => 'array',
@@ -91,14 +104,7 @@ class SearchDownloadTest extends \PHPUnit\Framework\TestCase implements Headless
     // Re-enable because this test has to run in a separate process
     \CRM_Extension_System::singleton()->getManager()->install('org.civicrm.search_kit');
 
-    $lastName = uniqid(__FUNCTION__);
-    $sampleData = [
-      ['first_name' => 'One', 'last_name' => $lastName],
-      ['first_name' => 'Two', 'last_name' => $lastName],
-      ['first_name' => 'Three', 'last_name' => $lastName],
-      ['first_name' => 'Four', 'last_name' => $lastName],
-    ];
-    Contact::save(FALSE)->setRecords($sampleData)->execute();
+    $lastName = static::getLastName();
 
     $params = [
       'checkPermissions' => FALSE,
