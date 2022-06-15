@@ -118,8 +118,22 @@ trait CRM_Contribute_WorkflowMessage_ContributionTrait {
    *
    * @param array $export
    */
-  protected function exportExtraTplParams(array &$export): void {
+  protected function exportExtraTplParams_contribution(array &$export): void {
     $export['isShowTax'] = (bool) Civi::settings()->get('invoicing');
+  }
+
+  /**
+   * Specify any tokens that should be exported as smarty variables.
+   *
+   * @todo it might be that this should be moved to the trait as we
+   * we work through these.
+   *
+   * @param array $export
+   */
+  protected function exportExtraTokenContext_contribution(array &$export): void {
+    // Examples
+    // $export['smartyTokenAlias']['is_pay_later'] = 'contribution.is_pay_later:label';
+    // $export['smartyTokenAlias']['is_pay_later'] = 'contribution.is_pay_later';
   }
 
 }
