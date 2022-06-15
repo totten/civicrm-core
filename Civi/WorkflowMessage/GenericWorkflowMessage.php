@@ -100,15 +100,34 @@ class GenericWorkflowMessage implements WorkflowMessageInterface {
     }
   }
 
+  protected function exportExtraTplParams_generic(array &$export): void {
+    $export['resourceBase'] = \CRM_Core_Config::singleton()->resourceBase;
+
+    $fixmeValues = [
+      'domain_street_address' => 'FIXME Street Address',
+      'domain_supplemental_address_1' => 'FIXME Supplemental Address 1',
+      'domain_supplemental_address_2' => 'FIXME Supplemental Address 2',
+      'domain_state' => 'FIXME State',
+      'domain_city' => 'FIXME City',
+      'domain_postal_code' => 'FIXME 12345',
+      'domain_country' => 'FIXME Country',
+      'organization_name' => NULL,
+    ];
+    $export = array_merge_recursive($fixmeValues, $export);
+  }
+
   /**
    * Define tokens to be exported as smarty values.
    *
    * @param array $export
    */
-  protected function exportExtraTokenContext(array &$export): void {
+  protected function exportExtraTokenContext_generic(array &$export): void {
     // Tax term is exposed at the generic level as so many templates use it
     // (e.g. Membership, participant, pledge as well as contributions).
     $export['smartyTokenAlias']['taxTerm'] = 'domain.tax_term';
+    $export['smartyTokenAlias']['domain_organization'] = 'domain.name';
+    $export['smartyTokenAlias']['domain_email'] = 'domain.email';
+    $export['smartyTokenAlias']['domain_phone'] = 'domain.phone';
   }
 
 }

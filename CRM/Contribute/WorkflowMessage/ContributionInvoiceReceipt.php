@@ -23,6 +23,29 @@ class CRM_Contribute_WorkflowMessage_ContributionInvoiceReceipt extends GenericW
 
   public const WORKFLOW = 'contribution_invoice_receipt';
 
+  protected function exportExtraTplParams(array &$export): void {
+    // Need to figure out where these values come from. Take them as parameters? Read them from related entities?
+    $fixmeValues = [
+      'street_address' => NULL,
+      'supplemental_address_1' => NULL,
+      'supplemental_address_2' => NULL,
+      'stateProvinceAbbreviation' => NULL,
+      'postal_code' => NULL,
+      'city' => NULL,
+      'country' => NULL,
+      'invoice_date' => date("F j, Y"),
+      'lineItem' => NULL,
+      'subTotal' => NULL,
+      'amountPaid' => NULL,
+      'amountDue' => NULL,
+      'refundedStatusId' => NULL,
+      'pendingStatusId' => NULL,
+      'cancelledStatusId' => NULL,
+      'title' => NULL,
+    ];
+    $export = array_merge($fixmeValues, $export);
+  }
+
   /**
    * Specify any tokens that should be exported as smarty variables.
    *
@@ -33,6 +56,9 @@ class CRM_Contribute_WorkflowMessage_ContributionInvoiceReceipt extends GenericW
    */
   protected function exportExtraTokenContext(array &$export): void {
     $export['smartyTokenAlias']['currency'] = 'contribution.currency';
+    $export['smartyTokenAlias']['invoice_number'] = 'contribution.invoice_number';
+    $export['smartyTokenAlias']['amount'] = 'contribution.total_amount';
+    $export['smartyTokenAlias']['contribution_status_id'] = 'contribution.contribution_status_id';
   }
 
 }

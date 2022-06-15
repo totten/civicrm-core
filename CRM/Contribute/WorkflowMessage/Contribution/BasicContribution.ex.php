@@ -21,7 +21,7 @@ class CRM_Contribute_WorkflowMessage_Contribution_BasicContribution extends Work
       yield [
         'name' => 'workflow/' . $workflow . '/' . $this->getExampleName(),
         'title' => ts('Completed Contribution'),
-        'tags' => ['preview'],
+        'tags' => ['preview', 'phpunit'],
         'workflow' => $workflow,
       ];
     }
@@ -42,6 +42,36 @@ class CRM_Contribute_WorkflowMessage_Contribution_BasicContribution extends Work
     $messageTemplate = new $workFlow['class']();
     $this->addExampleData($messageTemplate);
     $example['data'] = $this->toArray($messageTemplate);
+
+    switch ($example['workflow']) {
+      case 'contribution_online_receipt':
+        $example['asserts'] = [
+          'default' => [
+            ['for' => 'subject', 'regex' => '/Receipt - FIXME Contribution Title - Barbara Johnson/'],
+            ['for' => 'html', 'regex' => '/table id="crm-event_receipt"/'],
+            ['for' => 'html', 'regex' => '/Dear Barb,/'],
+          ],
+        ];
+        break;
+
+      case 'contribution_offline_receipt':
+        $example['asserts'] = [
+          'default' => [
+            ['for' => 'subject', 'regex' => '/Contribution Receipt - Barbara Johnson/'],
+            ['for' => 'text', 'regex' => '/Transaction ID: 123/'],
+          ],
+        ];
+        break;
+
+      case 'contribution_invoice_receipt':
+        $example['asserts'] = [
+          'default' => [
+            ['for' => 'subject', 'regex' => '/Invoice - Barbara Johnso/'],
+            ['for' => 'html', 'regex' => '/Amount Paid/'],
+          ],
+        ];
+        break;
+    }
   }
 
   /**

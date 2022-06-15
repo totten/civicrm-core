@@ -26,4 +26,18 @@ class CRM_Contribute_WorkflowMessage_ContributionOnlineReceipt extends GenericWo
   use CRM_Contribute_WorkflowMessage_ContributionTrait;
   public const WORKFLOW = 'contribution_online_receipt';
 
+  protected function exportExtraTplParams(array &$export): void {
+    // Need to figure out where these values come from. Take them as parameters? Read them from related entities?
+    $fixmeValues = [
+      'honor_block_is_active' => FALSE,
+      'title' => 'FIXME Contribution Title',
+    ];
+    $export = array_merge($fixmeValues, $export);
+  }
+
+  protected function exportExtraTokenContext(array &$export): void {
+    $export['smartyTokenAlias']['is_pay_later'] = 'contribution.is_pay_later';
+    $export['smartyTokenAlias']['amount'] = 'contribution_recur.amount|crmMoney';
+  }
+
 }
