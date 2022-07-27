@@ -1,6 +1,6 @@
 <?php
 
-// Generate the "upgrade-base@1.x" mixin by copying `CRM/Extension/Upgrader/*`.
+// Generate the "upgrader-lib@1.x" mixin by copying `CRM/Extension/Upgrader/*`.
 //
 // Note: The versioning for `CRM/Extension/Upgrader/*` is different from the versioning for the mixin.
 // There is a subjective decision and when/whether to propagate the update to the mixin and set a new version.
@@ -37,7 +37,7 @@ class UpgraderMixin extends Mixbuild {
   /**
    * @var string
    */
-  public $namespace = 'Civi\Mixin\UpgraderBaseV1';
+  public $namespace = 'Civi\Mixin\UpgraderLibV1';
 
   /**
    * @var string
@@ -47,7 +47,7 @@ class UpgraderMixin extends Mixbuild {
   public $majorMinor;
 
   public $headers = [
-    'mixinName' => 'upgrader-base',
+    'mixinName' => 'upgrader-lib',
     'mixinVersion' => 'AUTO-REPLACE',
     'since' => '5.52',
   ];
@@ -66,7 +66,7 @@ class UpgraderMixin extends Mixbuild {
    * Generate a statically-linked mixin, in which ever source-class has been
    * copied to the mixin namespace.
    *
-   * To wit: "Copy CRM_Extension_Upgrader_* to \Civi\Mixin\UpgraderBaseV1\*".
+   * To wit: "Copy CRM_Extension_Upgrader_* to \Civi\Mixin\UpgraderLibV1\*".
    */
   public function buildStaticMixin(): void {
     $headers = $this->headers;
@@ -86,7 +86,7 @@ class UpgraderMixin extends Mixbuild {
    * Generate a dynamic mixin, in which the mixin namespace contains aliases for
    * each source-classes.
    *
-   * To wit: "class_alias('\Civi\Mixin\UpgraderBaseV1\SchemaTrait', 'CRM_Extension_Upgrader_SchemaTrait')".
+   * To wit: "class_alias('\Civi\Mixin\UpgraderLibV1\SchemaTrait', 'CRM_Extension_Upgrader_SchemaTrait')".
    */
   public function buildAliasMixin(): void {
     $headers = $this->headers;

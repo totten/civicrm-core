@@ -1,6 +1,6 @@
 <?php
-// Generated via "mixin/upgrader-base@1/build.php 1.0"
-namespace Civi\Mixin\UpgraderBaseV1;
+// Generated via "mixin/upgrader-lib@1/build.php 1.0"
+namespace Civi\Mixin\UpgraderLibV1;
 
 // @codingStandardsIgnoreStart
 // SOURCE: CRM/Extension/Upgrader/Base.php
@@ -678,7 +678,7 @@ trait TasksTrait {
 // @codingStandardsIgnoreEnd
 /**
  * Upgrader Base Class
- * @mixinName upgrader-base
+ * @mixinName upgrader-lib
  * @mixinVersion 1.0.0
  * @since 5.52
  */
