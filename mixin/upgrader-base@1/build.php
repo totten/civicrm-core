@@ -27,11 +27,11 @@ class UpgraderMixin extends Mixbuild {
     }
 
     // Generate one variant (statically linked)
-    // file_put_contents(__DIR__ . '/mixin.php', Mixbuild::capture([$builder, 'buildStaticMixin']));
+    file_put_contents(__DIR__ . '/mixin.php', Mixbuild::capture([$builder, 'buildStaticMixin']));
 
     // Generate two variants (statically and dynamically linked)
-    file_put_contents(__DIR__ . '/mixin.backport.php', Mixbuild::capture([$builder, 'buildStaticMixin']));
-    file_put_contents(__DIR__ . '/mixin.php', Mixbuild::capture([$builder, 'buildAliasMixin']));
+    // file_put_contents(__DIR__ . '/mixin.backport.php', Mixbuild::capture([$builder, 'buildStaticMixin']));
+    // file_put_contents(__DIR__ . '/mixin.php', Mixbuild::capture([$builder, 'buildAliasMixin']));
   }
 
   /**
