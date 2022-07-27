@@ -97,7 +97,7 @@ trait CRM_Extension_Upgrader_RevisionsTrait {
   }
 
   public function getCurrentRevision() {
-    $revision = CRM_Core_BAO_Extension::getSchemaVersion($this->getExtensionKey());
+    $revision = \CRM_Core_BAO_Extension::getSchemaVersion($this->getExtensionKey());
     if (!$revision) {
       $revision = $this->getCurrentRevisionDeprecated();
     }
@@ -113,7 +113,7 @@ trait CRM_Extension_Upgrader_RevisionsTrait {
   }
 
   public function setCurrentRevision($revision) {
-    CRM_Core_BAO_Extension::setSchemaVersion($this->getExtensionKey(), $revision);
+    \CRM_Core_BAO_Extension::setSchemaVersion($this->getExtensionKey(), $revision);
     // clean up legacy schema version store (CRM-19252)
     $this->deleteDeprecatedRevision();
     return TRUE;
@@ -124,7 +124,7 @@ trait CRM_Extension_Upgrader_RevisionsTrait {
       $setting = new \CRM_Core_BAO_Setting();
       $setting->name = $this->getExtensionKey() . ':version';
       $setting->delete();
-      CRM_Core_Error::debug_log_message("Migrated extension schema revision ID for {$this->getExtensionKey()} from civicrm_setting (deprecated) to civicrm_extension.\n");
+      \CRM_Core_Error::debug_log_message("Migrated extension schema revision ID for {$this->getExtensionKey()} from civicrm_setting (deprecated) to civicrm_extension.\n");
     }
   }
 

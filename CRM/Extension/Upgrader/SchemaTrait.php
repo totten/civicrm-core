@@ -24,9 +24,9 @@ trait CRM_Extension_Upgrader_SchemaTrait {
    * @return bool
    */
   public static function addColumn($table, $column, $properties) {
-    if (!CRM_Core_BAO_SchemaHandler::checkIfFieldExists($table, $column, FALSE)) {
+    if (!\CRM_Core_BAO_SchemaHandler::checkIfFieldExists($table, $column, FALSE)) {
       $query = "ALTER TABLE `$table` ADD COLUMN `$column` $properties";
-      CRM_Core_DAO::executeQuery($query, [], TRUE, NULL, FALSE, FALSE);
+      \CRM_Core_DAO::executeQuery($query, [], TRUE, NULL, FALSE, FALSE);
     }
     return TRUE;
   }
@@ -39,8 +39,8 @@ trait CRM_Extension_Upgrader_SchemaTrait {
    * @return bool
    */
   public static function dropColumn($table, $column) {
-    if (CRM_Core_BAO_SchemaHandler::checkIfFieldExists($table, $column, FALSE)) {
-      CRM_Core_DAO::executeQuery("ALTER TABLE `$table` DROP COLUMN `$column`",
+    if (\CRM_Core_BAO_SchemaHandler::checkIfFieldExists($table, $column, FALSE)) {
+      \CRM_Core_DAO::executeQuery("ALTER TABLE `$table` DROP COLUMN `$column`",
         [], TRUE, NULL, FALSE, FALSE);
     }
     return TRUE;
@@ -56,7 +56,7 @@ trait CRM_Extension_Upgrader_SchemaTrait {
    */
   public static function addIndex($table, $columns, $prefix = 'index') {
     $tables = [$table => (array) $columns];
-    CRM_Core_BAO_SchemaHandler::createIndexes($tables, $prefix);
+    \CRM_Core_BAO_SchemaHandler::createIndexes($tables, $prefix);
     return TRUE;
   }
 
@@ -68,7 +68,7 @@ trait CRM_Extension_Upgrader_SchemaTrait {
    * @return bool
    */
   public static function dropIndex($table, $indexName) {
-    CRM_Core_BAO_SchemaHandler::dropIndexIfExists($table, $indexName);
+    \CRM_Core_BAO_SchemaHandler::dropIndexIfExists($table, $indexName);
     return TRUE;
   }
 

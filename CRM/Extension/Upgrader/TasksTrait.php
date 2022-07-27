@@ -40,7 +40,7 @@ trait CRM_Extension_Upgrader_TasksTrait {
    * @return bool
    */
   protected function executeCustomDataFileByAbsPath($xml_file) {
-    $import = new CRM_Utils_Migrate_Import();
+    $import = new \CRM_Utils_Migrate_Import();
     $import->run($xml_file);
     return TRUE;
   }
@@ -54,8 +54,8 @@ trait CRM_Extension_Upgrader_TasksTrait {
    * @return bool
    */
   public function executeSqlFile($tplFile) {
-    $tplFile = CRM_Utils_File::isAbsolute($tplFile) ? $tplFile : $this->getExtensionDir() . DIRECTORY_SEPARATOR . $tplFile;
-    CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $tplFile);
+    $tplFile = \CRM_Utils_File::isAbsolute($tplFile) ? $tplFile : $this->getExtensionDir() . DIRECTORY_SEPARATOR . $tplFile;
+    \CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $tplFile);
     return TRUE;
   }
 
@@ -71,12 +71,12 @@ trait CRM_Extension_Upgrader_TasksTrait {
    */
   public function executeSqlTemplate($tplFile) {
     // Assign multilingual variable to Smarty.
-    $upgrade = new CRM_Upgrade_Form();
+    $upgrade = new \CRM_Upgrade_Form();
 
-    $tplFile = CRM_Utils_File::isAbsolute($tplFile) ? $tplFile : $this->getExtensionDir() . DIRECTORY_SEPARATOR . $tplFile;
-    $smarty = CRM_Core_Smarty::singleton();
-    $smarty->assign('domainID', CRM_Core_Config::domainID());
-    CRM_Utils_File::sourceSQLFile(
+    $tplFile = \CRM_Utils_File::isAbsolute($tplFile) ? $tplFile : $this->getExtensionDir() . DIRECTORY_SEPARATOR . $tplFile;
+    $smarty = \CRM_Core_Smarty::singleton();
+    $smarty->assign('domainID', \CRM_Core_Config::domainID());
+    \CRM_Utils_File::sourceSQLFile(
       CIVICRM_DSN, $smarty->fetch($tplFile), NULL, TRUE
     );
     return TRUE;
@@ -93,7 +93,7 @@ trait CRM_Extension_Upgrader_TasksTrait {
    */
   public function executeSql($query, $params = []) {
     // FIXME verify that we raise an exception on error
-    CRM_Core_DAO::executeQuery($query, $params);
+    \CRM_Core_DAO::executeQuery($query, $params);
     return TRUE;
   }
 

@@ -31,7 +31,7 @@ trait CRM_Extension_Upgrader_IdentityTrait {
    */
   public function init(array $params) {
     $this->extensionName = $params['key'];
-    $system = CRM_Extension_System::singleton();
+    $system = \CRM_Extension_System::singleton();
     $mapper = $system->getMapper();
     $this->extensionDir = $mapper->keyToBasePath($this->extensionName);
   }

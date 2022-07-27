@@ -52,7 +52,7 @@ class CRM_Extension_Upgrader_Base implements CRM_Extension_Upgrader_Interface {
     $files = glob($this->getExtensionDir() . '/sql/*_install.sql');
     if (is_array($files)) {
       foreach ($files as $file) {
-        CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $file);
+        \CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $file);
       }
     }
     $files = glob($this->getExtensionDir() . '/sql/*_install.mysql.tpl');
@@ -111,7 +111,7 @@ class CRM_Extension_Upgrader_Base implements CRM_Extension_Upgrader_Interface {
     $files = glob($this->getExtensionDir() . '/sql/*_uninstall.sql');
     if (is_array($files)) {
       foreach ($files as $file) {
-        CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $file);
+        \CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $file);
       }
     }
   }
@@ -139,7 +139,7 @@ class CRM_Extension_Upgrader_Base implements CRM_Extension_Upgrader_Interface {
   /**
    * @see https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_upgrade
    */
-  public function onUpgrade($op, CRM_Queue_Queue $queue = NULL) {
+  public function onUpgrade($op, \CRM_Queue_Queue $queue = NULL) {
     switch ($op) {
       case 'check':
         return [$this->hasPendingRevisions()];

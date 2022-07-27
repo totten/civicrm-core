@@ -36,7 +36,7 @@ trait CRM_Extension_Upgrader_QueueTrait {
    * CRM_Extension_Upgrader::_queueAdapter($ctx, 'org.example.myext', 'methodName', 'arg1', 'arg2');
    * ```
    */
-  public static function _queueAdapter(CRM_Queue_TaskContext $ctx, string $extensionKey, string $method, ...$args) {
+  public static function _queueAdapter(\CRM_Queue_TaskContext $ctx, string $extensionKey, string $method, ...$args) {
     /** @var static $upgrader */
     $upgrader = \CRM_Extension_System::singleton()->getMapper()->getUpgrader($extensionKey);
     if ($upgrader->ctx !== NULL) {
@@ -65,7 +65,7 @@ trait CRM_Extension_Upgrader_QueueTrait {
    * the function. Note that all params must be serializable.
    */
   public function prependTask(string $title, string $funcName, ...$options) {
-    $task = new CRM_Queue_Task(
+    $task = new \CRM_Queue_Task(
       [get_class($this), '_queueAdapter'],
       array_merge([$this->getExtensionKey(), $funcName], $options),
       $title
@@ -81,7 +81,7 @@ trait CRM_Extension_Upgrader_QueueTrait {
    * @return mixed
    */
   protected function appendTask(string $title, string $funcName, ...$options) {
-    $task = new CRM_Queue_Task(
+    $task = new \CRM_Queue_Task(
       [get_class($this), '_queueAdapter'],
       array_merge([$this->getExtensionKey(), $funcName], $options),
       $title
