@@ -2,6 +2,7 @@
 // Generated via "mixin/upgrader-base@1/build.php 1.0"
 namespace Civi\Mixin\UpgraderBaseV1;
 
+// @codingStandardsIgnoreStart
   function registerClassAliases(array $classMap) {
     spl_autoload_register(function($requestedClass) use ($classMap) {
       if (isset($classMap[$requestedClass])) {
@@ -10,6 +11,7 @@ namespace Civi\Mixin\UpgraderBaseV1;
     });
   }
 
+// @codingStandardsIgnoreEnd
 registerClassAliases([
   'Civi\\Mixin\\UpgraderBaseV1\\Base' => 'CRM_Extension_Upgrader_Base',
   'Civi\\Mixin\\UpgraderBaseV1\\IdentityTrait' => 'CRM_Extension_Upgrader_IdentityTrait',

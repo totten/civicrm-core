@@ -15,8 +15,9 @@ class Mixbuild {
       $callback(...$args);
     }
     finally {
-      return ob_get_clean();
+      $output = ob_get_clean();
     }
+    return $output;
   }
 
   /**
@@ -37,7 +38,7 @@ class Mixbuild {
             static::printData($key);
             echo ' => ';
           }
-          static::printData($value);
+          static::printData($value, $prefix . '  ');
           echo ",\n";
         }
         echo "]";
@@ -46,18 +47,6 @@ class Mixbuild {
       default:
         var_export($data);
     }
-  }
-
-  /**
-   * @param string $mixinNamespace
-   */
-  public static function printFileHeader(string $mixinNamespace, ?string $comment = ''): void {
-    printf("<" . "?php\n");
-    if ($comment !== NULL) {
-      printf("// %s\n", $comment);
-    }
-    printf("namespace %s;\n", $mixinNamespace);
-    printf("\n");
   }
 
   public static function printFilteredClass(string $srcClass, $srcFilter = NULL): void {
@@ -74,7 +63,9 @@ class Mixbuild {
       $srcLines = array_map($srcFilter, $srcLines);
     }
 
+    echo "// @codingStandardsIgnoreStart\n";
     echo implode("\n", $srcLines);
+    echo "// @codingStandardsIgnoreEnd\n";
   }
 
   public static function printFunction(ReflectionFunctionAbstract $function): void {
@@ -82,7 +73,10 @@ class Mixbuild {
     $srcLines = explode("\n", file_get_contents($srcFile));
     $funcLines = array_slice($srcLines, $function->getStartLine() - 1, $function->getEndLine() - $function->getStartLine() + 1);
     $funcLines[0] = preg_replace(';( public| protected| static)+;','', $funcLines[0]);
+
+    echo "// @codingStandardsIgnoreStart\n";
     echo implode("\n", $funcLines) . "\n\n";
+    echo "// @codingStandardsIgnoreEnd\n";
   }
 
   public static function printDocblock(string $comment, array $annotations): void {

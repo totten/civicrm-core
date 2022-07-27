@@ -1,6 +1,9 @@
 <?php
 
-// Generate the "upgrade-base@1.x" mixin by concatentating files from `CRM/Upgrade/*`.
+// Generate the "upgrade-base@1.x" mixin by copying `CRM/Extension/Upgrader/*`.
+//
+// Note: The versioning for `CRM/Extension/Upgrader/*` is different from the versioning for the mixin.
+// There is a subjective decision and when/whether to propagate the update to the mixin and set a new version.
 //
 // Usage: php build.php MAJOR.MINOR
 // Example: php build.php 1.2
@@ -12,22 +15,44 @@ if (!(php_sapi_name() == 'cli' || (is_numeric($_SERVER['argc']) && $_SERVER['arg
 
 ini_set('display_errors', 1);
 require_once dirname(__DIR__, 2) . '/tools/mixin/src/Mixbuild.php';
-main($argv);
 
-function main($argv) {
-  $mixinNamespace = 'Civi\Mixin\UpgraderBaseV1';
-  $majorMinor = $argv[1] ?? NULL;
+class UpgraderMixin extends Mixbuild {
 
-  if (empty($majorMinor)) {
-    throw new \RuntimeException('Missing argument MAJOR.MINOR');
+  public static function main(array $argv): void {
+    $builder = new UpgraderMixin();
+    $builder->majorMinor = $argv[1] ?? NULL;
+
+    if (empty($builder->majorMinor)) {
+      throw new \RuntimeException('Missing argument MAJOR.MINOR');
+    }
+
+    // Generate one variant (statically linked)
+    // file_put_contents(__DIR__ . '/mixin.php', Mixbuild::capture([$builder, 'buildStaticMixin']));
+
+    // Generate two variants (statically and dynamically linked)
+    file_put_contents(__DIR__ . '/mixin.backport.php', Mixbuild::capture([$builder, 'buildStaticMixin']));
+    file_put_contents(__DIR__ . '/mixin.php', Mixbuild::capture([$builder, 'buildAliasMixin']));
   }
 
-  $headers = [
+  /**
+   * @var string
+   */
+  public $namespace = 'Civi\Mixin\UpgraderBaseV1';
+
+  /**
+   * @var string
+   *   Ex: '1.0'
+   *   (Loaded from CLI args.)
+   */
+  public $majorMinor;
+
+  public $headers = [
     'mixinName' => 'upgrader-base',
     'mixinVersion' => 'AUTO-REPLACE',
     'since' => '5.52',
   ];
-  $classMap = [
+
+  public $classMap = [
     'Base' => 'CRM_Extension_Upgrader_Base',
     'IdentityTrait' => 'CRM_Extension_Upgrader_IdentityTrait',
     'UpgraderInterface' => 'CRM_Extension_Upgrader_Interface',
@@ -37,37 +62,57 @@ function main($argv) {
     'TasksTrait' => 'CRM_Extension_Upgrader_TasksTrait',
   ];
 
-  // Generate two versions of the mixin:
-  // - `mixin.backport.php` is a statically linked and has lower version# (eg `1.2.0`).
-  // - `mixin.php` relies on autoloader to get latest class and has higher version# (eg `1.2.1`).
-  file_put_contents(__DIR__ . '/mixin.backport.php', Mixbuild::capture(function() use ($majorMinor, $mixinNamespace, $headers, $classMap) {
-    $mainFile = str_replace(realpath(Mixbuild::findCivicrmRoot()) . DIRECTORY_SEPARATOR, '', realpath(__FILE__));
-    $headers['mixinVersion'] = $majorMinor . '.0';
+  /**
+   * Generate a statically-linked mixin, in which ever source-class has been
+   * copied to the mixin namespace.
+   *
+   * To wit: "Copy CRM_Extension_Upgrader_* to \Civi\Mixin\UpgraderBaseV1\*".
+   */
+  public function buildStaticMixin(): void {
+    $headers = $this->headers;
+    $headers['mixinVersion'] = $this->majorMinor . '.0';
 
-    Mixbuild::printFileHeader($mixinNamespace, "Generated via \"$mainFile $majorMinor\"");
-    foreach ($classMap as $newClass => $srcClass) {
-      Mixbuild::printFilteredClass($srcClass, function(string $line) use ($classMap) {
-        return strtr($line, array_flip($classMap));
+    $this->printHeader();
+    foreach ($this->classMap as $newClass => $srcClass) {
+      $this->printFilteredClass($srcClass, function(string $line) {
+        return strtr($line, array_flip($this->classMap));
       });
     }
-    Mixbuild::printDocblock('Upgrader Base Class', $headers);
-    MixBuild::printEmptyMixin();
-  }));
+    $this->printDocblock('Upgrader Base Class', $headers);
+    $this->printEmptyMixin();
+  }
 
-  file_put_contents(__DIR__ . '/mixin.php', Mixbuild::capture(function() use ($majorMinor, $mixinNamespace, $headers, $classMap) {
-    $mainFile = str_replace(realpath(Mixbuild::findCivicrmRoot()) . DIRECTORY_SEPARATOR, '', realpath(__FILE__));
-    $headers['mixinVersion'] = $majorMinor . '.1';
+  /**
+   * Generate a dynamic mixin, in which the mixin namespace contains aliases for
+   * each source-classes.
+   *
+   * To wit: "class_alias('\Civi\Mixin\UpgraderBaseV1\SchemaTrait', 'CRM_Extension_Upgrader_SchemaTrait')".
+   */
+  public function buildAliasMixin(): void {
+    $headers = $this->headers;
+    $headers['mixinVersion'] = $this->majorMinor . '.1';
 
     $fullAliasClasses = [];
-    foreach ($classMap as $newClass => $srcClass) {
-      $fullAliasClasses[$mixinNamespace . '\\' . $newClass] = $srcClass;
+    foreach ($this->classMap as $newClass => $srcClass) {
+      $fullAliasClasses[$this->namespace . '\\' . $newClass] = $srcClass;
     }
 
-    Mixbuild::printFileHeader($mixinNamespace, "Generated via \"$mainFile $majorMinor\"");
-    Mixbuild::printFunction(new ReflectionMethod('Mixbuild', 'registerClassAliases'));
+    $this->printHeader();
+    $this->printFunction(new ReflectionMethod('Mixbuild', 'registerClassAliases'));
     printf("registerClassAliases(%s);\n", Mixbuild::capture(['Mixbuild', 'printData'], $fullAliasClasses, '  '));
-    Mixbuild::printDocblock('Upgrader Base Class', $headers);
-    MixBuild::printEmptyMixin();
-  }));
+    $this->printDocblock('Upgrader Base Class', $headers);
+    $this->printEmptyMixin();
+  }
+
+  protected function printHeader(): void {
+    $me = str_replace(realpath(Mixbuild::findCivicrmRoot()) . DIRECTORY_SEPARATOR, '', realpath(__FILE__));
+
+    printf("<" . "?php\n");
+    printf("// Generated via \"%s %s\"\n", $me, $this->majorMinor);
+    printf("namespace %s;\n", $this->namespace);
+    printf("\n");
+  }
+
 }
 
+UpgraderMixin::main($argv);

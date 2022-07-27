@@ -2,6 +2,7 @@
 // Generated via "mixin/upgrader-base@1/build.php 1.0"
 namespace Civi\Mixin\UpgraderBaseV1;
 
+// @codingStandardsIgnoreStart
 // SOURCE: CRM/Extension/Upgrader/Base.php
 
 
@@ -158,6 +159,8 @@ class Base implements UpgraderInterface {
   }
 
 }
+// @codingStandardsIgnoreEnd
+// @codingStandardsIgnoreStart
 // SOURCE: CRM/Extension/Upgrader/IdentityTrait.php
 
 /*
@@ -214,6 +217,8 @@ trait IdentityTrait {
   }
 
 }
+// @codingStandardsIgnoreEnd
+// @codingStandardsIgnoreStart
 // SOURCE: CRM/Extension/Upgrader/Interface.php
 
 
@@ -244,6 +249,8 @@ interface UpgraderInterface {
   public function notify(string $event, array $params = []);
 
 }
+// @codingStandardsIgnoreEnd
+// @codingStandardsIgnoreStart
 // SOURCE: CRM/Extension/Upgrader/QueueTrait.php
 
 /*
@@ -353,6 +360,8 @@ trait QueueTrait {
   }
 
 }
+// @codingStandardsIgnoreEnd
+// @codingStandardsIgnoreStart
 // SOURCE: CRM/Extension/Upgrader/RevisionsTrait.php
 
 /*
@@ -485,6 +494,8 @@ trait RevisionsTrait {
   }
 
 }
+// @codingStandardsIgnoreEnd
+// @codingStandardsIgnoreStart
 // SOURCE: CRM/Extension/Upgrader/SchemaTrait.php
 
 /*
@@ -561,6 +572,8 @@ trait SchemaTrait {
   }
 
 }
+// @codingStandardsIgnoreEnd
+// @codingStandardsIgnoreStart
 // SOURCE: CRM/Extension/Upgrader/TasksTrait.php
 
 /*
@@ -662,6 +675,7 @@ trait TasksTrait {
   }
 
 }
+// @codingStandardsIgnoreEnd
 /**
  * Upgrader Base Class
  * @mixinName upgrader-base
