@@ -64,7 +64,7 @@ class Base implements UpgraderInterface {
     $files = glob($this->getExtensionDir() . '/sql/*_install.sql');
     if (is_array($files)) {
       foreach ($files as $file) {
-        CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $file);
+        \CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $file);
       }
     }
     $files = glob($this->getExtensionDir() . '/sql/*_install.mysql.tpl');
@@ -123,7 +123,7 @@ class Base implements UpgraderInterface {
     $files = glob($this->getExtensionDir() . '/sql/*_uninstall.sql');
     if (is_array($files)) {
       foreach ($files as $file) {
-        CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $file);
+        \CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $file);
       }
     }
   }
@@ -151,7 +151,7 @@ class Base implements UpgraderInterface {
   /**
    * @see https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_upgrade
    */
-  public function onUpgrade($op, CRM_Queue_Queue $queue = NULL) {
+  public function onUpgrade($op, \CRM_Queue_Queue $queue = NULL) {
     switch ($op) {
       case 'check':
         return [$this->hasPendingRevisions()];
@@ -201,7 +201,7 @@ trait IdentityTrait {
    */
   public function init(array $params) {
     $this->extensionName = $params['key'];
-    $system = CRM_Extension_System::singleton();
+    $system = \CRM_Extension_System::singleton();
     $mapper = $system->getMapper();
     $this->extensionDir = $mapper->keyToBasePath($this->extensionName);
   }
@@ -296,7 +296,7 @@ trait QueueTrait {
    * CRM_Extension_Upgrader::_queueAdapter($ctx, 'org.example.myext', 'methodName', 'arg1', 'arg2');
    * ```
    */
-  public static function _queueAdapter(CRM_Queue_TaskContext $ctx, string $extensionKey, string $method, ...$args) {
+  public static function _queueAdapter(\CRM_Queue_TaskContext $ctx, string $extensionKey, string $method, ...$args) {
     /** @var static $upgrader */
     $upgrader = \CRM_Extension_System::singleton()->getMapper()->getUpgrader($extensionKey);
     if ($upgrader->ctx !== NULL) {
@@ -325,7 +325,7 @@ trait QueueTrait {
    * the function. Note that all params must be serializable.
    */
   public function prependTask(string $title, string $funcName, ...$options) {
-    $task = new CRM_Queue_Task(
+    $task = new \CRM_Queue_Task(
       [get_class($this), '_queueAdapter'],
       array_merge([$this->getExtensionKey(), $funcName], $options),
       $title
@@ -341,7 +341,7 @@ trait QueueTrait {
    * @return mixed
    */
   protected function appendTask(string $title, string $funcName, ...$options) {
-    $task = new CRM_Queue_Task(
+    $task = new \CRM_Queue_Task(
       [get_class($this), '_queueAdapter'],
       array_merge([$this->getExtensionKey(), $funcName], $options),
       $title
@@ -468,7 +468,7 @@ trait RevisionsTrait {
   }
 
   public function getCurrentRevision() {
-    $revision = CRM_Core_BAO_Extension::getSchemaVersion($this->getExtensionKey());
+    $revision = \CRM_Core_BAO_Extension::getSchemaVersion($this->getExtensionKey());
     if (!$revision) {
       $revision = $this->getCurrentRevisionDeprecated();
     }
@@ -484,7 +484,7 @@ trait RevisionsTrait {
   }
 
   public function setCurrentRevision($revision) {
-    CRM_Core_BAO_Extension::setSchemaVersion($this->getExtensionKey(), $revision);
+    \CRM_Core_BAO_Extension::setSchemaVersion($this->getExtensionKey(), $revision);
     // clean up legacy schema version store (CRM-19252)
     $this->deleteDeprecatedRevision();
     return TRUE;
@@ -495,7 +495,7 @@ trait RevisionsTrait {
       $setting = new \CRM_Core_BAO_Setting();
       $setting->name = $this->getExtensionKey() . ':version';
       $setting->delete();
-      CRM_Core_Error::debug_log_message("Migrated extension schema revision ID for {$this->getExtensionKey()} from civicrm_setting (deprecated) to civicrm_extension.\n");
+      \CRM_Core_Error::debug_log_message("Migrated extension schema revision ID for {$this->getExtensionKey()} from civicrm_setting (deprecated) to civicrm_extension.\n");
     }
   }
 
@@ -529,9 +529,9 @@ trait SchemaTrait {
    * @return bool
    */
   public static function addColumn($table, $column, $properties) {
-    if (!CRM_Core_BAO_SchemaHandler::checkIfFieldExists($table, $column, FALSE)) {
+    if (!\CRM_Core_BAO_SchemaHandler::checkIfFieldExists($table, $column, FALSE)) {
       $query = "ALTER TABLE `$table` ADD COLUMN `$column` $properties";
-      CRM_Core_DAO::executeQuery($query, [], TRUE, NULL, FALSE, FALSE);
+      \CRM_Core_DAO::executeQuery($query, [], TRUE, NULL, FALSE, FALSE);
     }
     return TRUE;
   }
@@ -544,8 +544,8 @@ trait SchemaTrait {
    * @return bool
    */
   public static function dropColumn($table, $column) {
-    if (CRM_Core_BAO_SchemaHandler::checkIfFieldExists($table, $column, FALSE)) {
-      CRM_Core_DAO::executeQuery("ALTER TABLE `$table` DROP COLUMN `$column`",
+    if (\CRM_Core_BAO_SchemaHandler::checkIfFieldExists($table, $column, FALSE)) {
+      \CRM_Core_DAO::executeQuery("ALTER TABLE `$table` DROP COLUMN `$column`",
         [], TRUE, NULL, FALSE, FALSE);
     }
     return TRUE;
@@ -561,7 +561,7 @@ trait SchemaTrait {
    */
   public static function addIndex($table, $columns, $prefix = 'index') {
     $tables = [$table => (array) $columns];
-    CRM_Core_BAO_SchemaHandler::createIndexes($tables, $prefix);
+    \CRM_Core_BAO_SchemaHandler::createIndexes($tables, $prefix);
     return TRUE;
   }
 
@@ -573,7 +573,7 @@ trait SchemaTrait {
    * @return bool
    */
   public static function dropIndex($table, $indexName) {
-    CRM_Core_BAO_SchemaHandler::dropIndexIfExists($table, $indexName);
+    \CRM_Core_BAO_SchemaHandler::dropIndexIfExists($table, $indexName);
     return TRUE;
   }
 
@@ -623,7 +623,7 @@ trait TasksTrait {
    * @return bool
    */
   protected function executeCustomDataFileByAbsPath($xml_file) {
-    $import = new CRM_Utils_Migrate_Import();
+    $import = new \CRM_Utils_Migrate_Import();
     $import->run($xml_file);
     return TRUE;
   }
@@ -637,8 +637,8 @@ trait TasksTrait {
    * @return bool
    */
   public function executeSqlFile($tplFile) {
-    $tplFile = CRM_Utils_File::isAbsolute($tplFile) ? $tplFile : $this->getExtensionDir() . DIRECTORY_SEPARATOR . $tplFile;
-    CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $tplFile);
+    $tplFile = \CRM_Utils_File::isAbsolute($tplFile) ? $tplFile : $this->getExtensionDir() . DIRECTORY_SEPARATOR . $tplFile;
+    \CRM_Utils_File::sourceSQLFile(CIVICRM_DSN, $tplFile);
     return TRUE;
   }
 
@@ -654,12 +654,12 @@ trait TasksTrait {
    */
   public function executeSqlTemplate($tplFile) {
     // Assign multilingual variable to Smarty.
-    $upgrade = new CRM_Upgrade_Form();
+    $upgrade = new \CRM_Upgrade_Form();
 
-    $tplFile = CRM_Utils_File::isAbsolute($tplFile) ? $tplFile : $this->getExtensionDir() . DIRECTORY_SEPARATOR . $tplFile;
-    $smarty = CRM_Core_Smarty::singleton();
-    $smarty->assign('domainID', CRM_Core_Config::domainID());
-    CRM_Utils_File::sourceSQLFile(
+    $tplFile = \CRM_Utils_File::isAbsolute($tplFile) ? $tplFile : $this->getExtensionDir() . DIRECTORY_SEPARATOR . $tplFile;
+    $smarty = \CRM_Core_Smarty::singleton();
+    $smarty->assign('domainID', \CRM_Core_Config::domainID());
+    \CRM_Utils_File::sourceSQLFile(
       CIVICRM_DSN, $smarty->fetch($tplFile), NULL, TRUE
     );
     return TRUE;
@@ -676,7 +676,7 @@ trait TasksTrait {
    */
   public function executeSql($query, $params = []) {
     // FIXME verify that we raise an exception on error
-    CRM_Core_DAO::executeQuery($query, $params);
+    \CRM_Core_DAO::executeQuery($query, $params);
     return TRUE;
   }
 
