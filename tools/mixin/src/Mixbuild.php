@@ -82,7 +82,12 @@ class Mixbuild {
   public static function printDocblock(string $comment, array $annotations): void {
     printf("/**\n");
     foreach (explode("\n", $comment) as $line) {
-      printf(" * %s\n", $line);
+      if ($line === '') {
+        printf(" *\n");
+      }
+      else {
+        printf(" * %s\n", $line);
+      }
     }
     foreach ($annotations as $key => $value) {
       printf(" * @%s %s\n", $key, $value);

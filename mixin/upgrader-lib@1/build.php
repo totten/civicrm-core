@@ -72,13 +72,12 @@ class UpgraderMixin extends Mixbuild {
     $headers = $this->headers;
     $headers['mixinVersion'] = $this->majorMinor . '.0';
 
-    $this->printHeader();
+    $this->printHeader($headers);
     foreach ($this->classMap as $newClass => $srcClass) {
       $this->printFilteredClass($srcClass, function(string $line) {
         return strtr($line, array_flip($this->classMap));
       });
     }
-    $this->printDocblock('Upgrader Base Class', $headers);
     $this->printEmptyMixin();
   }
 
@@ -97,18 +96,17 @@ class UpgraderMixin extends Mixbuild {
       $fullAliasClasses[$this->namespace . '\\' . $newClass] = $srcClass;
     }
 
-    $this->printHeader();
+    $this->printHeader($headers);
     $this->printFunction(new ReflectionMethod('Mixbuild', 'registerClassAliases'));
     printf("registerClassAliases(%s);\n", Mixbuild::capture(['Mixbuild', 'printData'], $fullAliasClasses, '  '));
-    $this->printDocblock('Upgrader Base Class', $headers);
     $this->printEmptyMixin();
   }
 
-  protected function printHeader(): void {
+  protected function printHeader(array $headers): void {
     $me = str_replace(realpath(Mixbuild::findCivicrmRoot()) . DIRECTORY_SEPARATOR, '', realpath(__FILE__));
 
     printf("<" . "?php\n");
-    printf("// Generated via \"%s %s\"\n", $me, $this->majorMinor);
+    $this->printDocblock(sprintf("Generated via \"%s %s\"\n", $me, $this->majorMinor), $headers);
     printf("namespace %s;\n", $this->namespace);
     printf("\n");
   }

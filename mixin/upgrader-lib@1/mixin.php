@@ -1,5 +1,11 @@
 <?php
-// Generated via "mixin/upgrader-lib@1/build.php 1.0"
+/**
+ * Generated via "mixin/upgrader-lib@1/build.php 1.0"
+ *
+ * @mixinName upgrader-lib
+ * @mixinVersion 1.0.0
+ * @since 5.52
+ */
 namespace Civi\Mixin\UpgraderLibV1;
 
 // @codingStandardsIgnoreStart
@@ -676,11 +682,5 @@ trait TasksTrait {
 
 }
 // @codingStandardsIgnoreEnd
-/**
- * Upgrader Base Class
- * @mixinName upgrader-lib
- * @mixinVersion 1.0.0
- * @since 5.52
- */
 return function($mixInfo, $bootCache) {
 };
