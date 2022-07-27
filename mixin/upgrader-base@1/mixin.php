@@ -2,13 +2,13 @@
 // Generated via "mixin/upgrader-base@1/build.php 1.0"
 namespace Civi\Mixin\UpgraderBaseV1;
 
-function registerClassAliases(array $classMap) {
-  spl_autoload_register(function($requestedClass) use ($classMap) {
-    if (isset($classMap[$requestedClass])) {
-      class_alias($classMap[$requestedClass], $requestedClass);
-    }
-  });
-}
+  function registerClassAliases(array $classMap) {
+    spl_autoload_register(function($requestedClass) use ($classMap) {
+      if (isset($classMap[$requestedClass])) {
+        class_alias($classMap[$requestedClass], $requestedClass);
+      }
+    });
+  }
 
 registerClassAliases([
   'Civi\\Mixin\\UpgraderBaseV1\\Base' => 'CRM_Extension_Upgrader_Base',
