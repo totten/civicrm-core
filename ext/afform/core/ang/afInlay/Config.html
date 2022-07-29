@@ -1,0 +1,30 @@
+<div class="crm-container">
+  <h1 crm-page-title>{{ inlay.id ? ts('Edit Afform Inlay') : ts('New Afform Inlay')}}</h1>
+
+  <form name="configForm" crm-ui-id-scope>
+
+    <div crm-ui-debug="inlayType"></div>
+    <div crm-ui-debug="inlay"></div>
+    <div crm-ui-debug="afforms"></div>
+
+    <div crm-ui-field="{name: 'configForm.formName', title: ts('Afform Name')}">
+      <select
+        crm-ui-select="{allowClear:false, dropdownAutoWidth: true}"
+        ng-model="inlay.config.formName"
+        name="formName"
+        style="width: 100%"
+        ng-options="afformTitle(f) for f in afforms track by f.name"
+        ng-disabled="inlay.id > 0"
+        ng-change="inlay.name = afformTitle(afforms[inlay.config.formName])"
+        ng-required="true"
+        >
+      </select>
+    </div>
+
+    <div>
+      <button ng-click="save()">{{ts('Save')}}</button>
+    </div>
+
+  </form>
+
+</div>
