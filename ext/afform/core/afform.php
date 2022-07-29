@@ -33,6 +33,9 @@ function afform_civicrm_container($container) {
     'CRM_Afform_AfformScanner',
     []
   ))->setPublic(TRUE);
+
+  $container->findDefinition('dispatcher')
+    ->addMethodCall('addListener', ['hook_inlay_registerType', [Civi\Afform\AfformInlay::class, 'register']]);
 }
 
 /**
