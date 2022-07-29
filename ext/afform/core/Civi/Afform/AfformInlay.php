@@ -48,7 +48,19 @@ class AfformInlay extends \Civi\Inlay\Type {
 
     $region->render('', FALSE);
     foreach ($region->getAll() as $snippet) {
-      $writeln("TODO: Load resource \"%s\" (%s)", $snippet['name'], $snippet['type']);
+      switch ($snippet['type']) {
+        case 'styleUrl':
+        case 'scriptUrl':
+          $writeln("TODO: Load resource \"<a target=\"_blank\" href=\"%s\">%s</a>\" (%s)",
+            htmlentities($snippet[$snippet['type']]),
+            htmlentities($snippet['name']),
+            htmlentities($snippet['type']));
+          break;
+
+        default:
+          $writeln("TODO: Load resource \"%s\" (%s)", htmlentities($snippet['name']), htmlentities($snippet['type']));
+          break;
+      }
     }
 
     $region->clear();
