@@ -16,7 +16,9 @@ class AfformInlay extends \Civi\Inlay\Type {
   ];
 
   public function getInitData(): array {
-    return [];
+    return [
+      'init' => 'afInlayInit',
+    ];
   }
 
   public function processRequest(ApiRequest $request): array {
@@ -50,7 +52,7 @@ class AfformInlay extends \Civi\Inlay\Type {
     }
 
     $region->clear();
-    return $result;
+    return sprintf('window.afInlayInit = window.afInlayInit || function(){ %s };', $result);
   }
 
 }
