@@ -17,7 +17,7 @@ class AfformInlay extends \Civi\Inlay\Type {
 
   public function getInitData(): array {
     return [
-      'init' => 'afInlayInit',
+      'init' => $this->getInitFunc(),
     ];
   }
 
@@ -52,7 +52,12 @@ class AfformInlay extends \Civi\Inlay\Type {
     }
 
     $region->clear();
-    return sprintf('window.afInlayInit = window.afInlayInit || function(){ %s };', $result);
+    return sprintf('window.%s = window.%s || function(){ %s };', $this->getInitFunc(), $this->getInitFunc(), $result);
+  }
+
+  protected function getInitFunc(): string {
+    // If you have multiple inlays in the same page, each should have a different init function.
+    return 'init_' . $this->instanceData['public_id'];
   }
 
 }
