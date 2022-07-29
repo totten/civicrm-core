@@ -7,9 +7,9 @@
  * extension.
  */
 class CRM_Ewaysingle_ExtensionUtil {
-  const SHORT_NAME = "ewaysingle";
-  const LONG_NAME = "ewaysingle";
-  const CLASS_PREFIX = "CRM_Ewaysingle";
+  const SHORT_NAME = 'ewaysingle';
+  const LONG_NAME = 'ewaysingle';
+  const CLASS_PREFIX = 'CRM_Ewaysingle';
 
   /**
    * Translate a string using the extension's domain.

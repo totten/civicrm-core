@@ -7,9 +7,9 @@
  * extension.
  */
 class CRM_Financialacls_ExtensionUtil {
-  const SHORT_NAME = "financialacls";
-  const LONG_NAME = "financialacls";
-  const CLASS_PREFIX = "CRM_Financialacls";
+  const SHORT_NAME = 'financialacls';
+  const LONG_NAME = 'financialacls';
+  const CLASS_PREFIX = 'CRM_Financialacls';
 
   /**
    * Translate a string using the extension's domain.

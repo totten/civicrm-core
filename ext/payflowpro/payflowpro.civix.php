@@ -93,8 +93,7 @@ function _payflowpro_civix_civicrm_config(&$config = NULL) {
 
   $template = CRM_Core_Smarty::singleton();
 
-  $extRoot = __DIR__
-    . DIRECTORY_SEPARATOR;
+  $extRoot = __DIR__ . DIRECTORY_SEPARATOR;
   $extDir = $extRoot . 'templates';
 
   if (is_array($template->template_dir)) {

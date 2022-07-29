@@ -7,9 +7,9 @@
  * extension.
  */
 class CRM_Event_Cart_ExtensionUtil {
-  const SHORT_NAME = "eventcart";
-  const LONG_NAME = "eventcart";
-  const CLASS_PREFIX = "CRM_Event_Cart";
+  const SHORT_NAME = 'eventcart';
+  const LONG_NAME = 'eventcart';
+  const CLASS_PREFIX = 'CRM_Event_Cart';
 
   /**
    * Translate a string using the extension's domain.

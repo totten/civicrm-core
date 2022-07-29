@@ -21,6 +21,7 @@
   <comments>The Form Core extension is required to use any dynamic form. To administer and edit forms, also install the Form Builder extension.</comments>
   <civix>
     <namespace>CRM/Afform</namespace>
+    <format>22.05.2</format>
   </civix>
   <classloader>
     <psr4 prefix="Civi\" path="Civi"/>

@@ -7,9 +7,9 @@
  * extension.
  */
 class CRM_Flexmailer_ExtensionUtil {
-  const SHORT_NAME = "flexmailer";
-  const LONG_NAME = "org.civicrm.flexmailer";
-  const CLASS_PREFIX = "CRM_Flexmailer";
+  const SHORT_NAME = 'flexmailer';
+  const LONG_NAME = 'org.civicrm.flexmailer';
+  const CLASS_PREFIX = 'CRM_Flexmailer';
 
   /**
    * Translate a string using the extension's domain.

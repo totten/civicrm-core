@@ -36,5 +36,6 @@
   </mixins>
   <civix>
     <namespace>CRM/MessageAdmin</namespace>
+    <format>22.05.2</format>
   </civix>
 </extension>

@@ -7,9 +7,9 @@
  * extension.
  */
 class CRM_Greenwich_ExtensionUtil {
-  const SHORT_NAME = "greenwich";
-  const LONG_NAME = "greenwich";
-  const CLASS_PREFIX = "CRM_Greenwich";
+  const SHORT_NAME = 'greenwich';
+  const LONG_NAME = 'greenwich';
+  const CLASS_PREFIX = 'CRM_Greenwich';
 
   /**
    * Translate a string using the extension's domain.

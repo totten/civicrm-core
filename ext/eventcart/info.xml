@@ -30,5 +30,6 @@
   </mixins>
   <civix>
     <namespace>CRM/Event/Cart</namespace>
+    <format>22.05.2</format>
   </civix>
 </extension>

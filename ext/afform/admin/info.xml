@@ -25,6 +25,7 @@
   </requires>
   <civix>
     <namespace>CRM/AfformAdmin</namespace>
+    <format>22.05.2</format>
   </civix>
   <classloader>
     <psr4 prefix="Civi\" path="Civi"/>
