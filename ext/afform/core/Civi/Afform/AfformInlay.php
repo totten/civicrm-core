@@ -27,11 +27,15 @@ class AfformInlay extends \Civi\Inlay\Type {
 
   public function getExternalScript(): string {
     $result = '';
+    $result .= "var widgetNode = document.createElement('div');\n";
+    $result .= "function writeln(msg) {
+      const para = document.createElement('span');
+      para.innerHTML = msg + \"<br/>\\n\";
+      widgetNode.appendChild(para)
+    }";
 
     $writeln = function($msg, ...$args) use (&$result) {
-      $result .= sprintf("document.write(%s);\n", json_encode(
-        sprintf($msg, ...$args) . "<br/>\n"
-      ));
+      $result .= sprintf("writeln(%s);\n", json_encode(sprintf($msg, ...$args)));
     };
 
     $writeln('TODO: Render form "%s"', $this->config['formName']);
@@ -64,7 +68,8 @@ class AfformInlay extends \Civi\Inlay\Type {
     }
 
     $region->clear();
-    return sprintf('window.%s = window.%s || function(){ %s };', $this->getInitFunc(), $this->getInitFunc(), $result);
+    $result .= "inlay.script.insertAdjacentElement('afterend', widgetNode);\n";
+    return sprintf('window.%s = window.%s || function(inlay){ console.log("inlay", inlay); %s };', $this->getInitFunc(), $this->getInitFunc(), $result);
   }
 
   protected function getInitFunc(): string {
