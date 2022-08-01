@@ -4,6 +4,7 @@ namespace Civi\Afform;
 
 use Civi\Angular\AngularLoader;
 use Civi\Inlay\ApiRequest;
+use CRM_Afform_ExtensionUtil as E;
 
 class AfformInlay extends \Civi\Inlay\Type {
 
@@ -18,6 +19,7 @@ class AfformInlay extends \Civi\Inlay\Type {
   public function getInitData(): array {
     return [
       'init' => $this->getInitFunc(),
+      'resources' => iterator_to_array($this->filterResources($this->getResources($this->config['formName']))),
     ];
   }
 
@@ -27,49 +29,53 @@ class AfformInlay extends \Civi\Inlay\Type {
 
   public function getExternalScript(): string {
     $result = '';
-    $result .= "var widgetNode = document.createElement('div');\n";
-    $result .= "function writeln(msg) {
-      const para = document.createElement('span');
-      para.innerHTML = msg + \"<br/>\\n\";
-      widgetNode.appendChild(para)
-    }";
+    $result .= file_get_contents(E::path('js/resource-loader.js'));
+    $result .= "const ldr = new CrmResourceLoader();";
+    $result .= "ldr.addResources(inlay.initData.resources);";
+    $result .= "inlay.script.insertAdjacentElement('afterend', ldr.uiRoot);\n";
+    return sprintf('window.%s = window.%s || function(inlay){ console.log("inlay", inlay); %s };', $this->getInitFunc(), $this->getInitFunc(), $result);
+  }
 
-    $writeln = function($msg, ...$args) use (&$result) {
-      $result .= sprintf("writeln(%s);\n", json_encode(sprintf($msg, ...$args)));
-    };
+  protected function filterResources(iterable $snippets): iterable {
+    yield from [];
+    foreach ($snippets as $snippet) {
+      switch ($snippet['type']) {
+        case 'markup':
+        case 'styleUrl':
+        case 'scriptUrl':
+          yield ['t' => ucfirst($snippet['type']), 'u' => $snippet[$snippet['type']]];
+          break;
 
-    $writeln('TODO: Render form "%s"', $this->config['formName']);
+        case 'styleFile':
+        case 'scriptFile':
+          yield ['t' => 'Markup', 'u' => sprintf('<p>FIXME: Map scriptFile/styleFile to scriptUrl/styleUrl for %s</p>', htmlentities($snippet['name']))];
+          // yield [$snippet['type'] => $snippet[$snippet['type']]];
+          break;
 
-    $regionName = 'af-inlay-' . $this->config['formName'];
+        default:
+          // $writeln("TODO: Load resource \"%s\" (%s)", htmlentities($snippet['name']), htmlentities($snippet['type']));
+          break;
+      }
+    }
+  }
+
+  protected function getResources(string $moduleName): array {
+    $defaultMarkup = sprintf('<p>Render form "%s"</p>', $this->config['formName']);
+
+    $regionName = 'af-inlay-' . $moduleName;
     $region = \CRM_Core_Region::instance($regionName);
 
     $loader = new AngularLoader();
     $loader->setRegion($regionName);
-    $loader->setPageName($this->config['formName'] . '/inlay');
-    $loader->addModules($this->config['formName']);
+    $loader->setPageName('inlay/' . $moduleName);
+    $loader->addModules($moduleName);
     // $loader->useApp();
     \Civi::dispatcher()->addListener('civi.region.render', [$loader, 'onRegionRender']);
-
-    $region->render('', FALSE);
-    foreach ($region->getAll() as $snippet) {
-      switch ($snippet['type']) {
-        case 'styleUrl':
-        case 'scriptUrl':
-          $writeln("TODO: Load resource \"<a target=\"_blank\" href=\"%s\">%s</a>\" (%s)",
-            htmlentities($snippet[$snippet['type']]),
-            htmlentities($snippet['name']),
-            htmlentities($snippet['type']));
-          break;
-
-        default:
-          $writeln("TODO: Load resource \"%s\" (%s)", htmlentities($snippet['name']), htmlentities($snippet['type']));
-          break;
-      }
-    }
+    $region->render($defaultMarkup, FALSE);
+    $all = (array) $region->getAll();
 
     $region->clear();
-    $result .= "inlay.script.insertAdjacentElement('afterend', widgetNode);\n";
-    return sprintf('window.%s = window.%s || function(inlay){ console.log("inlay", inlay); %s };', $this->getInitFunc(), $this->getInitFunc(), $result);
+    return $all;
   }
 
   protected function getInitFunc(): string {
