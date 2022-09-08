@@ -33,6 +33,11 @@ spl_autoload_register(function($class) {
   }
 });
 
+register_shutdown_function(function() {
+  fprintf(STDERR, "HitOrMiss: %s\n", json_encode(\Civi\HitOrMiss::$counts, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+});
+
 // ------------------------------------------------------------------------------
 
 /**

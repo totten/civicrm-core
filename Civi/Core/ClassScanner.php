@@ -222,9 +222,11 @@ class ClassScanner {
       switch ($name) {
         case 'index':
           if (empty($_DB_DATAOBJECT['CONFIG'])) {
+            \Civi\HitOrMiss::inc('ClassScanner::cache(index) => Early usage');
             // Atypical example: You have a test with a @dataProvider that relies on ClassScanner. Runs before bot.
             return new \CRM_Utils_Cache_ArrayCache([]);
           }
+          \Civi\HitOrMiss::inc('ClassScanner::cache(index) => create(...)');
           static::$caches[$name] = \CRM_Utils_Cache::create([
             'name' => 'classes',
             'type' => ['*memory*', 'SqlGroup', 'ArrayCache'],
@@ -232,6 +234,7 @@ class ClassScanner {
           ]);
 
         case 'structure':
+          \Civi\HitOrMiss::inc('ClassScanner::cache(structure) => New arraycache');
           static::$caches[$name] = new \CRM_Utils_Cache_ArrayCache([]);
           break;
 
