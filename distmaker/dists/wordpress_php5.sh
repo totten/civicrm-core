@@ -25,6 +25,7 @@ dm_install_vendor "$SRC/vendor" "$TRG/civicrm/civicrm/vendor"
 dm_install_bower "$SRC/bower_components" "$TRG/civicrm/civicrm/bower_components"
 dm_install_wordpress "$SRC/WordPress" "$TRG/civicrm"
 dm_install_cvext com.iatspayments.civicrm "$TRG/civicrm/civicrm/ext/iatspayments"
+dm_generate_manifest "$TRG/civicrm/civicrm" >> "$TRG/civicrm/civicrm/.civicrm-manifest.json"
 
 # gen tarball
 cd $TRG
@@ -33,6 +34,7 @@ ${DM_ZIP:-zip} -r -9 $DM_TARGETDIR/civicrm-$DM_VERSION-wordpress.zip *
 # gen wporg tarball
 touch "$TRG/civicrm/civicrm/.use-civicrm-setup"
 cp "$TRG/civicrm/civicrm/setup/plugins/blocks/opt-in.disabled.php" "$TRG/civicrm/civicrm/setup/plugins/blocks/opt-in.civi-setup.php"
+dm_generate_manifest "$TRG" >> "$TRG/.civicrm-manifest.json"
 cd "$TRG"
 ${DM_ZIP:-zip} -r -9 $DM_TARGETDIR/civicrm-$DM_VERSION-wporg.zip *
 

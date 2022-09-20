@@ -229,6 +229,14 @@ function dm_install_wordpress() {
   dm_preg_edit "/^define\( *\'CIVICRM_PLUGIN_VERSION\', *'[0-9\.]+/m" "define('CIVICRM_PLUGIN_VERSION', '$DM_VERSION" "$to/civicrm.php"
 }
 
+## Generate a JSON manifest with a list of expected files.
+## The manifest will be outputted to STDOUT.
+## usage: dm_generate_manifest <repo_path>
+function dm_generate_manifest() {
+  ( for DIR in "$@" ; do pushd "$DIR" >> /dev/null ; find -type f ; popd  >> /dev/null ; done ) | ${DM_PHP:-php} -r \
+     '$fs=explode("\n", trim(stream_get_contents(STDIN))); $fs=preg_replace(";^\./;","",$fs); sort($fs); echo json_encode(["version"=>getenv("DM_VERSION"),"files"=>$fs],JSON_UNESCAPED_SLASHES);'
+}
+
 ## Generate the composer "vendor" folder
 ## usage: dm_generate_vendor <repo_path>
 function dm_generate_vendor() {

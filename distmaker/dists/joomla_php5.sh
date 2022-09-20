@@ -38,13 +38,16 @@ cd $DM_TMPDIR;
 
 # generate alt version of package
 cp -R -p civicrm com_civicrm/admin/civicrm
+dm_generate_manifest "com_civicrm/admin/civicrm" >> com_civicrm/admin/civicrm/.civicrm-manifest.json
 ${DM_PHP:-php} $DM_SOURCEDIR/distmaker/utils/joomlaxml.php $DM_SOURCEDIR com_civicrm $DM_VERSION alt
 ${DM_ZIP:-zip} -q -r -9 $DM_TARGETDIR/civicrm-$DM_VERSION-joomla-alt.zip com_civicrm
 rm -rf com_civicrm/admin/civicrm
 
 # generate zip version of civicrm.xml
 ${DM_PHP:-php} $DM_SOURCEDIR/distmaker/utils/joomlaxml.php $DM_SOURCEDIR com_civicrm $DM_VERSION zip
+dm_generate_manifest "civicrm" >> civicrm/.civicrm-manifest.json
 ${DM_ZIP:-zip} -q -r -9 com_civicrm/admin/civicrm.zip civicrm
+rm -f civicrm/.civicrm-manifest.json
 ${DM_ZIP:-zip} -q -r -9 $DM_TARGETDIR/civicrm-$DM_VERSION-joomla.zip com_civicrm -x 'com_civicrm/admin/civicrm'
 
 # clean up

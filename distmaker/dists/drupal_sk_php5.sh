@@ -34,6 +34,8 @@ rm -rf $TRG/packages/jquery
 rm -rf $TRG/packages/ckeditor
 rm -rf $TRG/packages/tinymce
 
+dm_generate_manifest "$TRG" >> "$TRG/.civicrm-manifest.json"
+
 # gen tarball
 cd $TRG/..
 dm_assert_no_symlinks civicrm
