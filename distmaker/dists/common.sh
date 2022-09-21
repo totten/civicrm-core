@@ -234,7 +234,8 @@ function dm_install_wordpress() {
 ## usage: dm_generate_manifest <repo_path>
 function dm_generate_manifest() {
   ( for DIR in "$@" ; do pushd "$DIR" >> /dev/null ; find -type f ; popd  >> /dev/null ; done ) | ${DM_PHP:-php} -r \
-     '$fs=explode("\n", trim(stream_get_contents(STDIN))); $fs=preg_replace(";^\./;","",$fs); sort($fs); echo json_encode(["version"=>getenv("DM_VERSION"),"files"=>$fs],JSON_UNESCAPED_SLASHES);'
+     '$fs=explode("\n", trim(stream_get_contents(STDIN))); $fs=preg_replace(";^\./;","",$fs); $ds=[]; foreach ($fs as $f) $ds[dirname($f)][]=basename($f); ksort($ds); echo json_encode(["version"=>getenv("DM_VERSION"),"files"=>$ds],JSON_UNESCAPED_SLASHES);'
+  ## The list is pretty long (~800kb as a flat list). Grouping by folder reduces size by ~50%.
 }
 
 ## Generate the composer "vendor" folder
