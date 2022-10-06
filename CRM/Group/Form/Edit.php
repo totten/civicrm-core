@@ -345,6 +345,9 @@ WHERE  title = %1
       $updateNestingCache = TRUE;
     }
     else {
+      if (CIVICRM_UF === 'WordPress') {
+        throw new \RuntimeException("Gadzooks!");
+      }
       // store the submitted values in an array
       $params = $this->controller->exportValues($this->_name);
       if ($this->_action & CRM_Core_Action::UPDATE) {
