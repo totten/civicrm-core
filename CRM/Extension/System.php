@@ -215,6 +215,7 @@ class CRM_Extension_System {
         'report' => new CRM_Extension_Manager_Report(),
         'search' => new CRM_Extension_Manager_Search(),
         'module' => new CRM_Extension_Manager_Module($this->getMapper()),
+        'component' => new CRM_Extension_Manager_Component(),
       ];
       $this->manager = new CRM_Extension_Manager($this->getFullContainer(), $this->getDefaultContainer(), $this->getMapper(), $typeManagers);
     }

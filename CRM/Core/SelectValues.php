@@ -792,6 +792,7 @@ class CRM_Core_SelectValues {
    */
   public static function getExtensionTypes() {
     return [
+      'component' => ts('Component'),
       'payment' => ts('Payment'),
       'search' => ts('Search'),
       'report' => ts('Report'),
