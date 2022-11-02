@@ -25,7 +25,7 @@
     <name>type</name>
     <title>Type</title>
     <type>varchar</type>
-    <length>8</length>
+    <length>16</length><!-- FIXME: alter table civicrm_extension modify column type varchar(16)  -->
     <required>true</required>
     <comment></comment>
     <pseudoconstant>
