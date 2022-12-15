@@ -35,6 +35,7 @@
  * @package   CiviCRM
  */
 class CRM_AllTests extends CiviTestSuite {
+
   private static $instance = NULL;
 
   /**
@@ -51,7 +52,18 @@ class CRM_AllTests extends CiviTestSuite {
    */
   public static function suite() {
     $inst = self::getInstance();
-    return $inst->implSuite(__FILE__);
+
+    $c = new ReflectionClass(CRM_Contribute_Import_Parser_ContributionTest::class);
+    $inst->addTestMethod($c, $c->getMethod('testEnableExtension'));
+
+    $c = new ReflectionClass(CRM_Contribute_Form_AdditionalPaymentTest::class);
+    $inst->addTestMethod($c, $c->getMethod('testAddPaymentUsingCreditCardForPartiallyPaidContribution'));
+
+    $c = new ReflectionClass(\api\v4\Entity\ConformanceTest::class);
+    $inst->addTestMethod($c, $c->getMethod('testEntitiesProvider'));
+
+    // return $inst->implSuite(__FILE__);
+    return $inst;
   }
 
 }
