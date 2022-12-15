@@ -343,6 +343,11 @@ class CiviUnitTestCase extends PHPUnit\Framework\TestCase {
 
     Civi\Test::data()->populate();
 
+    // Fix a bug in large test-runs with heterogeneous suites (where you go back/forth between
+    // `CiviUnitTestCase` and `CiviEnvBuilder`). The next line tells `CiviEnvBuilder` that
+    // the environment has been changed -- and it will need to do its own reset.
+    Civi\Test::unruly();
+
     return TRUE;
   }
 

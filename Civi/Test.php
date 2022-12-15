@@ -150,6 +150,26 @@ class Test {
   }
 
   /**
+   * Mark the current test as unruly.
+   *
+   * This means that the test database is likely to be in a weird, complicated, bespoke
+   * condition -- and the test database should be thoroughly reset before you run another test.
+   *
+   * For example, if a test installs a series of 5 inter-dependent extensions or managed-entities,
+   * then removing them may require a bunch of steps. Similarly, if a test arbitrarily drops tables
+   * (to simulate error-conditions), then restoring may be complicated.
+   *
+   * For contrast, a well-defined suite would have a clear baseline that is reused+maintained
+   * across several related test-functions.
+   */
+  public static function unruly(): void {
+    if (in_array('civitest_revs', static::schema()->getTables('BASE TABLE'))) {
+      // Invalidate the active system-signature. The next time we hit CiviEnvBuilder::apply(), it will re-initialize.
+      static::pdo()->exec('TRUNCATE TABLE civitest_revs');
+    }
+  }
+
+  /**
    * @return \Civi\Test\Schema
    */
   public static function schema() {
