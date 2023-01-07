@@ -3,6 +3,7 @@
 namespace Civi\Core;
 
 use Civi\Core\Exception\UnknownAssetException;
+use Civi\Crypto\Exception\CryptoException;
 
 /**
  * Class AssetBuilder
@@ -281,15 +282,47 @@ class AssetBuilder extends \Civi\Core\Service\AutoService {
    * @return string
    */
   protected function digest($name, $params) {
-    // WISHLIST: For secure digest, generate+persist privatekey & call hash_hmac.
     ksort($params);
-    $digest = md5(
-      $name .
-      \CRM_Core_Resources::singleton()->getCacheCode() .
-      \CRM_Core_Config_Runtime::getId() .
-      json_encode($params)
-    );
-    return $digest;
+
+    try {
+      $signingKey = \Civi::service('crypto.registry')->findKey('SIGN');
+      return hash_hmac('md5', json_encode([
+        $name,
+        \CRM_Core_Resources::singleton()->getCacheCode(),
+        \CRM_Core_BAO_Domain::getDomain()->id,
+        \CRM_Utils_System::version(),
+        $params,
+      ]), $signingKey['key']);
+    }
+    catch (CryptoException $e) {
+      // Some upgraded sites may not have a SIGNing key, and the system needs to be sufficiently
+      // operational that the sysadmin can see messages instructing them on how to update.
+      // Fallback to old algorithm.
+
+      return md5(
+        $name .
+        \CRM_Core_Resources::singleton()->getCacheCode() .
+        \CRM_Core_Config_Runtime::getId() .
+        json_encode($params)
+      );
+
+      // This code-path is not good, but it's better than nothing, and the near-term problems are limited.
+      //
+      // 1. After upgrading, there's a status-check telling you to set the SIGN'ing key.
+      //    After you follow the advice, this code-path becomes inert.
+      // 2. If the digest is hacked, the current worst-case is that someone may request a few JS/CSS/JSON
+      //    assets with different inputs. For current assets and the default Same Origin Policy,
+      //    we have not found a compelling exploit. This protection is mostly about preventing
+      //    problems with future assets.
+      // 3. This relies on the secrecy of the runtime ID. The value is "secret" insofar as it is
+      //    not published in a browse-able way, and some of its inputs (CIVICRM_DSN) are secret.
+      //    However, "runtime ID" sounds innocuous. Future developers may not realize that it
+      //    should be kept secret. Getting away from this should prevent problems with future assets.
+      // 4. The runtime ID changes more often than we need. Ex: When running `E2E\Core\AssetBuilderTest`,
+      //    the different processes (`phpunit8`, `php-fpm`) have different runtime IDs.
+      //    It's not feasible for phpunit to send a well-formed request to php-fpm. This leads to
+      //    failures (e.g. for the Guzzle-based `testInvalid()`).
+    }
   }
 
   /**
