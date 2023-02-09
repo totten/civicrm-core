@@ -510,7 +510,7 @@
   </item>
   <item>
      <path>civicrm/admin/options/safe_file_extension</path>
-     <title>Safe File Extension Options</title>
+     <title>File Types</title>
      <desc>File Extensions that can be considered safe.</desc>
      <page_callback>CRM_Admin_Page_Options</page_callback>
      <adminGroup>System Settings</adminGroup>

@@ -372,7 +372,7 @@ VALUES
     ( @domainID, 'civicrm/admin/setting/smtp?reset=1',                  '{ts escape="sql" skip="true"}Outbound Email (SMTP/Sendmail){/ts}', 'Outbound Email',                   'administer CiviCRM', '', @systemSettingslastID, '1', NULL, 13 ),
     ( @domainID, 'civicrm/admin/paymentProcessor?reset=1',              '{ts escape="sql" skip="true"}Payment Processors{/ts}', 'Payment Processors',                           'administer CiviCRM', '', @systemSettingslastID, '1', NULL, 14 ),
     ( @domainID, 'civicrm/admin/setting/url?reset=1',                   '{ts escape="sql" skip="true"}Resource URLs{/ts}',      'Resource URLs',                                'administer CiviCRM', '', @systemSettingslastID, '1', NULL, 15 ),
-    ( @domainID, 'civicrm/admin/options/safe_file_extension?reset=1', '{ts escape="sql" skip="true"}Safe File Extensions{/ts}', 'Safe File Extensions','administer CiviCRM', '',@systemSettingslastID, '1', NULL, 16 ),
+    ( @domainID, 'civicrm/admin/options/safe_file_extension?reset=1', '{ts escape="sql" skip="true"}File Types{/ts}', 'File Types','administer CiviCRM', '',@systemSettingslastID, '1', NULL, 16 ),
     ( @domainID, 'civicrm/admin/job?reset=1',                           '{ts escape="sql" skip="true"}Scheduled Jobs{/ts}', 'Scheduled Jobs',                                   'administer CiviCRM', '', @systemSettingslastID, '1', NULL, 17 ),
     ( @domainID, 'civicrm/admin/sms/provider?reset=1', '{ts escape="sql" skip="true"}SMS Providers{/ts}', 'SMS Providers',                                  'administer CiviCRM', '', @systemSettingslastID, '1', NULL, 18 );
 

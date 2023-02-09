@@ -158,7 +158,7 @@ VALUES
    ('case_type'                     , '{ts escape="sql"}Case Type{/ts}'                          , NULL,      1, 1, 0, 'name,label,description', NULL),
    ('case_status'                   , '{ts escape="sql"}Case Status{/ts}'                        , NULL,      1, 1, 0, 'name,label,description,color', NULL),
    ('participant_listing'           , '{ts escape="sql"}Participant Listing{/ts}'                , NULL,      1, 1, 0, 'name,label,description', NULL),
-   ('safe_file_extension'           , '{ts escape="sql"}Safe File Extension{/ts}'                , NULL,      1, 1, 0, 'name,label,description', NULL),
+   ('safe_file_extension'           , '{ts escape="sql"}File Type{/ts}'                          , NULL,      1, 1, 0, 'name,label,description', NULL),
    ('from_email_address'            , '{ts escape="sql"}From Email Address{/ts}'                 , NULL,      1, 1, 0, 'name,label,description',
      '{ts escape="sql"}By default, CiviCRM uses the primary email address of the logged in user as the FROM address when sending emails to contacts. However, you can use this page to define one or more general Email Addresses that can be selected as an alternative. EXAMPLE: "Client Services" <clientservices@example.org>.{/ts}'),
    ('mapping_type'                  , '{ts escape="sql"}Mapping Type{/ts}'                       , NULL,      1, 1, 1, 'name,label,description', NULL),
