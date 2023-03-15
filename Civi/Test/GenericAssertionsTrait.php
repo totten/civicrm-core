@@ -2,6 +2,9 @@
 
 namespace Civi\Test;
 
+use PHPUnit\Framework\Constraint\LogicalNot;
+use PHPUnit\Framework\Constraint\RegularExpression;
+
 /**
  * Class ExtraAssertionsTrait
  * @package Civi\Test
@@ -10,6 +13,30 @@ namespace Civi\Test;
  * the default (`assertEquals()`, `assertTrue()`) but *not* domain specific.
  */
 trait GenericAssertionsTrait {
+
+  /**
+   * Asserts that a string matches a regular expression.
+   *
+   * This is equivalent to assertRegexp() or assertMatchesRegularlyExpressionalString(),
+   * but is more version-safe.
+   */
+  public static function assertRegex(string $pattern, string $string, string $message = ''): void {
+    static::assertThat($string, new RegularExpression($pattern), $message);
+  }
+
+  /**
+   * Asserts that a string does not match a given regular expression.
+   *
+   * This is equivalent to assertRegexp() or assertMatchesRegularlyExpressionalString(),
+   * but is more version-safe.
+   */
+  public static function assertNotRegex(string $pattern, string $string, string $message = ''): void {
+    static::assertThat(
+      $string,
+      new LogicalNot(new RegularExpression($pattern)),
+      $message
+    );
+  }
 
   /**
    * @param string $expected
