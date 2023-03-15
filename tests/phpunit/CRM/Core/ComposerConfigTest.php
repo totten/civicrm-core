@@ -6,6 +6,8 @@
  */
 class CRM_Core_ComposerConfigTest extends \PHPUnit\Framework\TestCase {
 
+  use Civi\Test\GenericAssertionsTrait;
+
   /**
    * Assert that `composer.lock` remains as expected.
    *
@@ -34,7 +36,7 @@ class CRM_Core_ComposerConfigTest extends \PHPUnit\Framework\TestCase {
 
     foreach ($lock['packages'] as $package) {
       if (isset($hardLocks[$package['name']])) {
-        $this->assertRegExp($hardLocks[$package['name']], $package['version'],
+        $this->assertRegex($hardLocks[$package['name']], $package['version'],
           "Check hardlock for " . $package['name']);
         unset($hardLocks[$package['name']]);
       }

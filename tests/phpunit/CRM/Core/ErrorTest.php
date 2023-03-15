@@ -41,7 +41,7 @@ class CRM_Core_ErrorTest extends CiviUnitTestCase {
   public function testFormatBacktrace_debug() {
     $bt = debug_backtrace();
     $msg = CRM_Core_Error::formatBacktrace($bt);
-    $this->assertRegexp('/CRM_Core_ErrorTest->testFormatBacktrace_debug/', $msg);
+    $this->assertRegex('/CRM_Core_ErrorTest->testFormatBacktrace_debug/', $msg);
   }
 
   /**
@@ -50,7 +50,7 @@ class CRM_Core_ErrorTest extends CiviUnitTestCase {
   public function testFormatBacktrace_exception() {
     $e = new Exception('foo');
     $msg = CRM_Core_Error::formatBacktrace($e->getTrace());
-    $this->assertRegexp('/CRM_Core_ErrorTest->testFormatBacktrace_exception/', $msg);
+    $this->assertRegex('/CRM_Core_ErrorTest->testFormatBacktrace_exception/', $msg);
   }
 
   public function testExceptionLogging() {
@@ -92,7 +92,7 @@ class CRM_Core_ErrorTest extends CiviUnitTestCase {
     $logFiles = glob($config->configAndLogDir . '/CiviCRM*.log');
     $this->assertEquals(1, count($logFiles), 'Expect to find 1 file matching: ' . $config->configAndLogDir . '/CiviCRM*log*/');
     foreach ($logFiles as $logFile) {
-      $this->assertRegexp($pattern, file_get_contents($logFile));
+      $this->assertRegex($pattern, file_get_contents($logFile));
     }
   }
 
