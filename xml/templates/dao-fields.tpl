@@ -1,26 +1,6 @@
 <?php
-/**
- * @package CRM
- * @copyright CiviCRM LLC https://civicrm.org/licensing
- *
- * Generated from {$table.sourceFile}
- * {$generated}
- * (GenCodeChecksum:{$genCodeChecksum})
- */
-{if isset($useHelper)}{$useHelper}{/if}
-/**
- * Database access object for the {$table.entity} entity.
- */
-class {$table.className}_Fields {ldelim}
 
-      /**
-       * Returns all the column names of this table
-       *
-       * @return array
-       */
-      public static function &fields( ) {ldelim}
-        if ( ! isset(Civi::$statics[__CLASS__]['fields']) ) {ldelim}
-          Civi::$statics[__CLASS__]['fields'] = array(
+return array(
 {foreach from=$table.fields item=field}
 
 {if $field.uniqueName}
@@ -116,10 +96,4 @@ class {$table.className}_Fields {ldelim}
   'add' => {if $field.add}'{$field.add}'{else}NULL{/if},
 ),
 {/foreach} {* table.fields *}
-                                      );
-            CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-          {rdelim}
-          return Civi::$statics[__CLASS__]['fields'];
-      {rdelim}
-
-{rdelim}
+];

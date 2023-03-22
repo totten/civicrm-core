@@ -148,7 +148,11 @@ class {$table.className} extends CRM_Core_DAO {ldelim}
        * @return array
        */
       public static function &fields( ) {ldelim}
-        return {$table.className}_Fields::fields();
+        if ( ! isset(Civi::$statics[__CLASS__]['fields']) ) {ldelim}
+          Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+          CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+        {rdelim}
+        return Civi::$statics[__CLASS__]['fields'];
       {rdelim}
 
       /**
