@@ -144,6 +144,13 @@ class CRM_Core_ClassLoader {
    * @param $class
    */
   public function loadClass($class) {
+    if (str_ends_with($class, '_Fields') || str_contains($class, '_DAO_')) {
+      if (!preg_match(';CRM_(Afform|Volunteer|Civirules|Mosaico|Search);', $class)) {
+        $msg = sprintf("[%s] Load %s\n", CRM_Utils_Request::id(), $class);
+        file_put_contents('/tmp/DAOLog', $msg, FILE_APPEND);
+      }
+    }
+
     if ($class === 'CiviCRM_API3_Exception' || $class === 'API_Exception') {
       //call internal error class api/Exception first
       // allow api/Exception class call external error class

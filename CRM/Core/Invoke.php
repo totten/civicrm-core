@@ -9,6 +9,12 @@
  +--------------------------------------------------------------------+
  */
 
+register_shutdown_function(function(){
+
+  $msg = sprintf("[%s] Memory: end=%s peak=%s\n", CRM_Utils_Request::id(), number_format(memory_get_usage()), number_format(memory_get_peak_usage()));
+  file_put_contents('/tmp/DAOLog', $msg, FILE_APPEND);
+});
+
 /**
  *
  * Given an argument list, invoke the appropriate CRM function
