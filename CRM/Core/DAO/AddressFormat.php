@@ -72,41 +72,7 @@ class CRM_Core_DAO_AddressFormat extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Address Format ID'),
-          'description' => ts('Address Format ID'),
-          'required' => TRUE,
-          'where' => 'civicrm_address_format.id',
-          'table_name' => 'civicrm_address_format',
-          'entity' => 'AddressFormat',
-          'bao' => 'CRM_Core_DAO_AddressFormat',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => '3.2',
-        ],
-        'format' => [
-          'name' => 'format',
-          'type' => CRM_Utils_Type::T_TEXT,
-          'title' => ts('Address Format'),
-          'description' => ts('The format of an address'),
-          'where' => 'civicrm_address_format.format',
-          'table_name' => 'civicrm_address_format',
-          'entity' => 'AddressFormat',
-          'bao' => 'CRM_Core_DAO_AddressFormat',
-          'localizable' => 0,
-          'add' => '3.2',
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Core_DAO_AddressFormat_Fields::fields();
   }
 
   /**

@@ -106,73 +106,7 @@ class CRM_Core_DAO_EntityFile extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Entity File ID'),
-          'description' => ts('primary key'),
-          'required' => TRUE,
-          'where' => 'civicrm_entity_file.id',
-          'table_name' => 'civicrm_entity_file',
-          'entity' => 'EntityFile',
-          'bao' => 'CRM_Core_DAO_EntityFile',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => '1.5',
-        ],
-        'entity_table' => [
-          'name' => 'entity_table',
-          'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Entity Table'),
-          'description' => ts('physical tablename for entity being joined to file, e.g. civicrm_contact'),
-          'maxlength' => 64,
-          'size' => CRM_Utils_Type::BIG,
-          'where' => 'civicrm_entity_file.entity_table',
-          'table_name' => 'civicrm_entity_file',
-          'entity' => 'EntityFile',
-          'bao' => 'CRM_Core_DAO_EntityFile',
-          'localizable' => 0,
-          'add' => '1.5',
-        ],
-        'entity_id' => [
-          'name' => 'entity_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Entity ID'),
-          'description' => ts('FK to entity table specified in entity_table column.'),
-          'required' => TRUE,
-          'where' => 'civicrm_entity_file.entity_id',
-          'table_name' => 'civicrm_entity_file',
-          'entity' => 'EntityFile',
-          'bao' => 'CRM_Core_DAO_EntityFile',
-          'localizable' => 0,
-          'add' => '1.5',
-        ],
-        'file_id' => [
-          'name' => 'file_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('File ID'),
-          'description' => ts('FK to civicrm_file'),
-          'required' => TRUE,
-          'where' => 'civicrm_entity_file.file_id',
-          'table_name' => 'civicrm_entity_file',
-          'entity' => 'EntityFile',
-          'bao' => 'CRM_Core_DAO_EntityFile',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Core_DAO_File',
-          'html' => [
-            'label' => ts("File"),
-          ],
-          'add' => '1.5',
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Core_DAO_EntityFile_Fields::fields();
   }
 
   /**

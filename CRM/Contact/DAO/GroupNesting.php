@@ -97,63 +97,7 @@ class CRM_Contact_DAO_GroupNesting extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Group Nesting ID'),
-          'description' => ts('Relationship ID'),
-          'required' => TRUE,
-          'where' => 'civicrm_group_nesting.id',
-          'table_name' => 'civicrm_group_nesting',
-          'entity' => 'GroupNesting',
-          'bao' => 'CRM_Contact_BAO_GroupNesting',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => '2.0',
-        ],
-        'child_group_id' => [
-          'name' => 'child_group_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Child Group ID'),
-          'description' => ts('ID of the child group'),
-          'required' => TRUE,
-          'where' => 'civicrm_group_nesting.child_group_id',
-          'table_name' => 'civicrm_group_nesting',
-          'entity' => 'GroupNesting',
-          'bao' => 'CRM_Contact_BAO_GroupNesting',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Contact_DAO_Group',
-          'html' => [
-            'label' => ts("Child Group"),
-          ],
-          'add' => '2.0',
-        ],
-        'parent_group_id' => [
-          'name' => 'parent_group_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Parent Group ID'),
-          'description' => ts('ID of the parent group'),
-          'required' => TRUE,
-          'where' => 'civicrm_group_nesting.parent_group_id',
-          'table_name' => 'civicrm_group_nesting',
-          'entity' => 'GroupNesting',
-          'bao' => 'CRM_Contact_BAO_GroupNesting',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Contact_DAO_Group',
-          'html' => [
-            'label' => ts("Parent Group"),
-          ],
-          'add' => '2.0',
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Contact_DAO_GroupNesting_Fields::fields();
   }
 
   /**

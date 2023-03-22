@@ -95,60 +95,7 @@ class CRM_Mailing_Event_DAO_MailingEventDelivered extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Delivered ID'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_event_delivered.id',
-          'table_name' => 'civicrm_mailing_event_delivered',
-          'entity' => 'MailingEventDelivered',
-          'bao' => 'CRM_Mailing_Event_BAO_MailingEventDelivered',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-            'label' => ts("ID"),
-          ],
-          'readonly' => TRUE,
-          'add' => NULL,
-        ],
-        'event_queue_id' => [
-          'name' => 'event_queue_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Event Queue ID'),
-          'description' => ts('FK to EventQueue'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_event_delivered.event_queue_id',
-          'table_name' => 'civicrm_mailing_event_delivered',
-          'entity' => 'MailingEventDelivered',
-          'bao' => 'CRM_Mailing_Event_BAO_MailingEventDelivered',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Mailing_Event_DAO_MailingEventQueue',
-          'html' => [
-            'label' => ts("Recipient"),
-          ],
-          'add' => NULL,
-        ],
-        'time_stamp' => [
-          'name' => 'time_stamp',
-          'type' => CRM_Utils_Type::T_TIMESTAMP,
-          'title' => ts('Timestamp'),
-          'description' => ts('When this delivery event occurred.'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_event_delivered.time_stamp',
-          'default' => 'CURRENT_TIMESTAMP',
-          'table_name' => 'civicrm_mailing_event_delivered',
-          'entity' => 'MailingEventDelivered',
-          'bao' => 'CRM_Mailing_Event_BAO_MailingEventDelivered',
-          'localizable' => 0,
-          'add' => NULL,
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Mailing_Event_DAO_MailingEventDelivered_Fields::fields();
   }
 
   /**

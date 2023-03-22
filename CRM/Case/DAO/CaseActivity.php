@@ -98,63 +98,7 @@ class CRM_Case_DAO_CaseActivity extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Case Activity ID'),
-          'description' => ts('Unique case-activity association id'),
-          'required' => TRUE,
-          'where' => 'civicrm_case_activity.id',
-          'table_name' => 'civicrm_case_activity',
-          'entity' => 'CaseActivity',
-          'bao' => 'CRM_Case_DAO_CaseActivity',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => '1.8',
-        ],
-        'case_id' => [
-          'name' => 'case_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Case ID'),
-          'description' => ts('Case ID of case-activity association.'),
-          'required' => TRUE,
-          'where' => 'civicrm_case_activity.case_id',
-          'table_name' => 'civicrm_case_activity',
-          'entity' => 'CaseActivity',
-          'bao' => 'CRM_Case_DAO_CaseActivity',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Case_DAO_Case',
-          'html' => [
-            'label' => ts("Case"),
-          ],
-          'add' => '1.8',
-        ],
-        'activity_id' => [
-          'name' => 'activity_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Activity ID'),
-          'description' => ts('Activity ID of case-activity association.'),
-          'required' => TRUE,
-          'where' => 'civicrm_case_activity.activity_id',
-          'table_name' => 'civicrm_case_activity',
-          'entity' => 'CaseActivity',
-          'bao' => 'CRM_Case_DAO_CaseActivity',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Activity_DAO_Activity',
-          'html' => [
-            'label' => ts("Activity"),
-          ],
-          'add' => '2.0',
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Case_DAO_CaseActivity_Fields::fields();
   }
 
   /**

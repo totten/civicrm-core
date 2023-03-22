@@ -95,64 +95,7 @@ class CRM_Mailing_DAO_BouncePattern extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Bounce Pattern ID'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_bounce_pattern.id',
-          'table_name' => 'civicrm_mailing_bounce_pattern',
-          'entity' => 'BouncePattern',
-          'bao' => 'CRM_Mailing_BAO_BouncePattern',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => NULL,
-        ],
-        'bounce_type_id' => [
-          'name' => 'bounce_type_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Bounce Type ID'),
-          'description' => ts('Type of bounce'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_bounce_pattern.bounce_type_id',
-          'table_name' => 'civicrm_mailing_bounce_pattern',
-          'entity' => 'BouncePattern',
-          'bao' => 'CRM_Mailing_BAO_BouncePattern',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Mailing_DAO_BounceType',
-          'html' => [
-            'label' => ts("Bounce Type"),
-          ],
-          'pseudoconstant' => [
-            'table' => 'civicrm_mailing_bounce_type',
-            'keyColumn' => 'id',
-            'labelColumn' => 'name',
-          ],
-          'add' => NULL,
-        ],
-        'pattern' => [
-          'name' => 'pattern',
-          'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Pattern'),
-          'description' => ts('A regexp to match a message to a bounce type'),
-          'maxlength' => 255,
-          'size' => CRM_Utils_Type::HUGE,
-          'where' => 'civicrm_mailing_bounce_pattern.pattern',
-          'table_name' => 'civicrm_mailing_bounce_pattern',
-          'entity' => 'BouncePattern',
-          'bao' => 'CRM_Mailing_BAO_BouncePattern',
-          'localizable' => 0,
-          'add' => NULL,
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Mailing_DAO_BouncePattern_Fields::fields();
   }
 
   /**

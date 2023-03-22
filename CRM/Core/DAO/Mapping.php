@@ -90,76 +90,7 @@ class CRM_Core_DAO_Mapping extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Mapping ID'),
-          'description' => ts('Mapping ID'),
-          'required' => TRUE,
-          'where' => 'civicrm_mapping.id',
-          'table_name' => 'civicrm_mapping',
-          'entity' => 'Mapping',
-          'bao' => 'CRM_Core_BAO_Mapping',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => '1.2',
-        ],
-        'name' => [
-          'name' => 'name',
-          'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Mapping Name'),
-          'description' => ts('Name of Mapping'),
-          'maxlength' => 64,
-          'size' => CRM_Utils_Type::BIG,
-          'where' => 'civicrm_mapping.name',
-          'table_name' => 'civicrm_mapping',
-          'entity' => 'Mapping',
-          'bao' => 'CRM_Core_BAO_Mapping',
-          'localizable' => 0,
-          'add' => '1.2',
-        ],
-        'description' => [
-          'name' => 'description',
-          'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Description'),
-          'description' => ts('Description of Mapping.'),
-          'maxlength' => 255,
-          'size' => CRM_Utils_Type::HUGE,
-          'where' => 'civicrm_mapping.description',
-          'table_name' => 'civicrm_mapping',
-          'entity' => 'Mapping',
-          'bao' => 'CRM_Core_BAO_Mapping',
-          'localizable' => 0,
-          'add' => '1.2',
-        ],
-        'mapping_type_id' => [
-          'name' => 'mapping_type_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Mapping Type'),
-          'description' => ts('Mapping Type'),
-          'where' => 'civicrm_mapping.mapping_type_id',
-          'table_name' => 'civicrm_mapping',
-          'entity' => 'Mapping',
-          'bao' => 'CRM_Core_BAO_Mapping',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Select',
-          ],
-          'pseudoconstant' => [
-            'optionGroupName' => 'mapping_type',
-            'optionEditPath' => 'civicrm/admin/options/mapping_type',
-          ],
-          'add' => '2.1',
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Core_DAO_Mapping_Fields::fields();
   }
 
   /**

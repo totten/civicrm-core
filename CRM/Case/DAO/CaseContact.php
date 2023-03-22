@@ -98,64 +98,7 @@ class CRM_Case_DAO_CaseContact extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Case Contact ID'),
-          'description' => ts('Unique case-contact association id'),
-          'required' => TRUE,
-          'where' => 'civicrm_case_contact.id',
-          'table_name' => 'civicrm_case_contact',
-          'entity' => 'CaseContact',
-          'bao' => 'CRM_Case_BAO_CaseContact',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => '2.1',
-        ],
-        'case_id' => [
-          'name' => 'case_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Case ID'),
-          'description' => ts('Case ID of case-contact association.'),
-          'required' => TRUE,
-          'where' => 'civicrm_case_contact.case_id',
-          'table_name' => 'civicrm_case_contact',
-          'entity' => 'CaseContact',
-          'bao' => 'CRM_Case_BAO_CaseContact',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Case_DAO_Case',
-          'html' => [
-            'label' => ts("Case"),
-          ],
-          'add' => '2.1',
-        ],
-        'contact_id' => [
-          'name' => 'contact_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Contact ID'),
-          'description' => ts('Contact ID of contact record given case belongs to.'),
-          'required' => TRUE,
-          'where' => 'civicrm_case_contact.contact_id',
-          'table_name' => 'civicrm_case_contact',
-          'entity' => 'CaseContact',
-          'bao' => 'CRM_Case_BAO_CaseContact',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Contact_DAO_Contact',
-          'html' => [
-            'type' => 'EntityRef',
-            'label' => ts("Contact"),
-          ],
-          'add' => '2.1',
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Case_DAO_CaseContact_Fields::fields();
   }
 
   /**

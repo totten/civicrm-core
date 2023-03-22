@@ -89,70 +89,7 @@ class CRM_Mailing_DAO_BounceType extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Bounce Type ID'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_bounce_type.id',
-          'table_name' => 'civicrm_mailing_bounce_type',
-          'entity' => 'BounceType',
-          'bao' => 'CRM_Mailing_DAO_BounceType',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => NULL,
-        ],
-        'name' => [
-          'name' => 'name',
-          'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Bounce Type Name'),
-          'description' => ts('Type of bounce'),
-          'required' => TRUE,
-          'maxlength' => 255,
-          'size' => CRM_Utils_Type::HUGE,
-          'where' => 'civicrm_mailing_bounce_type.name',
-          'table_name' => 'civicrm_mailing_bounce_type',
-          'entity' => 'BounceType',
-          'bao' => 'CRM_Mailing_DAO_BounceType',
-          'localizable' => 0,
-          'add' => NULL,
-        ],
-        'description' => [
-          'name' => 'description',
-          'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Bounce Type Description'),
-          'description' => ts('A description of this bounce type'),
-          'maxlength' => 2048,
-          'size' => CRM_Utils_Type::HUGE,
-          'where' => 'civicrm_mailing_bounce_type.description',
-          'table_name' => 'civicrm_mailing_bounce_type',
-          'entity' => 'BounceType',
-          'bao' => 'CRM_Mailing_DAO_BounceType',
-          'localizable' => 0,
-          'add' => NULL,
-        ],
-        'hold_threshold' => [
-          'name' => 'hold_threshold',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Hold Threshold'),
-          'description' => ts('Number of bounces of this type required before the email address is put on bounce hold'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_bounce_type.hold_threshold',
-          'table_name' => 'civicrm_mailing_bounce_type',
-          'entity' => 'BounceType',
-          'bao' => 'CRM_Mailing_DAO_BounceType',
-          'localizable' => 0,
-          'add' => NULL,
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Mailing_DAO_BounceType_Fields::fields();
   }
 
   /**

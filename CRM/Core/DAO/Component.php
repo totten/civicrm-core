@@ -81,58 +81,7 @@ class CRM_Core_DAO_Component extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Component ID'),
-          'description' => ts('Component ID'),
-          'required' => TRUE,
-          'where' => 'civicrm_component.id',
-          'table_name' => 'civicrm_component',
-          'entity' => 'Component',
-          'bao' => 'CRM_Core_DAO_Component',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => '2.0',
-        ],
-        'name' => [
-          'name' => 'name',
-          'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Component name'),
-          'description' => ts('Name of the component.'),
-          'required' => TRUE,
-          'maxlength' => 64,
-          'size' => CRM_Utils_Type::BIG,
-          'where' => 'civicrm_component.name',
-          'table_name' => 'civicrm_component',
-          'entity' => 'Component',
-          'bao' => 'CRM_Core_DAO_Component',
-          'localizable' => 0,
-          'add' => '2.0',
-        ],
-        'namespace' => [
-          'name' => 'namespace',
-          'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Namespace reserved for component.'),
-          'description' => ts('Path to components main directory in a form of a class namespace.'),
-          'maxlength' => 128,
-          'size' => CRM_Utils_Type::HUGE,
-          'where' => 'civicrm_component.namespace',
-          'table_name' => 'civicrm_component',
-          'entity' => 'Component',
-          'bao' => 'CRM_Core_DAO_Component',
-          'localizable' => 0,
-          'add' => '2.0',
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Core_DAO_Component_Fields::fields();
   }
 
   /**

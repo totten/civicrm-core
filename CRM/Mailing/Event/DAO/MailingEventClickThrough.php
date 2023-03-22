@@ -105,77 +105,7 @@ class CRM_Mailing_Event_DAO_MailingEventClickThrough extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Trackable URL Open ID'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_event_trackable_url_open.id',
-          'table_name' => 'civicrm_mailing_event_trackable_url_open',
-          'entity' => 'MailingEventClickThrough',
-          'bao' => 'CRM_Mailing_Event_BAO_MailingEventClickThrough',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-            'label' => ts("ID"),
-          ],
-          'readonly' => TRUE,
-          'add' => NULL,
-        ],
-        'event_queue_id' => [
-          'name' => 'event_queue_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Event Queue ID'),
-          'description' => ts('FK to EventQueue'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_event_trackable_url_open.event_queue_id',
-          'table_name' => 'civicrm_mailing_event_trackable_url_open',
-          'entity' => 'MailingEventClickThrough',
-          'bao' => 'CRM_Mailing_Event_BAO_MailingEventClickThrough',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Mailing_Event_DAO_MailingEventQueue',
-          'html' => [
-            'label' => ts("Recipient"),
-          ],
-          'add' => NULL,
-        ],
-        'trackable_url_id' => [
-          'name' => 'trackable_url_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Trackable Url ID'),
-          'description' => ts('FK to TrackableURL'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_event_trackable_url_open.trackable_url_id',
-          'table_name' => 'civicrm_mailing_event_trackable_url_open',
-          'entity' => 'MailingEventClickThrough',
-          'bao' => 'CRM_Mailing_Event_BAO_MailingEventClickThrough',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Mailing_DAO_TrackableURL',
-          'html' => [
-            'label' => ts("Trackable Url"),
-          ],
-          'add' => NULL,
-        ],
-        'time_stamp' => [
-          'name' => 'time_stamp',
-          'type' => CRM_Utils_Type::T_TIMESTAMP,
-          'title' => ts('Timestamp'),
-          'description' => ts('When this trackable URL open occurred.'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_event_trackable_url_open.time_stamp',
-          'default' => 'CURRENT_TIMESTAMP',
-          'table_name' => 'civicrm_mailing_event_trackable_url_open',
-          'entity' => 'MailingEventClickThrough',
-          'bao' => 'CRM_Mailing_Event_BAO_MailingEventClickThrough',
-          'localizable' => 0,
-          'add' => NULL,
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Mailing_Event_DAO_MailingEventClickThrough_Fields::fields();
   }
 
   /**

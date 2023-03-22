@@ -98,63 +98,7 @@ class CRM_Event_DAO_ParticipantPayment extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Payment ID'),
-          'description' => ts('Participant Payment ID'),
-          'required' => TRUE,
-          'where' => 'civicrm_participant_payment.id',
-          'table_name' => 'civicrm_participant_payment',
-          'entity' => 'ParticipantPayment',
-          'bao' => 'CRM_Event_BAO_ParticipantPayment',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => '1.7',
-        ],
-        'participant_id' => [
-          'name' => 'participant_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Participant ID'),
-          'description' => ts('Participant ID (FK)'),
-          'required' => TRUE,
-          'where' => 'civicrm_participant_payment.participant_id',
-          'table_name' => 'civicrm_participant_payment',
-          'entity' => 'ParticipantPayment',
-          'bao' => 'CRM_Event_BAO_ParticipantPayment',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Event_DAO_Participant',
-          'html' => [
-            'label' => ts("Participant"),
-          ],
-          'add' => '1.7',
-        ],
-        'contribution_id' => [
-          'name' => 'contribution_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Contribution ID'),
-          'description' => ts('FK to contribution table.'),
-          'required' => TRUE,
-          'where' => 'civicrm_participant_payment.contribution_id',
-          'table_name' => 'civicrm_participant_payment',
-          'entity' => 'ParticipantPayment',
-          'bao' => 'CRM_Event_BAO_ParticipantPayment',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Contribute_DAO_Contribution',
-          'html' => [
-            'label' => ts("Contribution"),
-          ],
-          'add' => '2.0',
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Event_DAO_ParticipantPayment_Fields::fields();
   }
 
   /**

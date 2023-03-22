@@ -97,69 +97,7 @@ class CRM_Contact_DAO_GroupOrganization extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Group Organization ID'),
-          'description' => ts('Relationship ID'),
-          'required' => TRUE,
-          'where' => 'civicrm_group_organization.id',
-          'table_name' => 'civicrm_group_organization',
-          'entity' => 'GroupOrganization',
-          'bao' => 'CRM_Contact_BAO_GroupOrganization',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => '2.0',
-        ],
-        'group_id' => [
-          'name' => 'group_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Group ID'),
-          'description' => ts('ID of the group'),
-          'required' => TRUE,
-          'where' => 'civicrm_group_organization.group_id',
-          'table_name' => 'civicrm_group_organization',
-          'entity' => 'GroupOrganization',
-          'bao' => 'CRM_Contact_BAO_GroupOrganization',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Contact_DAO_Group',
-          'html' => [
-            'type' => 'Select',
-            'label' => ts("Group"),
-          ],
-          'pseudoconstant' => [
-            'table' => 'civicrm_group',
-            'keyColumn' => 'id',
-            'labelColumn' => 'title',
-          ],
-          'add' => '2.0',
-        ],
-        'organization_id' => [
-          'name' => 'organization_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Organization ID'),
-          'description' => ts('ID of the Organization Contact'),
-          'required' => TRUE,
-          'where' => 'civicrm_group_organization.organization_id',
-          'table_name' => 'civicrm_group_organization',
-          'entity' => 'GroupOrganization',
-          'bao' => 'CRM_Contact_BAO_GroupOrganization',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Contact_DAO_Contact',
-          'html' => [
-            'label' => ts("Organization"),
-          ],
-          'add' => '2.0',
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Contact_DAO_GroupOrganization_Fields::fields();
   }
 
   /**

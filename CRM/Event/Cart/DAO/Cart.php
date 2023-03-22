@@ -95,58 +95,7 @@ class CRM_Event_Cart_DAO_Cart extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'cart_id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Cart ID'),
-          'description' => ts('Cart ID'),
-          'required' => TRUE,
-          'where' => 'civicrm_event_carts.id',
-          'table_name' => 'civicrm_event_carts',
-          'entity' => 'Cart',
-          'bao' => 'CRM_Event_Cart_BAO_Cart',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => '4.1',
-        ],
-        'user_id' => [
-          'name' => 'user_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Created By Contact ID'),
-          'description' => ts('FK to civicrm_contact who created this cart'),
-          'where' => 'civicrm_event_carts.user_id',
-          'table_name' => 'civicrm_event_carts',
-          'entity' => 'Cart',
-          'bao' => 'CRM_Event_Cart_BAO_Cart',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Contact_DAO_Contact',
-          'html' => [
-            'label' => ts("Created By"),
-          ],
-          'add' => '4.1',
-        ],
-        'completed' => [
-          'name' => 'completed',
-          'type' => CRM_Utils_Type::T_BOOLEAN,
-          'title' => ts('Complete?'),
-          'required' => TRUE,
-          'where' => 'civicrm_event_carts.completed',
-          'default' => '0',
-          'table_name' => 'civicrm_event_carts',
-          'entity' => 'Cart',
-          'bao' => 'CRM_Event_Cart_BAO_Cart',
-          'localizable' => 0,
-          'add' => '4.1',
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Event_Cart_DAO_Cart_Fields::fields();
   }
 
   /**

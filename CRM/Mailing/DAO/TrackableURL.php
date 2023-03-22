@@ -95,58 +95,7 @@ class CRM_Mailing_DAO_TrackableURL extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Trackable URL ID'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_trackable_url.id',
-          'table_name' => 'civicrm_mailing_trackable_url',
-          'entity' => 'TrackableURL',
-          'bao' => 'CRM_Mailing_BAO_TrackableURL',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => NULL,
-        ],
-        'url' => [
-          'name' => 'url',
-          'type' => CRM_Utils_Type::T_TEXT,
-          'title' => ts('Url'),
-          'description' => ts('The URL to be tracked.'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_trackable_url.url',
-          'table_name' => 'civicrm_mailing_trackable_url',
-          'entity' => 'TrackableURL',
-          'bao' => 'CRM_Mailing_BAO_TrackableURL',
-          'localizable' => 0,
-          'add' => NULL,
-        ],
-        'mailing_id' => [
-          'name' => 'mailing_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Mailing ID'),
-          'description' => ts('FK to the mailing'),
-          'required' => TRUE,
-          'where' => 'civicrm_mailing_trackable_url.mailing_id',
-          'table_name' => 'civicrm_mailing_trackable_url',
-          'entity' => 'TrackableURL',
-          'bao' => 'CRM_Mailing_BAO_TrackableURL',
-          'localizable' => 0,
-          'FKClassName' => 'CRM_Mailing_DAO_Mailing',
-          'html' => [
-            'label' => ts("Mailing"),
-          ],
-          'add' => NULL,
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Mailing_DAO_TrackableURL_Fields::fields();
   }
 
   /**

@@ -90,78 +90,7 @@ class CRM_Contact_DAO_ACLContactCache extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = [
-        'id' => [
-          'name' => 'id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('ACL Contact Cache ID'),
-          'description' => ts('primary key'),
-          'required' => TRUE,
-          'where' => 'civicrm_acl_contact_cache.id',
-          'table_name' => 'civicrm_acl_contact_cache',
-          'entity' => 'ACLContactCache',
-          'bao' => 'CRM_Contact_DAO_ACLContactCache',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Number',
-          ],
-          'readonly' => TRUE,
-          'add' => '3.1',
-        ],
-        'user_id' => [
-          'name' => 'user_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Contact ID'),
-          'description' => ts('FK to civicrm_contact (could be null for anon user)'),
-          'where' => 'civicrm_acl_contact_cache.user_id',
-          'table_name' => 'civicrm_acl_contact_cache',
-          'entity' => 'ACLContactCache',
-          'bao' => 'CRM_Contact_DAO_ACLContactCache',
-          'localizable' => 0,
-          'add' => '3.1',
-        ],
-        'contact_id' => [
-          'name' => 'contact_id',
-          'type' => CRM_Utils_Type::T_INT,
-          'title' => ts('Contact ID'),
-          'description' => ts('FK to civicrm_contact'),
-          'required' => TRUE,
-          'where' => 'civicrm_acl_contact_cache.contact_id',
-          'table_name' => 'civicrm_acl_contact_cache',
-          'entity' => 'ACLContactCache',
-          'bao' => 'CRM_Contact_DAO_ACLContactCache',
-          'localizable' => 0,
-          'html' => [
-            'label' => ts("Contact"),
-          ],
-          'add' => '3.1',
-        ],
-        'operation' => [
-          'name' => 'operation',
-          'type' => CRM_Utils_Type::T_STRING,
-          'title' => ts('Operation'),
-          'description' => ts('What operation does this user have permission on?'),
-          'required' => TRUE,
-          'maxlength' => 8,
-          'size' => CRM_Utils_Type::EIGHT,
-          'where' => 'civicrm_acl_contact_cache.operation',
-          'table_name' => 'civicrm_acl_contact_cache',
-          'entity' => 'ACLContactCache',
-          'bao' => 'CRM_Contact_DAO_ACLContactCache',
-          'localizable' => 0,
-          'html' => [
-            'type' => 'Select',
-          ],
-          'pseudoconstant' => [
-            'callback' => 'CRM_ACL_BAO_ACL::operation',
-          ],
-          'add' => '1.6',
-        ],
-      ];
-      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
-    }
-    return Civi::$statics[__CLASS__]['fields'];
+    return CRM_Contact_DAO_ACLContactCache_Fields::fields();
   }
 
   /**
