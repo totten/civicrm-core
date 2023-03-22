@@ -181,7 +181,11 @@ class CRM_Contact_DAO_RelationshipType extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Contact_DAO_RelationshipType_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -247,26 +251,7 @@ class CRM_Contact_DAO_RelationshipType extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'UI_name_a_b' => [
-        'name' => 'UI_name_a_b',
-        'field' => [
-          0 => 'name_a_b',
-        ],
-        'localizable' => FALSE,
-        'unique' => TRUE,
-        'sig' => 'civicrm_relationship_type::1::name_a_b',
-      ],
-      'UI_name_b_a' => [
-        'name' => 'UI_name_b_a',
-        'field' => [
-          0 => 'name_b_a',
-        ],
-        'localizable' => FALSE,
-        'unique' => TRUE,
-        'sig' => 'civicrm_relationship_type::1::name_b_a',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

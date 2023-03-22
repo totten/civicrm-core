@@ -141,7 +141,11 @@ class CRM_Core_DAO_StatusPreference extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Core_DAO_StatusPreference_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -207,16 +211,7 @@ class CRM_Core_DAO_StatusPreference extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'UI_status_pref_name' => [
-        'name' => 'UI_status_pref_name',
-        'field' => [
-          0 => 'name',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_status_pref::0::name',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

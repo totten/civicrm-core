@@ -132,7 +132,11 @@ class CRM_Core_DAO_Translation extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Core_DAO_Translation_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -198,18 +202,7 @@ class CRM_Core_DAO_Translation extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'index_entity_lang' => [
-        'name' => 'index_entity_lang',
-        'field' => [
-          0 => 'entity_id',
-          1 => 'entity_table',
-          2 => 'language',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_translation::0::entity_id::entity_table::language',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

@@ -113,7 +113,11 @@ class CRM_Core_DAO_PrevNextCache extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Core_DAO_PrevNextCache_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -179,20 +183,7 @@ class CRM_Core_DAO_PrevNextCache extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'index_all' => [
-        'name' => 'index_all',
-        'field' => [
-          0 => 'cachekey',
-          1 => 'entity_id1',
-          2 => 'entity_id2',
-          3 => 'entity_table',
-          4 => 'is_selected',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_prevnext_cache::0::cachekey::entity_id1::entity_id2::entity_table::is_selected',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

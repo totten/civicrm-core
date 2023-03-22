@@ -113,7 +113,11 @@ class CRM_Queue_DAO_QueueItem extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Queue_DAO_QueueItem_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -179,18 +183,7 @@ class CRM_Queue_DAO_QueueItem extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'index_queueids' => [
-        'name' => 'index_queueids',
-        'field' => [
-          0 => 'queue_name',
-          1 => 'weight',
-          2 => 'id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_queue_item::0::queue_name::weight::id',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

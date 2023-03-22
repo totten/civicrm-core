@@ -107,7 +107,11 @@ class CRM_Price_DAO_PriceSetEntity extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Price_DAO_PriceSetEntity_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -173,18 +177,7 @@ class CRM_Price_DAO_PriceSetEntity extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'UI_entity' => [
-        'name' => 'UI_entity',
-        'field' => [
-          0 => 'entity_table',
-          1 => 'entity_id',
-        ],
-        'localizable' => FALSE,
-        'unique' => TRUE,
-        'sig' => 'civicrm_price_set_entity::1::entity_table::entity_id',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

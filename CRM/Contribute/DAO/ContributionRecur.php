@@ -331,7 +331,11 @@ class CRM_Contribute_DAO_ContributionRecur extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Contribute_DAO_ContributionRecur_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -397,42 +401,7 @@ class CRM_Contribute_DAO_ContributionRecur extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'UI_contrib_trxn_id' => [
-        'name' => 'UI_contrib_trxn_id',
-        'field' => [
-          0 => 'trxn_id',
-        ],
-        'localizable' => FALSE,
-        'unique' => TRUE,
-        'sig' => 'civicrm_contribution_recur::1::trxn_id',
-      ],
-      'UI_contrib_invoice_id' => [
-        'name' => 'UI_contrib_invoice_id',
-        'field' => [
-          0 => 'invoice_id',
-        ],
-        'localizable' => FALSE,
-        'unique' => TRUE,
-        'sig' => 'civicrm_contribution_recur::1::invoice_id',
-      ],
-      'index_contribution_status' => [
-        'name' => 'index_contribution_status',
-        'field' => [
-          0 => 'contribution_status_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_contribution_recur::0::contribution_status_id',
-      ],
-      'UI_contribution_recur_payment_instrument_id' => [
-        'name' => 'UI_contribution_recur_payment_instrument_id',
-        'field' => [
-          0 => 'payment_instrument_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_contribution_recur::0::payment_instrument_id',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

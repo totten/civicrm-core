@@ -122,7 +122,11 @@ class CRM_Contact_DAO_DashboardContact extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Contact_DAO_DashboardContact_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -188,18 +192,7 @@ class CRM_Contact_DAO_DashboardContact extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'index_dashboard_id_contact_id' => [
-        'name' => 'index_dashboard_id_contact_id',
-        'field' => [
-          0 => 'dashboard_id',
-          1 => 'contact_id',
-        ],
-        'localizable' => FALSE,
-        'unique' => TRUE,
-        'sig' => 'civicrm_dashboard_contact::1::dashboard_id::contact_id',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

@@ -174,7 +174,11 @@ class CRM_Core_DAO_Phone extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Core_DAO_Phone_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -240,48 +244,7 @@ class CRM_Core_DAO_Phone extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'index_location_type' => [
-        'name' => 'index_location_type',
-        'field' => [
-          0 => 'location_type_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_phone::0::location_type_id',
-      ],
-      'index_is_primary' => [
-        'name' => 'index_is_primary',
-        'field' => [
-          0 => 'is_primary',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_phone::0::is_primary',
-      ],
-      'index_is_billing' => [
-        'name' => 'index_is_billing',
-        'field' => [
-          0 => 'is_billing',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_phone::0::is_billing',
-      ],
-      'UI_mobile_provider_id' => [
-        'name' => 'UI_mobile_provider_id',
-        'field' => [
-          0 => 'mobile_provider_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_phone::0::mobile_provider_id',
-      ],
-      'index_phone_numeric' => [
-        'name' => 'index_phone_numeric',
-        'field' => [
-          0 => 'phone_numeric',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_phone::0::phone_numeric',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

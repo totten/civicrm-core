@@ -232,7 +232,11 @@ class CRM_Financial_DAO_FinancialTrxn extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Financial_DAO_FinancialTrxn_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -298,32 +302,7 @@ class CRM_Financial_DAO_FinancialTrxn extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'UI_ftrxn_trxn_id' => [
-        'name' => 'UI_ftrxn_trxn_id',
-        'field' => [
-          0 => 'trxn_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_financial_trxn::0::trxn_id',
-      ],
-      'UI_ftrxn_payment_instrument_id' => [
-        'name' => 'UI_ftrxn_payment_instrument_id',
-        'field' => [
-          0 => 'payment_instrument_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_financial_trxn::0::payment_instrument_id',
-      ],
-      'UI_ftrxn_check_number' => [
-        'name' => 'UI_ftrxn_check_number',
-        'field' => [
-          0 => 'check_number',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_financial_trxn::0::check_number',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

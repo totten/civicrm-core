@@ -98,7 +98,11 @@ class CRM_Event_DAO_ParticipantPayment extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Event_DAO_ParticipantPayment_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -164,18 +168,7 @@ class CRM_Event_DAO_ParticipantPayment extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'UI_contribution_participant' => [
-        'name' => 'UI_contribution_participant',
-        'field' => [
-          0 => 'contribution_id',
-          1 => 'participant_id',
-        ],
-        'localizable' => FALSE,
-        'unique' => TRUE,
-        'sig' => 'civicrm_participant_payment::1::contribution_id::participant_id',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

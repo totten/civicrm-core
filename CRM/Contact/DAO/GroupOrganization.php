@@ -97,7 +97,11 @@ class CRM_Contact_DAO_GroupOrganization extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Contact_DAO_GroupOrganization_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -163,18 +167,7 @@ class CRM_Contact_DAO_GroupOrganization extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'UI_group_organization' => [
-        'name' => 'UI_group_organization',
-        'field' => [
-          0 => 'group_id',
-          1 => 'organization_id',
-        ],
-        'localizable' => FALSE,
-        'unique' => TRUE,
-        'sig' => 'civicrm_group_organization::1::group_id::organization_id',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

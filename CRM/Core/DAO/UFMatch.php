@@ -124,7 +124,11 @@ class CRM_Core_DAO_UFMatch extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Core_DAO_UFMatch_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -190,36 +194,7 @@ class CRM_Core_DAO_UFMatch extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'I_civicrm_uf_match_uf_id' => [
-        'name' => 'I_civicrm_uf_match_uf_id',
-        'field' => [
-          0 => 'uf_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_uf_match::0::uf_id',
-      ],
-      'UI_uf_name_domain_id' => [
-        'name' => 'UI_uf_name_domain_id',
-        'field' => [
-          0 => 'uf_name',
-          1 => 'domain_id',
-        ],
-        'localizable' => FALSE,
-        'unique' => TRUE,
-        'sig' => 'civicrm_uf_match::1::uf_name::domain_id',
-      ],
-      'UI_contact_domain_id' => [
-        'name' => 'UI_contact_domain_id',
-        'field' => [
-          0 => 'contact_id',
-          1 => 'domain_id',
-        ],
-        'localizable' => FALSE,
-        'unique' => TRUE,
-        'sig' => 'civicrm_uf_match::1::contact_id::domain_id',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

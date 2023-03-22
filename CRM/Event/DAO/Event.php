@@ -725,7 +725,11 @@ class CRM_Event_DAO_Event extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Event_DAO_Event_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -791,32 +795,7 @@ class CRM_Event_DAO_Event extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'index_event_type_id' => [
-        'name' => 'index_event_type_id',
-        'field' => [
-          0 => 'event_type_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_event::0::event_type_id',
-      ],
-      'index_participant_listing_id' => [
-        'name' => 'index_participant_listing_id',
-        'field' => [
-          0 => 'participant_listing_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_event::0::participant_listing_id',
-      ],
-      'index_parent_event_id' => [
-        'name' => 'index_parent_event_id',
-        'field' => [
-          0 => 'parent_event_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_event::0::parent_event_id',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

@@ -169,7 +169,11 @@ class CRM_Financial_DAO_FinancialItem extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Financial_DAO_FinancialItem_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -235,33 +239,7 @@ class CRM_Financial_DAO_FinancialItem extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'IX_created_date' => [
-        'name' => 'IX_created_date',
-        'field' => [
-          0 => 'created_date',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_financial_item::0::created_date',
-      ],
-      'IX_transaction_date' => [
-        'name' => 'IX_transaction_date',
-        'field' => [
-          0 => 'transaction_date',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_financial_item::0::transaction_date',
-      ],
-      'index_entity_id_entity_table' => [
-        'name' => 'index_entity_id_entity_table',
-        'field' => [
-          0 => 'entity_id',
-          1 => 'entity_table',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_financial_item::0::entity_id::entity_table',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

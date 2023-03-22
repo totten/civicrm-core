@@ -266,7 +266,11 @@ class CRM_Campaign_DAO_Survey extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Campaign_DAO_Survey_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -332,16 +336,7 @@ class CRM_Campaign_DAO_Survey extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'UI_activity_type_id' => [
-        'name' => 'UI_activity_type_id',
-        'field' => [
-          0 => 'activity_type_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_survey::0::activity_type_id',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

@@ -156,7 +156,11 @@ class CRM_Contribute_DAO_ContributionSoft extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Contribute_DAO_ContributionSoft_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -222,16 +226,7 @@ class CRM_Contribute_DAO_ContributionSoft extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'index_id' => [
-        'name' => 'index_id',
-        'field' => [
-          0 => 'pcp_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_contribution_soft::0::pcp_id',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

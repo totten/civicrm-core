@@ -199,7 +199,11 @@ class CRM_Contact_DAO_RelationshipCache extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Contact_DAO_RelationshipCache_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -265,44 +269,7 @@ class CRM_Contact_DAO_RelationshipCache extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'UI_relationship' => [
-        'name' => 'UI_relationship',
-        'field' => [
-          0 => 'relationship_id',
-          1 => 'orientation',
-        ],
-        'localizable' => FALSE,
-        'unique' => TRUE,
-        'sig' => 'civicrm_relationship_cache::1::relationship_id::orientation',
-      ],
-      'index_nearid_nearrelation' => [
-        'name' => 'index_nearid_nearrelation',
-        'field' => [
-          0 => 'near_contact_id',
-          1 => 'near_relation',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_relationship_cache::0::near_contact_id::near_relation',
-      ],
-      'index_nearid_farrelation' => [
-        'name' => 'index_nearid_farrelation',
-        'field' => [
-          0 => 'near_contact_id',
-          1 => 'far_relation',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_relationship_cache::0::near_contact_id::far_relation',
-      ],
-      'index_near_relation' => [
-        'name' => 'index_near_relation',
-        'field' => [
-          0 => 'near_relation',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_relationship_cache::0::near_relation',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

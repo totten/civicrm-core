@@ -168,7 +168,11 @@ class CRM_ACL_DAO_ACL extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_ACL_DAO_ACL_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -234,16 +238,7 @@ class CRM_ACL_DAO_ACL extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'index_acl_id' => [
-        'name' => 'index_acl_id',
-        'field' => [
-          0 => 'acl_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_acl::0::acl_id',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 

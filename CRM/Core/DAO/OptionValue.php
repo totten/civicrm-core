@@ -248,7 +248,11 @@ class CRM_Core_DAO_OptionValue extends CRM_Core_DAO {
    * @return array
    */
   public static function &fields() {
-    return CRM_Core_DAO_OptionValue_Fields::fields();
+    if (!isset(Civi::$statics[__CLASS__]['fields'])) {
+      Civi::$statics[__CLASS__]['fields'] = require str_replace('.php', '/Fields.php', __FILE__);
+      CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
+    }
+    return Civi::$statics[__CLASS__]['fields'];
   }
 
   /**
@@ -314,26 +318,7 @@ class CRM_Core_DAO_OptionValue extends CRM_Core_DAO {
    * @return array
    */
   public static function indices($localize = TRUE) {
-    $indices = [
-      'index_option_group_id_value' => [
-        'name' => 'index_option_group_id_value',
-        'field' => [
-          0 => 'value(128)',
-          1 => 'option_group_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_option_value::0::value(128)::option_group_id',
-      ],
-      'index_option_group_id_name' => [
-        'name' => 'index_option_group_id_name',
-        'field' => [
-          0 => 'name(128)',
-          1 => 'option_group_id',
-        ],
-        'localizable' => FALSE,
-        'sig' => 'civicrm_option_value::0::name(128)::option_group_id',
-      ],
-    ];
+    $indices = require str_replace('.php', '/Indices.php', __FILE__);
     return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
   }
 
