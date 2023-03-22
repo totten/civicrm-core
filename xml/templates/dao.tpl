@@ -230,7 +230,11 @@ class {$table.className} extends CRM_Core_DAO {ldelim}
        * @return array
        */
       public static function indices($localize = TRUE) {ldelim}
-        $indices = {$indicesPhp};
+        {if !$hasIndicesPhp}
+            $indices = {$indicesPhp};
+        {else}
+          $indices = require str_replace('.php', '/Indices.php', __FILE__);
+        {/if}
         return ($localize && !empty($indices)) ? CRM_Core_DAO_AllCoreTables::multilingualize(__CLASS__, $indices) : $indices;
       {rdelim}
 

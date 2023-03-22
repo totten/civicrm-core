@@ -149,6 +149,7 @@ Alternatively you can get a version of CiviCRM that matches your PHP version
     foreach (array_keys($this->tables) as $name) {
       $tasks[] = new CRM_Core_CodeGen_DAO($this, $name);
       $tasks[] = new CRM_Core_CodeGen_DAOFields($this, $name);
+      $tasks[] = new CRM_Core_CodeGen_DAOIndices($this, $name);
     }
     $tasks[] = new CRM_Core_CodeGen_I18n($this);
     return $tasks;

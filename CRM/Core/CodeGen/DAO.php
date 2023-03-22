@@ -105,9 +105,11 @@ class CRM_Core_CodeGen_DAO extends CRM_Core_CodeGen_BaseTask {
     $template->assign('table', $this->tables[$this->name]);
     if (empty($this->tables[$this->name]['index'])) {
       $template->assign('indicesPhp', var_export([], 1));
+      $template->assign('hasIndicesPhp', FALSE);
     }
     else {
       $template->assign('indicesPhp', var_export($this->tables[$this->name]['index'], 1));
+      $template->assign('hasIndicesPhp', !empty($this->tables[$this->name]['index']));
     }
     $template->assign('tsFunctionName', $this->tsFunctionName);
     $template->assign('ext', $this->ext);

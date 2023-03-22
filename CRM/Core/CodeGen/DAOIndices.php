@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Create DAOFields ORM classes.
+ * Create DAOIndices ORM classes.
  */
-class CRM_Core_CodeGen_DAOFields extends CRM_Core_CodeGen_BaseTask {
+class CRM_Core_CodeGen_DAOIndices extends CRM_Core_CodeGen_BaseTask {
 
   /**
    * @var string
@@ -31,7 +31,7 @@ class CRM_Core_CodeGen_DAOFields extends CRM_Core_CodeGen_BaseTask {
   private $ext = "'civicrm'";
 
   /**
-   * CRM_Core_CodeGen_DAOFields constructor.
+   * CRM_Core_CodeGen_DAOIndices constructor.
    *
    * @param \CRM_Core_CodeGen_Main $config
    * @param string $name
@@ -85,7 +85,7 @@ class CRM_Core_CodeGen_DAOFields extends CRM_Core_CodeGen_BaseTask {
 
     $template = $this->getTemplate();
     $template->assign('genCodeChecksum', $this->getTableChecksum());
-    $template->run('dao-fields.tpl', $this->getAbsFileName());
+    $template->run('dao-indices.tpl', $this->getAbsFileName());
   }
 
   /**
@@ -97,7 +97,7 @@ class CRM_Core_CodeGen_DAOFields extends CRM_Core_CodeGen_BaseTask {
     if (!$this->raw) {
       $template = $this->getTemplate();
       $template->assign('genCodeChecksum', 'NEW');
-      $this->raw = $template->fetch('dao-fields.tpl');
+      $this->raw = $template->fetch('dao-indices.tpl');
     }
     return $this->raw;
   }
@@ -128,7 +128,7 @@ class CRM_Core_CodeGen_DAOFields extends CRM_Core_CodeGen_BaseTask {
    * @return string
    */
   public function getRelFileName() {
-    return str_replace('.php', '/Fields.php', $this->tables[$this->name]['fileName']);
+    return str_replace('.php', '/Indices.php', $this->tables[$this->name]['fileName']);
   }
 
   /**
