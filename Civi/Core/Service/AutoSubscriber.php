@@ -10,6 +10,8 @@
  */
 namespace Civi\Core\Service;
 
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -18,10 +20,29 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * Child classes must implement the `getSubscribedEvents` method, and the callbacks
  * it returns will be automatically registered.
  *
- * This class implies @service @internal on all subclasses.
+ * AutoSubscribers are registered as internal services, but they do not support annotations,
+ * dependency-injection, etc.
+ *
+ * ^^^ [totten] Here is where it starts to lose me. These are the features that a service-container
+ * offers, and these are the features that are being removed (for AutoSubscriber vs AutoServiceTrait).
  */
 abstract class AutoSubscriber implements AutoServiceInterface, EventSubscriberInterface {
 
-  use AutoServiceTrait;
+  /**
+   * Register this class as a service in the container.
+   *
+   * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
+   */
+  final public static function buildContainer(ContainerBuilder $container): void {
+    $id = static::CLASS;
+    $reflection = new \ReflectionClass(static::CLASS);
+    $file = $reflection->getFileName();
+    $container->addResource(new \Symfony\Component\Config\Resource\FileResource($file));
+    $definition = new Definition($id);
+    $definition->setPublic(TRUE);
+    $definition->addTag('internal');
+    $definition->addTag('event_subscriber');
+    $container->setDefinition($id, $definition);
+  }
 
 }
