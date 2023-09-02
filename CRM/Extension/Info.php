@@ -61,6 +61,12 @@ class CRM_Extension_Info {
   public $requires = [];
 
   /**
+   * @var string|null
+   *  Ex: '~7.3 || ~8'
+   */
+  public $requiresPhp = NULL;
+
+  /**
    * @var array
    *   List of expected mixins.
    *   Ex: ['civix@2.0.0']
@@ -303,6 +309,7 @@ class CRM_Extension_Info {
       }
       elseif ($attr === 'requires') {
         $this->requires = $this->filterRequirements($val);
+        $this->requiresPhp = $this->parseVersionRequirement($val->php ?: NULL);
       }
       elseif ($attr === 'maintainer') {
         $this->maintainer = CRM_Utils_XML::xmlObjToArray($val);
@@ -342,6 +349,18 @@ class CRM_Extension_Info {
       }
     }
     return $filtered;
+  }
+
+  protected function parseVersionRequirement(?string $expr): ?string {
+    if ($expr === NULL) {
+      return $expr;
+    }
+    return trim(strtr($expr, [
+      'gte' => '>=',
+      'lte' => '<=',
+      'gt' => '>',
+      'lt' => '<',
+    ]));
   }
 
 }
