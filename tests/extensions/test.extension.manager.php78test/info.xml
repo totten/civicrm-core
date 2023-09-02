@@ -1,0 +1,10 @@
+<extension key='test.extension.manager.php78test' type='module'>
+  <file>php78test</file>
+  <name>test_extension_manager_php78test</name>
+  <tags>
+    <tag>mock</tag>
+  </tags>
+  <requires>
+    <php>~7.3 || ~8</php>
+  </requires>
+</extension>
