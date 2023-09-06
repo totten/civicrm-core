@@ -159,6 +159,9 @@ class CRM_Extension_Manager {
     $newInfo = CRM_Extension_Info::loadFromFile($tmpCodeDir . DIRECTORY_SEPARATOR . CRM_Extension_Info::FILENAME);
     $oldStatus = $this->getStatus($newInfo->key);
 
+    $reqCheck = new CRM_Extension_Requirements();
+    $reqCheck->checkInfo($newInfo)->assertSatisfied();
+
     // find $tgtPath, $oldInfo, $typeManager
     switch ($oldStatus) {
       case self::STATUS_UNINSTALLED:
