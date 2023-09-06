@@ -305,6 +305,10 @@ class CRM_Extension_System {
   /**
    * Returns a list keyed by extension key
    *
+   * FIXME: To reduce ambiguity, consider renaming this to `getMigrationInfo()`. Its purpose is to disable or
+   * replace old extensions. The name "compatibility" can be confused with the `<ver>` and `<php>` assertions,
+   * which have fairly different mechanics.
+   *
    * @return array
    */
   public static function getCompatibilityInfo() {
