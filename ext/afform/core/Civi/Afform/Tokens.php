@@ -206,20 +206,18 @@ class Tokens extends AutoService implements EventSubscriberInterface {
     /** @var \Civi\Crypto\CryptoJwt $jwt */
     $jwt = \Civi::service('crypto.jwt');
 
+    $url = \Civi::url()
+      ->setScheme($afform['is_public'] ? 'frontend' : 'backend')
+      ->setPath($afform['server_route'])
+      ->setPreferFormat('absolute');
+
     $bearerToken = "Bearer " . $jwt->encode([
       'exp' => $expires,
       'sub' => "cid:" . $contactId,
-      'scope' => 'authx',
+      'scope' => 'afform',
+      'afform' => $afform['name'],
     ]);
-
-    $url = \CRM_Utils_System::url($afform['server_route'],
-      ['_authx' => $bearerToken, '_authxSes' => 1],
-      TRUE,
-      NULL,
-      FALSE,
-      $afform['is_public'] ?? TRUE
-    );
-    return $url;
+    return $url->addQuery(['_aff' => $bearerToken]);
   }
 
 }
