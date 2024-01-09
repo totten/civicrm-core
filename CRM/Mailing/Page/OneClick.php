@@ -14,8 +14,13 @@
  * for CiviMail per RFC 8058.
  *
  * This end-point receives an HTTP POST with one URI query parameter
- * (`$_GET['jwt']` or `$_REQUEST['jwt']`). The parameter is a JSON Web Token
- * indicating the contact and mailing-list.
+ * (`$_REQUEST['jwt']`). The parameter is a JSON Web Token describing
+ * the action, eg
+ *
+ *   - Unsubscribe based on a CiviMail event-queue ID.
+ *     jwt->encode(['scope' => 'civi.unsubscribe', 'qid' => 100])
+ *   - Unsubscribe based on ContactID and GroupID.
+ *     jwt->encode(['scope' => 'civi.unsubscribe', 'cid' => 200, 'gid' => 300, 'msgtpl' => 400])
  *
  * @link https://datatracker.ietf.org/doc/html/rfc8058
  *
@@ -24,57 +29,37 @@
  */
 class CRM_Mailing_Page_OneClick extends CRM_Core_Page {
 
+  // \CRM_Utils_Time::time() + (\Civi::settings()->get('checksum_timeout') * 24 * 60 * 60)
   const TTL = '+1 year';
-
-  // /**
-  //  * Generate a token for use by the unsubscribe endpoint.
-  //  *
-  //  * @param int $contactID
-  //  * @param int $mailingID
-  //  * @param int $groupID
-  //  * @return string
-  //  * @throws \Civi\Crypto\Exception\CryptoException
-  //  */
-  // public static function createToken(int $contactID, int $mailingID, int $groupID): string {
-  //   $jwt = Civi::service('crypto.jwt');
-  //   return $jwt->encode([
-  //     'scope' => 'civi.unsubscribe',
-  //     'cid' => $contactID,
-  //     'mid' => $mailingID,
-  //     'gid' => $groupID,
-  //     'exp' => CRM_Utils_Time::strtotime(static::TTL),
-  //   ]);
-  // }
 
   public function run() {
     $token = $_REQUEST['jwt'] ?? '';
-    // $token = static::createToken(1, 1, 1); // FIXME
 
     try {
       $claims = Civi::service('crypto.jwt')->decode($token);
+
+      if ($claims['scope'] === 'civi.unsubscribe' && isset($claims['qid'])) {
+        $this->unsubscribeByQueueId($claims['qid']);
+        $this->respond(200, 'OK');
+      }
+
+      if ($claims['scope'] === 'civi.unsubscribe' && isset($claims['cid'], $claims['gid'])) {
+        $this->unsubscribeByContactGroupId($claims['cid'], $claims['gid']);
+        $this->respond(200, 'OK');
+      }
+
+      $this->respond(500, 'Invalid JWT. Claims did not describe the action to take.');
+    }
+    catch (CRM_Core_Exception_PrematureExitException $e) {
+      // In unit-tests, responses are indicated via exception.
+      throw $e;
     }
     catch (Throwable $t) {
-      $this->respond(500, 'Invalid JWT. ' . $t->getMessage());
+      $this->respond(500, 'Failed to process request. ' . $t->getMessage());
     }
-
-    if ($claims['scope'] === 'civi.unsubscribe' && isset($claims['qid'])) {
-      $this->unsubscribeByQueueId($claims['qid']);
-      $this->respond(200, 'OK');
-    }
-
-    $this->respond(500, 'Invalid JWT. Claims did not describe the action to take.');
   }
 
-  protected function respond(int $status, string $message): void {
-    $response = new \GuzzleHttp\Psr7\Response($status, ['Content-Type' => 'text/plain'], $message . "\n");
-    CRM_Utils_System::sendResponse($response);
-  }
-
-  /**
-   * @param array $claims
-   *   Validated JWT claims
-   */
-  public function unsubscribeByQueueId(int $queueId) {
+  public function unsubscribeByQueueId(int $queueId): void {
     $records = CRM_Core_DAO::executeQuery('SELECT job_id, hash FROM civicrm_mailing_event_queue WHERE id = %1', [
       1 => [$queueId, 'Positive'],
     ])->fetchAll();
@@ -84,6 +69,23 @@ class CRM_Mailing_Page_OneClick extends CRM_Core_Page {
         CRM_Mailing_Event_BAO_MailingEventUnsubscribe::send_unsub_response($queueId, $groups, FALSE, $record['job_id']);
       }
     }
+  }
+
+  public function unsubscribeByContactGroupId(int $contactId, int $groupId): void {
+    throw new \CRM_Core_Exception("Not implemented: unsubscribeByContactGroupId");
+    // Not on critical path right (for CiviMail). May be useful of unsubs in transactional emails, scheduled-reminders, etc.
+    // \Civi\Api4\GroupContact::delete(FALSE)
+    //   ->addWhere('contact_id', '=', $contactId)
+    //   ->addWhere('group_id', '=', $contactId)
+    //   ->execute();
+    // We should also send a confirmation message -- either a MessageTemplate or a MailingComponent (like send_unsub_response()).
+    // We should probably have an input like $claims['msgtpl'] or $claims['mailCompId'].
+    // But this may involve some other (REF) -- e.g. on send_unsub_response().
+  }
+
+  protected function respond(int $status, string $message): void {
+    $response = new \GuzzleHttp\Psr7\Response($status, ['Content-Type' => 'text/plain'], $message . "\n");
+    CRM_Utils_System::sendResponse($response);
   }
 
 }

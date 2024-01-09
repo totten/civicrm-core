@@ -92,6 +92,22 @@ abstract class CRM_Mailing_BaseMailingSystemTest extends CiviUnitTestCase {
     }
   }
 
+  public function testOneClickUnsubscribe(): void {
+    $allMessages = $this->runMailingSuccess([
+      'subject' => 'Yellow Unsubmarine',
+      'body_text' => 'In the {domain.address} where I was born, lived a man who sailed to sea',
+    ]);
+    foreach ($allMessages as $k => $message) {
+      $this->assertEquals('List-Unsubscribe=One-Click', $message->headers['List-Unsubscribe-Post'][0]);
+      $this->assertMatchesRegularExpression(';^<https?://.*civicrm/mailing/one-click.*jwt=>$;', $message->headers['List-Unsubscribe'][0]);
+
+      $url = trim($message->headers['List-Unsubscribe'][0], '<>');
+      parse_str(parse_url($url, PHP_URL_QUERY), $query);
+      $page = new CRM_Mailing_Page_OneClick();
+
+    }
+  }
+
   /**
    * Generate a fully-formatted mailing (with body_text content).
    */
