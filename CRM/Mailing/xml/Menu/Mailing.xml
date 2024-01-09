@@ -121,6 +121,14 @@
     <weight>640</weight>
   </item>
   <item>
+    <path>civicrm/mailing/one-click</path>
+    <title>One-Click Action Handler</title>
+    <page_callback>CRM_Mailing_Page_OneClick</page_callback>
+    <access_arguments>access CiviMail subscribe/unsubscribe pages</access_arguments>
+    <is_public>true</is_public>
+    <weight>642</weight>
+  </item>
+  <item>
     <path>civicrm/mailing/resubscribe</path>
     <title>Resubscribe</title>
     <page_callback>CRM_Mailing_Page_Resubscribe</page_callback>
