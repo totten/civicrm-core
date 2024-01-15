@@ -703,6 +703,9 @@ class Container {
 
       $c = new self();
       static::useContainer($c->loadContainer());
+      // hook_entityTypes tends to fire early - before service-listeners are fully setup.
+      // This allows it to re-fire a second time (after all services are registered).
+      \CRM_Core_DAO_AllCoreTables::flush();
     }
     else {
       $bootServices['dispatcher.boot']->setDispatchPolicy(\CRM_Core_Config::isUpgradeMode() ? \CRM_Upgrade_DispatchPolicy::pick() : NULL);
