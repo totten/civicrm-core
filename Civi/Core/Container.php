@@ -697,12 +697,19 @@ class Container {
       \CRM_Extension_System::singleton()->getClassLoader()->register();
       \CRM_Extension_System::singleton()->getMixinLoader()->run();
       \CRM_Utils_Hook::singleton()->commonBuildModuleList('civicrm_boot');
-      $bootServices['dispatcher.boot']->setDispatchPolicy(\CRM_Core_Config::isUpgradeMode() ? \CRM_Upgrade_DispatchPolicy::pick() : NULL);
+
+      $targetDispatchPolicy = \CRM_Core_Config::isUpgradeMode() ? \CRM_Upgrade_DispatchPolicy::pick() : NULL;
+      $bootServices['dispatcher.boot']->setDispatchPolicy(array_merge(
+        $targetDispatchPolicy ?: [],
+        ['hook_civicrm_entityTypes' => 'not-ready']
+      ));
 
       $runtime->includeCustomPath();
 
       $c = new self();
       static::useContainer($c->loadContainer());
+
+      $bootServices['dispatcher.boot']->setDispatchPolicy($targetDispatchPolicy);
     }
     else {
       $bootServices['dispatcher.boot']->setDispatchPolicy(\CRM_Core_Config::isUpgradeMode() ? \CRM_Upgrade_DispatchPolicy::pick() : NULL);
