@@ -33,6 +33,8 @@ class Authenticator extends AutoService implements HookInterface {
    * @throws \Exception
    */
   public function on_civi_invoke_auth(GenericHookEvent $e) {
+    $clean = dbg_scope(sprintf('on_civi_invoke_auth - call %s (%s) for request %s ', get_class($this), spl_object_hash($this), \CRM_Utils_Request::id()));
+
     $params = ($_SERVER['REQUEST_METHOD'] === 'GET') ? $_GET : $_POST;
     $siteKey = $_SERVER['HTTP_X_CIVI_KEY'] ?? $params['_authxSiteKey'] ?? NULL;
 

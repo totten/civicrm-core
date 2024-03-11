@@ -60,6 +60,11 @@ class EventScanner {
    */
   public static function findListeners($target, $self = NULL): array {
     $class = is_object($target) ? get_class($target) : $target;
+
+    if (preg_match(';Authent;', $class)) {
+      $cleanup = dbg_scope('Scan class' . $class);
+    }
+
     $key = "$class::" . ($self ?: '');
     if (isset(self::$listenerMaps[$key])) {
       return self::$listenerMaps[$key];

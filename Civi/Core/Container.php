@@ -55,6 +55,8 @@ class Container {
    * @return \Symfony\Component\DependencyInjection\ContainerInterface
    */
   public function loadContainer() {
+    $clean = dbg_scope('loadContainer ' . \CRM_Utils_Request::id());
+    dbg_minitrace(15);
     // Note: The container's raison d'etre is to manage construction of other
     // services. Consequently, we assume a minimal service available -- the classloader
     // has been setup, and civicrm.settings.php is loaded, but nothing else works.
@@ -97,6 +99,8 @@ class Container {
    * @return \Symfony\Component\DependencyInjection\ContainerBuilder
    */
   public function createContainer() {
+    $clean = dbg_scope('createContainer ' . \CRM_Utils_Request::id());
+
     $civicrm_base_path = dirname(dirname(__DIR__));
     $container = new ContainerBuilder();
     $container->addCompilerPass(new AutoServiceScannerPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, 1000);

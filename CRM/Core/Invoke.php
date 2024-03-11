@@ -51,6 +51,10 @@ class CRM_Core_Invoke {
    *   HTML. For non-HTML content, invoke() may call print() and exit().
    */
   public static function _invoke($args) {
+    $clean = dbg_scope('_invoke for ' . \CRM_Utils_Request::id());
+    // $ls = Civi::dispatcher()->getListeners('civi.invoke.auth');
+    // dbg_note('listeners', $ls);
+
     if ($args[0] !== 'civicrm') {
       return NULL;
     }
