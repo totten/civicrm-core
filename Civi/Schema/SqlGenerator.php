@@ -80,8 +80,9 @@ class SqlGenerator {
     foreach ($entities as $name => $entity) {
       $references = [];
       foreach ($entity['getFields']() as $field) {
-        if (!empty($field['entity_reference']['entity']) && isset($entities[$field['entity_reference']['entity']])) {
-          $references[] = $field['entity_reference']['entity'];
+        $reference = $field['entity_reference']['entity'] ?? NULL;
+        if ($reference && $reference !== $name && isset($entities[$reference])) {
+          $references[] = $reference;
         }
       }
       $sorter->add($name, $references);
