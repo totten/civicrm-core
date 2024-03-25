@@ -10,8 +10,13 @@ namespace CiviMix\Schema;
  * newer revisions of the library can be loaded, the implementation is an anonymous-class,
  * and the interface uses soft type-hints.
  *
+ * @method bool hasSchema()
+ *
  * @method void install()
  * @method void uninstall()
+ *
+ * @method string generateInstallSql()
+ * @method string generateUninstallSql()
  *
  * TODO: void addTables(string[] $tables)
  * TODO: void addColumn(string $table, string $column)
