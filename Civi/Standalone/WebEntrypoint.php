@@ -25,7 +25,7 @@ class WebEntrypoint {
   }
 
   /**
-   * if CIVICRM_INSTALLED flag is set in settings, we think the database
+   * If `civicrm.settings.php` (CIVICRM_SETTINGS_PATH) has been loaded, then we think the database
    * *should* already be installed and we'll never show the installer
    *
    * if its not set, we check for presence of an existing database
@@ -36,8 +36,8 @@ class WebEntrypoint {
    * may even know your database credentials if these are provided as env variables)
    */
   public static function checkCiviInstalled(): bool {
-    if (defined('CIVICRM_INSTALLED')) {
-      return !!CIVICRM_INSTALLED;
+    if (defined('CIVICRM_SETTINGS_PATH')) {
+      return !!CIVICRM_SETTINGS_PATH;
     }
     // TODO: if CIVICRM_INSTALLED isnt set explicitly, can we check
     // whether we have valid database connection to a valid database?
