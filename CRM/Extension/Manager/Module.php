@@ -138,6 +138,7 @@ class CRM_Extension_Manager_Module extends CRM_Extension_Manager_Base {
     }
 
     $classloader = CRM_Extension_System::singleton()->getClassLoader();
+    $classloader->register(); /* Usually registered already -- but maybe not for new downloads */
     $classloader->installExtension($info, $extPath);
   }
 
