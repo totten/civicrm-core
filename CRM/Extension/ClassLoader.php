@@ -65,10 +65,18 @@ class CRM_Extension_ClassLoader {
     $this->unregister();
   }
 
+  public function isRegistered(): bool {
+    return ($this->loader !== NULL);
+  }
+
   /**
    * Registers this instance as an autoloader.
    */
   public function register(): void {
+    if ($this->isRegistered()) {
+      return;
+    }
+
     // In pre-installation environments, don't bother with caching.
     if (!defined('CIVICRM_DSN') || defined('CIVICRM_TEST') || \CRM_Utils_System::isInUpgradeMode()) {
       $this->loader = $this->buildClassLoader();
