@@ -67,13 +67,13 @@ class CRM_Extension_ClassLoader {
 
   /**
    * Registers this instance as an autoloader.
-   * @return CRM_Extension_ClassLoader
    */
-  public function register() {
+  public function register(): void {
     // In pre-installation environments, don't bother with caching.
     if (!defined('CIVICRM_DSN') || defined('CIVICRM_TEST') || \CRM_Utils_System::isInUpgradeMode()) {
       $this->loader = $this->buildClassLoader();
-      return $this->loader->register();
+      $this->loader->register();
+      return;
     }
 
     $file = $this->getCacheFile();
@@ -87,7 +87,7 @@ class CRM_Extension_ClassLoader {
         sprintf("<?php\nreturn unserialize(%s);", var_export($ser, 1))
       );
     }
-    return $this->loader->register();
+    $this->loader->register();
   }
 
   /**
