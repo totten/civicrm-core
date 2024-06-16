@@ -29,12 +29,12 @@ class CRM_Upgrade_Incremental_php_FiveSeventySix extends CRM_Upgrade_Incremental
    */
   public function upgrade_5_76_alpha1($rev): void {
     $this->addTask(ts('Upgrade DB to %1: SQL', [1 => $rev]), 'runSql', $rev);
-    $this->addTask('Install CustomToken entity', 'createEntityTable', '5.76.alpha1.CustomToken.entityType.php');
+    $this->addTask('Install SiteToken entity', 'createEntityTable', '5.76.alpha1.SiteToken.entityType.php');
     $this->addTask('Create "message header" token', 'create_mesage_header_token');
   }
 
   public static function create_mesage_header_token() {
-    $token = Civi\Api4\CustomToken::create(FALSE)
+    $token = Civi\Api4\SiteToken::create(FALSE)
       ->addValue('name', 'message_header')
       ->addValue('label', 'Message Heaader')
       ->addValue('body_html', '<tr></tr>')

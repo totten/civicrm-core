@@ -1,25 +1,25 @@
 <?php
 
 return [
-  'name' => 'CustomToken',
-  'table' => 'civicrm_custom_token',
-  'class' => 'CRM_Core_DAO_CustomToken',
+  'name' => 'SiteToken',
+  'table' => 'civicrm_site_token',
+  'class' => 'CRM_Core_DAO_SiteToken',
   'getInfo' => fn() => [
-    'title' => ts('Custom Token'),
-    'title_plural' => ts('Custom Tokens'),
-    'description' => ts('Customizable tokens.'),
+    'title' => ts('Site Token'),
+    'title_plural' => ts('Site Tokens'),
+    'description' => ts('Site-wide tokens.'),
     'add' => 5.76,
     'log' => TRUE,
     'icon' => 'fa-code',
   ],
   'getPaths' => fn() => [
-    'add' => 'civicrm/admin/customtoken/edit?action=add&reset=1',
-    'update' => 'civicrm/admin/customtoken/edit?action=update&id=[id]&reset=1',
-    'browse' => 'civicrm/admin/customtoken?action=browse&id=[id]&reset=1',
+    'add' => 'civicrm/admin/sitetoken/edit?action=add&reset=1',
+    'update' => 'civicrm/admin/sitetoken/edit?action=update&id=[id]&reset=1',
+    'browse' => 'civicrm/admin/sitetoken?action=browse&id=[id]&reset=1',
   ],
   'getFields' => fn() => [
     'id' => [
-      'title' => ts('Custom Token ID'),
+      'title' => ts('Site Token ID'),
       'sql_type' => 'int unsigned',
       'input_type' => 'Number',
       'required' => TRUE,
@@ -30,7 +30,7 @@ return [
       'title' => ts('Token Name'),
       'sql_type' => 'varchar(64)',
       'input_type' => 'Text',
-      'description' => ts('Token string, e.g. {custom_token.[name]}'),
+      'description' => ts('Token string, e.g. {site.[name]}'),
       'input_attrs' => [
         'maxlength' => 64,
       ],
@@ -126,7 +126,7 @@ return [
       'readonly' => TRUE,
       'description' => ts('When the token was created or modified or deleted.'),
       'add' => '4.7',
-      'unique_name' => 'custom_token_modified_date',
+      'unique_name' => 'site_token_modified_date',
       'default' => 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
       'usage' => [
         'export',

@@ -11,13 +11,13 @@
 namespace Civi\Api4;
 
 /**
- * CustomToken entity.
+ * SiteToken entity.
  *
  * @searchable secondary
  * @orderBy label
  * @since 5.76
  * @package Civi\Api4
  */
-class CustomToken extends Generic\DAOEntity {
+class SiteToken extends Generic\DAOEntity {
 
 }
