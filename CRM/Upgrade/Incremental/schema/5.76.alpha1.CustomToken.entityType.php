@@ -8,6 +8,9 @@ return [
     'title' => ts('Custom Token'),
     'title_plural' => ts('Custom Tokens'),
     'description' => ts('Customizable tokens.'),
+    'add' => 5.76,
+    'log' => TRUE,
+    'icon' => 'fa-code',
   ],
   'getPaths' => fn() => [
     'add' => 'civicrm/admin/customtoken/edit?action=add&reset=1',
@@ -38,7 +41,7 @@ return [
       'input_type' => 'Text',
       'description' => ts('User-visible label in token UI'),
       'input_attrs' => [
-        'label' => ts('Subject'),
+        'label' => ts('Label'),
         'maxlength' => 255,
       ],
     ],
