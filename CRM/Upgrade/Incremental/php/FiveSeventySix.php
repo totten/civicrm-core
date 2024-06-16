@@ -29,6 +29,7 @@ class CRM_Upgrade_Incremental_php_FiveSeventySix extends CRM_Upgrade_Incremental
    */
   public function upgrade_5_76_alpha1($rev): void {
     $this->addTask(ts('Upgrade DB to %1: SQL', [1 => $rev]), 'runSql', $rev);
+    $this->addTask('Install CustomToken entity', 'createEntityTable', '5.76.alpha1.CustomToken.entityType.php');
   }
 
 }
