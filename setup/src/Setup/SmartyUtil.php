@@ -10,9 +10,6 @@ class SmartyUtil {
    * @throws \SmartyException
    */
   public static function createSmarty($srcPath) {
-    $packagePath = PackageUtil::getPath($srcPath);
-    require_once $packagePath . '/smarty5/Smarty.php';
-
     $smarty = new \Smarty();
     $smarty->setTemplateDir(implode(DIRECTORY_SEPARATOR, [$srcPath, 'xml', 'templates']));
     $pluginsDirectory = $smarty->addPluginsDir([
