@@ -141,31 +141,21 @@ abstract class EntityMetadataBase implements EntityMetadataInterface {
     if (!isset($options)) {
       $options = [];
       $fields = $entity->getSupportedFields();
+      $pseudoconstant = $this->buildSqlPseudoConstant($entity, $pseudoconstant);
+
       $select = \CRM_Utils_SQL_Select::from($pseudoconstant['table']);
-      $idCol = $pseudoconstant['key_column'] ?? $entity->getMeta('primary_key');
-      $pseudoconstant['name_column'] ??= (isset($fields['name']) ? 'name' : $idCol);
+      $idCol = $pseudoconstant['key_column'];
       $select->select(["$idCol AS id"]);
-      foreach (array_keys(\CRM_Core_SelectValues::optionAttributes()) as $prop) {
-        if (isset($pseudoconstant["{$prop}_column"], $fields[$pseudoconstant["{$prop}_column"]])) {
-          $propColumn = $pseudoconstant["{$prop}_column"];
-          $select->select("$propColumn AS $prop");
-        }
-      }
+      $props = [...array_keys(\CRM_Core_SelectValues::optionAttributes()), 'is_active', 'component_id'];
       // Select is_active for filtering
-      if (isset($fields['is_active'])) {
-        $select->select('is_active');
-      }
       // Also component_id for filtering (this is legacy, the new way for extensions to add options is via hook)
-      if (isset($fields['component_id'])) {
-        $select->select('component_id');
-      }
-      // Order by: prefer order_column; or else 'weight' column; or else lobel_column; or as a last resort, $idCol
-      $orderColumns = [$pseudoconstant['order_column'] ?? NULL, 'weight', $pseudoconstant['label_column'] ?? NULL, $idCol];
-      foreach ($orderColumns as $orderColumn) {
-        if (isset($fields[$orderColumn])) {
-          $select->orderBy($orderColumn);
-          break;
+      foreach ($props as $prop) {
+        if (isset($pseudoconstant["{$prop}_column"], $fields[$pseudoconstant["{$prop}_column"]])) {
+          $select->select($pseudoconstant["{$prop}_column"] . " AS $prop");
         }
+      }
+      if (!empty($pseudoconstant['order_column'])) {
+        $select->orderBy($pseudoconstant['order_column']);
       }
       // Filter on domain, but only if field is required
       if (!empty($fields['domain_id']['required'])) {
@@ -174,6 +164,7 @@ abstract class EntityMetadataBase implements EntityMetadataInterface {
       if (!empty($pseudoconstant['condition'])) {
         $select->where($pseudoconstant['condition']);
       }
+
       $result = $select->execute()->fetchAll();
       foreach ($result as $option) {
         if (\CRM_Utils_Schema::getDataType($fields[$idCol]) === 'Integer' || \CRM_Utils_Schema::getDataType($field) === 'Integer') {
@@ -195,12 +186,88 @@ abstract class EntityMetadataBase implements EntityMetadataInterface {
   }
 
   /**
+   * @param \Civi\Schema\EntityProvider $entity
+   * @param array $pseudoconstant
+   *   Original `<pseudoconstant>` declaration
+   *   Ex: ['name_column' => 'name_a', 'label_column' => 'title']
+   * @return array
+   *   Revised declaration with defaults/fallbacks filled-in.
+   */
+  private function buildSqlPseudoConstant(EntityProvider $entity, array $pseudoconstant): array {
+    $declaredFields = $entity->getFields();
+    $supportedFields = $entity->getSupportedFields();
+    $warnings = [];
+
+    $original = $pseudoconstant;
+
+    $allFallbacks = [
+      // Each fallback option is either the string-name of a SQL column, or it's a closure to lookup the string, or it's NULL.
+      // Note: Order of this array is significant, because some items build on others.
+      'key_column' => [$entity->getMeta('primary_key')],
+      'name_column' => ['name'],
+      'label_column' => ['label'],
+      'is_active_column' => ['is_active'],
+      'component_id_column' => ['component_id'],
+      'order_column' => [
+        'weight',
+        fn() => $pseudoconstant['label_column'] ?? NULL,
+        fn() => $pseudoconstant['key_column'] ?? NULL,
+      ],
+    ];
+
+    foreach ($allFallbacks as $fieldRef => $fallbacks) {
+      if (isset($pseudoconstant[$fieldRef])) {
+        if (isset($declaredFields[$fieldRef]) && isset($supportedFields[$fieldRef][$pseudoconstant[$fieldRef]])) {
+          goto finishedField;
+        }
+        else {
+          $warnings[] = ['for' => $fieldRef, 'field' => $pseudoconstant[$fieldRef]];
+        }
+      }
+
+      foreach ($fallbacks as $fallback) {
+        // Find the first valid fallback.
+        // If a fallback option SHOULD be valid but ISN'T valid, then log a warning and check other fallbacks.
+        $fallback = ($fallback instanceof \Closure) ? $fallback() : $fallback;
+        if (empty($declaredFields[$fallback])) {
+          // This fallback only exists in our imagination. Maybe another option is real.
+          continue;
+        }
+
+        // OK, this option is SUPPOSED to exist. But does it actually?
+        if (isset($supportedFields[$fallback])) {
+          $pseudoconstant[$fieldRef] = $fallback;
+          goto finishedField;
+        }
+        else {
+          $warnings[] = ['for' => $fieldRef, 'field' => $fallback];
+        }
+      }
+
+      finishedField:
+    }
+
+    if (!empty($warnings)) {
+      $message = sprintf(
+        "Pseudoconstant could not be conventionally resolved due to missing fields. This may reflect a logic-error or pending-upgrade.\n - Declaration: %s\n - Warnings: %s\n",
+        json_encode($original),
+        json_encode($warnings)
+      );
+      \Civi::log()->warning($message);
+      trigger_error($message, E_USER_WARNING);
+    }
+
+    return $pseudoconstant;
+  }
+
+  /**
    * Retrieves the custom fields associated with the entity, in the same format as returned by `getFields()`
    *
    * @param array $customGroupFilters
    *   Optional. Additional filters to apply when retrieving custom groups. Defaults to an empty array.
    * @return array[]
-   *   The array keys are formatted as "customGroup.fieldName", and the array values are associative arrays containing the field details.
+   *   The array keys are formatted as "customGroup.fieldName", and the array values are associative arrays containing the
+   *   field details.
    */
   public function getCustomFields(array $customGroupFilters = []): array {
     $customFields = [];
