@@ -87,14 +87,19 @@ class CRM_Core_ClassLoader {
     // civicrm-core directory. However, if civicrm-core was installed via
     // composer as a library, that'll be 5 directories up where composer was
     // run (ex. the Drupal root on a Drupal 8 site).
-    $civicrm_base_path = dirname(dirname(__DIR__));
-    $top_path = dirname(dirname(dirname(dirname(dirname(__DIR__)))));
 
-    if (file_exists($civicrm_base_path . '/vendor/autoload.php')) {
-      require_once $civicrm_base_path . '/vendor/autoload.php';
-    }
-    elseif (file_exists($top_path . '/vendor/autoload.php')) {
-      require_once $top_path . '/vendor/autoload.php';
+    $candidates = [
+      $GLOBALS['civicrm_root'] ?? NULL,
+      dirname(__DIR__, 2),
+      $GLOBALS['civicrm_root'] ? dirname($GLOBALS['civicrm_root'], 3) : NULL,
+      dirname(__DIR__, 5),
+    ];
+
+    foreach ($candidates as $candidate) {
+      if ($candidate && file_exists($candidate . '/vendor/autoload.php')) {
+        require_once $candidate . '/vendor/autoload.php';
+        break;
+      }
     }
   }
 
@@ -110,7 +115,7 @@ class CRM_Core_ClassLoader {
     if ($this->_registered) {
       return;
     }
-    $civicrm_base_path = dirname(dirname(__DIR__));
+    $civicrm_base_path = $GLOBALS['civicrm_root'] ?? dirname(dirname(__DIR__));
 
     $this->requireComposerAutoload();
 
