@@ -45,6 +45,7 @@ class CRM_Contribute_Page_AjaxTest extends CiviUnitTestCase {
    */
   public function tearDown(): void {
     $this->quickCleanUpFinancialEntities();
+    unset($_SERVER['HTTP_X_REQUESTED_WITH']);
     parent::tearDown();
   }
 

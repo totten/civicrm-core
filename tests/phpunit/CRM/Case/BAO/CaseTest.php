@@ -164,6 +164,9 @@ class CRM_Case_BAO_CaseTest extends CiviUnitTestCase {
     catch (CRM_Core_Exception_PrematureExitException $e) {
       $cases = $e->errorData['data'];
     }
+    finally {
+      unset($_SERVER['HTTP_X_REQUESTED_WITH']);
+    }
 
     // list of expected sorted names in order the respective cases were created
     $unsortedExpectedContactNames = [

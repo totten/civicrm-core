@@ -23,6 +23,7 @@ class CRM_Contact_Page_AjaxTest extends CiviUnitTestCase {
 
   public function tearDown(): void {
     $_REQUEST = $this->originalRequest;
+    unset($_SERVER['HTTP_X_REQUESTED_WITH']);
     parent::tearDown();
   }
 
