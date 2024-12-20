@@ -661,4 +661,13 @@ class CRM_Utils_SQL_Select extends CRM_Utils_SQL_BaseParamQuery {
     return $this->wheres;
   }
 
+  /**
+   * List of table-aliases defined via JOINs.
+   *
+   * @return string[]
+   */
+  public function getJoinAliases(): array {
+    return array_keys($this->joins);
+  }
+
 }
