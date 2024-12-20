@@ -108,7 +108,7 @@ class EntityDisplayTest extends Api4TestBase {
     $this->assertCount(7, $schema);
     $this->assertEquals('_row', $schema[0]['Field']);
     // $this->assertStringStartsWith('int', $schema[0]['Type']);
-    $this->assertMatchesRegularExpression('/^(int|bigint)/', $schema[0]['Type']);
+    $this->assertMatchesRegularExpression($dataMode === 'table' ? '/^int/' : '/^(text|varchar)/', $schema[0]['Type']);
     if ($dataMode === 'table') {
       $this->assertEquals('PRI', $schema[0]['Key']);
     }
@@ -391,7 +391,7 @@ class EntityDisplayTest extends Api4TestBase {
     $schema = \CRM_Core_DAO::executeQuery('DESCRIBE civicrm_sk_major_donors_entity_test_db_entity1')->fetchAll();
     $this->assertCount(6, $schema);
     $this->assertEquals('_row', $schema[0]['Field']);
-    $this->assertMatchesRegularExpression('/^(int|bigint)/', $schema[0]['Type']);
+    $this->assertMatchesRegularExpression($dataMode === 'table' ? '/^int/' : '/^(text|varchar)/', $schema[0]['Type']);
     $this->assertMatchesRegularExpression('/^(int|bigint)/', $schema[1]['Type']);
     $this->assertMatchesRegularExpression('/^(int|bigint)/', $schema[2]['Type']);
     $this->assertStringStartsWith('text', $schema[3]['Type']);

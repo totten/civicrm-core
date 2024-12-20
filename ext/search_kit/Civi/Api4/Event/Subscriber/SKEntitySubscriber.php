@@ -139,7 +139,11 @@ class SKEntitySubscriber extends AutoService implements EventSubscriberInterface
         $columns = implode(', ', array_column($columnSpecs, 'name'));
 
         $sql = "CREATE VIEW `$tableName` (_row, $columns) AS " . $query->getSql();
-        $sql = preg_replace('/ SELECT /', ' SELECT row_number() over () AS _row, ', $sql, 1);
+        $pkParts = array_map(fn($i) => "coalesce($i.id,'')", ['a', ...$query->getQuery()->getJoinAliases()]);
+        // $pkExpr = 'GROUP_CONCAT(' . implode(', "_", ', $pkParts) . ') as _row'; /* Passes test, but doesn't work interactively. */
+        $pkExpr = 'CONCAT(' . implode(', "_", ', $pkParts) . ') as _row'; /* Works interactively, but doesn't pass test. */
+
+        $sql = preg_replace('/ SELECT /', ' SELECT ' . $pkExpr . ',', $sql, 1);
         // Q: Do we really need _row? What are the performance implications?
 
         // do not i18n-rewrite
