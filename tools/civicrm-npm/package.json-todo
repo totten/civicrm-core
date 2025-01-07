@@ -1,0 +1,14 @@
+    "angular-jquery-dialog-service": "0.8.0",
+    "angular-jquery-dialog-service": "https://github.com/totten/angular-jquery-dialog-service/archive/v0.8.0-civicrm-1.0.zip",
+
+    "angular-unsavedchanges": "0.1.1",
+    "angular-unsavedchanges": "https://github.com/facultymatt/angular-unsavedChanges/archive/v0.1.1.zip",
+
+    "json-formatter": "0.7.0",
+
+    "select2": "3.5.0",
+    "select2": "https://github.com/colemanw/select2/archive/v3.5-civicrm-1.2.zip",
+
+    "sms-counter": "https://github.com/danxexe/sms-counter/archive/7998d0402371de14f464c274e3e75f6214c436a3.zip"
+
+    NOTE: jquery and jquery-ui are approximations
