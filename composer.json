@@ -53,7 +53,7 @@
   "require": {
     "php": "~7.4 || ~8",
     "composer-runtime-api": "~2.0",
-    "dompdf/dompdf" : "~2.0.4",
+    "dompdf/dompdf": "~2.0.4",
     "firebase/php-jwt": ">=3 <7",
     "rubobaquero/phpquery": "^0.9.15",
     "symfony/config": "~4.4 || ~5.4 || ~6.0 || ~7.0",
@@ -66,7 +66,7 @@
     "symfony/service-contracts": "~2.2 || ~3.1",
     "psr/log": "~1.0 || ~2.0 || ~3.0",
     "symfony/finder": "~4.4 || ~5.4 || ~6.0 || ~7.0",
-    "tecnickcom/tcpdf" : "6.*",
+    "tecnickcom/tcpdf": "6.*",
     "totten/ca-config": "~23.07",
     "zetacomponents/base": "1.9.*",
     "zetacomponents/mail": "~1.9.4",
@@ -137,75 +137,75 @@
         "path": "bower_components/{$id}"
       },
       "angular": {
-        "url": "https://github.com/angular/bower-angular/archive/v1.8.2.zip"
+        "url": "https://registry.npmjs.org/angular/-/angular-1.8.2.tgz"
       },
       "angular-bootstrap": {
-        "url": "https://github.com/angular-ui/bootstrap-bower/archive/2.5.0.zip"
+        "url": "https://registry.npmjs.org/angular-ui-bootstrap/-/angular-ui-bootstrap-2.5.0.tgz"
       },
       "angular-file-upload": {
-        "url": "https://github.com/nervgh/angular-file-upload/archive/2.6.1.zip",
+        "url": "https://registry.npmjs.org/angular-file-upload/-/angular-file-upload-2.6.1.tgz",
         "ignore": ["examples", "src"]
       },
       "angular-jquery-dialog-service": {
         "url": "https://github.com/totten/angular-jquery-dialog-service/archive/v0.8.0-civicrm-1.0.zip"
       },
       "angular-mocks": {
-        "url": "https://github.com/angular/bower-angular-mocks/archive/v1.8.0.zip"
+        "url": "https://registry.npmjs.org/angular-mocks/-/angular-mocks-1.8.0.tgz"
       },
       "angular-route": {
-        "url": "https://github.com/angular/bower-angular-route/archive/v1.8.0.zip"
+        "url": "https://registry.npmjs.org/angular-route/-/angular-route-1.8.0.tgz"
       },
       "angular-sanitize": {
-        "url": "https://github.com/angular/bower-angular-sanitize/archive/v1.8.0.zip"
+        "url": "https://registry.npmjs.org/angular-sanitize/-/angular-sanitize-1.8.0.tgz"
       },
       "angular-ui-sortable": {
-        "url": "https://github.com/angular-ui/ui-sortable/archive/v0.19.0.zip"
+        "url": "https://registry.npmjs.org/angular-ui-sortable/-/angular-ui-sortable-0.19.0.tgz"
       },
       "angular-unsavedChanges": {
         "url": "https://github.com/facultymatt/angular-unsavedChanges/archive/v0.1.1.zip",
         "ignore": [".*", "node_modules", "bower_components", "test", "tests"]
       },
       "angular-xeditable": {
-        "url": "https://github.com/vitalets/angular-xeditable/archive/0.9.0.zip",
+        "url": "https://registry.npmjs.org/angular-xeditable/-/angular-xeditable-0.9.0.tgz",
         "ignore": [".*", "node_modules", "bower_components", "playground", "test", "libs", "docs", "zip", "src", "starter", "Gruntfile.js", "index.html", "jsdoc.conf.json", "package.json"]
       },
       "checklist-model": {
-        "url": "https://github.com/vitalets/checklist-model/archive/1.0.0.zip",
+        "url": "https://registry.npmjs.org/checklist-model/-/checklist-model-1.0.0.tgz",
         "ignore": [".*", "node_modules", "docs", "Gruntfile.js", "index.html", "package.json", "test"]
       },
       "ckeditor": {
-        "url": "https://github.com/ckeditor/ckeditor-releases/archive/4.18.0.zip"
+        "url": "https://registry.npmjs.org/ckeditor4/-/ckeditor4-4.18.0.tgz"
       },
       "crossfilter-1.4.x": {
-        "url": "https://github.com/crossfilter/crossfilter/archive/1.4.7.zip",
+        "url": "https://registry.npmjs.org/crossfilter2/-/crossfilter2-1.4.7.tgz",
         "ignore": [".*", "node_modules", "bower_components", "package.json", "index.js", "src", "component.json", "media", "test", "tests"]
       },
       "css-color-names": {
-        "url": "https://github.com/bahamas10/css-color-names/archive/v1.0.1.zip"
+        "url": "https://registry.npmjs.org/css-color-names/-/css-color-names-1.0.1.tgz"
       },
       "d3-3.5.x": {
-        "url": "https://github.com/mbostock-bower/d3-bower/archive/v3.5.17.zip"
+        "url": "https://registry.npmjs.org/d3/-/d3-3.5.17.tgz"
       },
       "datatables": {
-        "url": "https://github.com/DataTables/DataTables/archive/1.10.19.zip",
+        "url": "https://registry.npmjs.org/datatables.net/-/datatables.net-1.10.19.tgz",
         "ignore": ["/.*", "examples", "media/unit_testing", "composer.json", "dataTables.jquery.json", "package.json"]
       },
       "dc-2.1.x": {
-        "url": "https://github.com/NickQiZhu/dc.js/archive/2.1.10.zip",
+        "url": "https://registry.npmjs.org/dc/-/dc-2.1.10.tgz",
         "ignore": [".*", "style", "web", "*.json", "regression", "scripts", "spec", "src", "docs", "grunt", "Gruntfile.js", "Changelog.md", "welcome.md", "class-hierarchy.dot", "index.js", "CONTRIBUTING.md", "LICENSE_BANNER", "AUTHORS"]
       },
       "es-module-shims": {
-        "url": "https://ga.jspm.io/npm:es-module-shims@1.7.2/dist/es-module-shims.js",
+        "url": "https://registry.npmjs.org/es-module-shims/-/es-module-shims-1.7.2.tgz",
         "path": "bower_components/es-module-shims/dist/es-module-shims.js",
         "_comment": "See also https://github.com/guybedford/es-module-shims/. MIT license."
       },
       "ext-chart_kit-crossfilter": {
-        "url": "https://github.com/crossfilter/crossfilter/archive/refs/tags/1.5.4.zip",
+        "url": "https://registry.npmjs.org/crossfilter2/-/crossfilter2-1.5.4.tgz",
         "path": "ext/chart_kit/packages/crossfilter",
         "ignore": [".*", "node_modules", "bower_components", "src", "lib", "test", "component.json", "package.json", "index.js", "main.js", "Makefile"]
       },
       "ext-chart_kit-d3": {
-        "url": "https://github.com/d3/d3/releases/download/v6.7.0/d3.zip",
+        "url": "https://registry.npmjs.org/d3/-/d3-6.7.0.tgz",
         "path": "ext/chart_kit/packages/d3",
         "ignore": [".DS_Store", ".git", ".gitignore", ".npmignore", ".travis.yml", "Makefile", "bin", "component.json", "index.js", "lib", "node_modules", "package.json", "src", "test"]
       },
@@ -215,17 +215,17 @@
         "ignore": [".*", "web", "*.json", "regression", "scripts", "spec", "src", "docs", "grunt", "Gruntfile.js", "Changelog.md", "welcome.md", "class-hierarchy.dot", "index.js", "CONTRIBUTING.md", "LICENSE_BANNER", "AUTHORS"]
       },
       "ext-greenwich-bootstrap3": {
-        "url": "https://github.com/twbs/bootstrap-sass/archive/v{$version}.zip",
+        "url": "https://registry.npmjs.org/bootstrap-sass/-/bootstrap-sass-3.4.1.tgz",
         "path": "ext/greenwich/extern/bootstrap3",
         "version": "3.4.1",
         "ignore": ["fonts", "test", "tasks", "lib"]
       },
       "font-awesome": {
-        "url": "https://github.com/FortAwesome/Font-Awesome/releases/download/6.6.0/fontawesome-free-6.6.0-web.zip",
+        "url": "https://registry.npmjs.org/@fortawesome/fontawesome-free/-/fontawesome-free-6.6.0.tgz",
         "ignore": ["*/.*", "*.json", "src", "*.yml", "Gemfile", "Gemfile.lock", "*.md"]
       },
       "marked": {
-        "url": "https://github.com/markedjs/marked/archive/v0.8.0.zip",
+        "url": "https://registry.npmjs.org/marked/-/marked-0.8.0.tgz",
         "ignore": [".*", "*.json", "*.md", "Makefile", "*/*"]
       },
       "monaco-editor": {
@@ -234,17 +234,17 @@
         "ignore": ["dev", "esm"]
       },
       "google-code-prettify": {
-        "url": "https://github.com/tcollard/google-code-prettify/archive/v1.0.5.zip",
+        "url": "https://registry.npmjs.org/google-code-prettify/-/google-code-prettify-1.0.5.tgz",
         "ignore": ["closure-compiler", "js-modules", "tests", "yui-compressor", "Makefile", "examples", "*.html", "run_prettify*js"]
       },
       "jquery": {
-        "url": "https://github.com/civicrm/jquery/archive/1.12.4-civicrm-1.2.zip"
+        "url": "https://registry.npmjs.org/jquery/-/jquery-1.12.4.tgz"
       },
       "jquery-ui": {
-        "url": "https://github.com/civicrm/jqueryui/archive/1.13.2-civicrm.zip"
+        "url": "https://registry.npmjs.org/jquery-ui/-/jquery-ui-1.13.2.tgz"
       },
       "jquery-validation": {
-        "url": "https://github.com/jquery-validation/jquery-validation/archive/1.19.5.zip",
+        "url": "https://registry.npmjs.org/jquery-validation/-/jquery-validation-1.19.5.tgz",
         "ignore": [".*", "node_modules", "bower_components", "test", "demo", "lib"]
       },
       "json-formatter": {
@@ -253,22 +253,22 @@
         "ignore": ["demo", "test", "screenshot.png"]
       },
       "jstree": {
-        "url": "https://github.com/vakata/jstree/archive/3.3.8.zip",
+        "url": "https://registry.npmjs.org/jstree/-/jstree-3.3.8.tgz",
         "ignore": [".*", "docs", "demo", "libs", "node_modules", "test", "libs", "jstree.jquery.json", "gruntfile.js", "package.json", "bower.json", "component.json", "LICENCE-MIT", "README.md"]
       },
       "lodash-compat": {
-        "url": "https://github.com/lodash/lodash-compat/archive/3.0.1.zip",
+        "url": "https://registry.npmjs.org/lodash-compat/-/lodash-compat-3.0.1.tgz",
         "ignore": [".*", "*.log", "*.md", "component.json", "package.json", "node_modules"]
       },
       "select2": {
         "url": "https://github.com/colemanw/select2/archive/v3.5-civicrm-1.2.zip"
       },
       "js-yaml": {
-        "url": "https://github.com/nodeca/js-yaml/archive/3.13.1.zip",
+        "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-3.13.1.tgz",
         "ignore": ["benchmark", "bin", "demo", "examples", "lib", "support", "test"]
       },
       "smartmenus": {
-        "url": "https://github.com/vadikom/smartmenus/archive/1.1.0.zip",
+        "url": "https://registry.npmjs.org/smartmenus/-/smartmenus-1.1.0.tgz",
         "ignore": [".gitignore", "Gruntfile.js"]
       },
       "sms-counter": {
