@@ -5,11 +5,18 @@ namespace Civi\PathLoadSetup;
 //
 //   pathload()->addSearchDir(__DIR__ . '/lib');
 //
-// However, that would detect version#'s from the filenames. In this folder,
-// we want all subprojects to have the same version-number as the main
-// project. It would be quite inconvenient to rename them every month.
+// However, that would detect version#'s from the filenames -- which is a convenient
+// practice for downstreams using backports. However, here, we are canonical.
+// It would be quite inconvenient to rename the folder every time there's an edit.
 //
-// So instead, we use `addSearchItem()` and register with explicit versions.
+// `addSearchItem()` allows us to register version-number programmatically -- so we don't have
+// to manually set number.
 
-$version = \CRM_Utils_System::version() . '.1'; /* Higher priority than contrib copies of same version... */
-\pathload()->addSearchItem('civimix-schema', $version, __DIR__ . '/civimix-schema');
+$version6 = \CRM_Utils_System::version() . '.1'; /* Higher priority than contrib copies of same version... */
+$version5 = preg_replace_callback(';^6\.(\d+)\.;', function ($m) {
+  /* civimix-schema@5.83=>6.0 was purely superficial (to match core#)s. Continue 5.x option for compat. */
+  return '5.' . (83 + $m[1]) . '.';
+}, $version6);
+
+// Register civimix-schema@5.x
+\pathload()->addSearchItem('civimix-schema@5', $version5, __DIR__ . '/civimix-schema');
