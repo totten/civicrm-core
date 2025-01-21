@@ -97,8 +97,14 @@
         }
         if (editor.mode === 'clone') {
           delete editor.afform.name;
-          delete editor.afform.server_route;
-          delete editor.afform.navigation;
+          if (!_.isEmpty(editor.afform.server_route)) {
+            const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            const randomId = _.times(3, () => _.times(4, () => _.sample(characters)).join('')).join('-');
+            editor.afform.server_route = 'civicrm/form/' + randomId;
+          }
+          if (editor.afform.navigation.label) {
+            editor.afform.navigation.label += ' ' + ts('(copy)');
+          }
           editor.afform.title += ' ' + ts('(copy)');
         }
         editor.afform.icon = editor.afform.icon || 'fa-list-alt';
