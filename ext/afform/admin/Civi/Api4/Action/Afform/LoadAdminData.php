@@ -49,6 +49,7 @@ class LoadAdminData extends \Civi\Api4\Generic\AbstractAction {
           $info['definition'] = $this->definition + [
             'title' => '',
             'permission' => ['access CiviCRM'],
+            'server_route' => 'civicrm/afform/' . $this->createRandomId(),
             'layout' => [
               [
                 '#tag' => 'af-form',
@@ -71,6 +72,7 @@ class LoadAdminData extends \Civi\Api4\Generic\AbstractAction {
           $info['definition'] = $this->definition + [
             'title' => '',
             'permission' => ['access CiviCRM'],
+            'server_route' => 'civicrm/search/' . $this->createRandomId(),
             'layout' => [
               [
                 '#tag' => 'div',
@@ -262,6 +264,11 @@ class LoadAdminData extends \Civi\Api4\Generic\AbstractAction {
         ->execute();
       $info['blocks'] = array_merge(array_values($info['blocks']), (array) $blockInfo);
     }
+  }
+
+  private function createRandomId(): string {
+    $randChars = fn() => \CRM_Utils_String::createRandom(4, 'abcdefghijklmnopqrstuvwxyz1234567890');
+    return implode('-', [$randChars(), $randChars(), $randChars()]);
   }
 
   /**
