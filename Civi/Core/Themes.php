@@ -22,12 +22,6 @@ use Civi;
 class Themes extends \Civi\Core\Service\AutoService {
 
   /**
-   * The "default" theme adapts based on the latest recommendation from civicrm.org
-   * by switching to DEFAULT_THEME at runtime.
-   */
-  const DEFAULT_THEME = 'greenwich';
-
-  /**
    * Fallback is a pseudotheme which can be included in "search_order".
    * It locates files in the core/extension (non-theme) codebase.
    */
@@ -74,7 +68,7 @@ class Themes extends \Civi\Core\Service\AutoService {
 
       $themeKey = Civi::settings()->get($settingKey);
       if ($themeKey === 'default') {
-        $themeKey = self::DEFAULT_THEME;
+        $themeKey = $this->findDefaultThemeKey();
       }
 
       \CRM_Utils_Hook::activeTheme($themeKey, [
@@ -83,9 +77,24 @@ class Themes extends \Civi\Core\Service\AutoService {
       ]);
 
       $themes = $this->getAll();
-      $this->activeThemeKey = isset($themes[$themeKey]) ? $themeKey : self::DEFAULT_THEME;
+      $this->activeThemeKey = isset($themes[$themeKey]) ? $themeKey : $this->findDefaultThemeKey();
     }
     return $this->activeThemeKey;
+  }
+
+  private function findDefaultThemeKey(): string {
+    // It might make sense to incorporate some kind of event at some point.
+    // But in any case, this is a softer dependency than we had in 4.x/5.x.
+    $activeModules = \CRM_Extension_System::singleton()->getMapper()->getActiveModuleFiles();
+    if (in_array('riverlea', $activeModules)) {
+      return 'minetta';
+    }
+    elseif (in_array('greenwich', $activeModules)) {
+      return 'greenwich';
+    }
+    else {
+      return 'none';
+    }
   }
 
   /**
