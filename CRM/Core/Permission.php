@@ -592,13 +592,7 @@ class CRM_Core_Permission {
     if (!isset(\Civi::$statics[__CLASS__][$cacheKey])) {
       $perms = [];
       \CRM_Utils_Hook::permissionList($perms);
-      foreach ($perms as $permName => $permission) {
-        $defaults = [
-          'name' => $permName,
-          'is_synthetic' => ($permName[0] === '@'),
-        ];
-        $perms[$permName] = array_merge($defaults, $permission);
-      }
+      $perms = static::normalizePermissions($perms);
       \Civi::$statics[__CLASS__][$cacheKey] = $perms;
     }
 
@@ -633,23 +627,34 @@ class CRM_Core_Permission {
   protected static function assembleBasicPermissions(): array {
     $permissions = self::getCoreAndComponentPermissions();
     $module_permissions = CRM_Core_Config::singleton()->userPermissionClass->getAllModulePermissions();
-    $allPermissions = array_merge($permissions, $module_permissions);
+    return static::normalizePermissions(array_merge($permissions, $module_permissions));
+  }
+
+  protected static function normalizePermissions(array $perms): array {
+    // Fill in 'name' and 'is_synthetic'
+    foreach ($perms as $permName => $permission) {
+      $defaults = [
+        'name' => $permName,
+        'is_synthetic' => ($permName[0] === '@'),
+      ];
+      $perms[$permName] = array_merge($defaults, $permission);
+    }
     // Propagate implied_by permissions to their parents
-    foreach ($allPermissions as $name => $permission) {
+    foreach ($perms as $permName => $permission) {
       foreach ($permission['implied_by'] ?? [] as $parent) {
-        if (isset($allPermissions[$parent])) {
-          $allPermissions[$parent]['implies'][] = $name;
-          $allPermissions[$name]['parent'] = $parent;
+        if (isset($perms[$parent])) {
+          $perms[$parent]['implies'][] = $permName;
+          $perms[$permName]['parent'] = $parent;
         }
       }
     }
     // Propagate implied permissions to their children
-    foreach ($allPermissions as $name => $permission) {
+    foreach ($perms as $permName => $permission) {
       if (!empty($permission['implies'])) {
-        self::setImpliedBy([$name], $permission['implies'], $allPermissions);
+        self::setImpliedBy([$permName], $permission['implies'], $perms);
       }
     }
-    return $allPermissions;
+    return $perms;
   }
 
   /**
