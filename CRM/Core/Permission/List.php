@@ -35,6 +35,7 @@ class CRM_Core_Permission_List {
         'title' => $corePerm['label'], /* Awesome */
         'description' => $corePerm['description'] ?? NULL,
         'is_active' => empty($corePerm['disabled']),
+        'implied_by' => $corePerm['implied_by'] ?? NULL,
         'implies' => $corePerm['implies'] ?? NULL,
         'parent' => $corePerm['parent'] ?? NULL,
       ];
@@ -58,6 +59,9 @@ class CRM_Core_Permission_List {
         'title' => $cmsPerm['title'] ?? $permName,
         'description' => $cmsPerm['description'] ?? NULL,
         'is_synthetic' => $cmsPerm['is_synthetic'] ?? FALSE,
+        'implied_by' => $cmsPerm['implied_by'] ?? NULL,
+        'implies' => $cmsPerm['implies'] ?? NULL,
+        'parent' => $cmsPerm['parent'] ?? NULL,
       ];
     }
   }

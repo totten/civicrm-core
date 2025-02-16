@@ -1044,7 +1044,7 @@ class CRM_Core_Permission {
       return [$permissionName];
     }
     try {
-      $permission = self::basicPermissions(TRUE, TRUE)[$permissionName] ?? NULL;
+      $permission = self::allPermissions()[$permissionName] ?? NULL;
       $impliedPermissions = array_merge([$permissionName], $permission['implied_by'] ?? []);
       // Permission for a disabled component: always deny
       if (!empty($permission['disabled'])) {
