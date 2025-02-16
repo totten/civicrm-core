@@ -32,21 +32,7 @@ class Get extends BasicGetAction {
    * @return array[]
    */
   protected function getRecords() {
-    $cacheKey = 'list_' . $GLOBALS['tsLocale'];
-    if (!isset(\Civi::$statics[__CLASS__][$cacheKey])) {
-      $perms = [];
-      \CRM_Utils_Hook::permissionList($perms);
-      foreach ($perms as $permName => $permission) {
-        $defaults = [
-          'name' => $permName,
-          'is_synthetic' => ($permName[0] === '@'),
-        ];
-        $perms[$permName] = array_merge($defaults, $permission);
-      }
-      \Civi::$statics[__CLASS__][$cacheKey] = $perms;
-    }
-
-    return \Civi::$statics[__CLASS__][$cacheKey];
+    return \CRM_Core_Permission::allPermissions();
   }
 
 }

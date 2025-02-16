@@ -581,6 +581,31 @@ class CRM_Core_Permission {
   }
 
   /**
+   * Get a list of all discoverable permissions, including core, components, extensions,
+   * CMS, synthetic, disabled, ad nauseam.
+   *
+   * @return array
+   * @internal
+   */
+  public static function allPermissions(): array {
+    $cacheKey = 'list_' . $GLOBALS['tsLocale'];
+    if (!isset(\Civi::$statics[__CLASS__][$cacheKey])) {
+      $perms = [];
+      \CRM_Utils_Hook::permissionList($perms);
+      foreach ($perms as $permName => $permission) {
+        $defaults = [
+          'name' => $permName,
+          'is_synthetic' => ($permName[0] === '@'),
+        ];
+        $perms[$permName] = array_merge($defaults, $permission);
+      }
+      \Civi::$statics[__CLASS__][$cacheKey] = $perms;
+    }
+
+    return \Civi::$statics[__CLASS__][$cacheKey];
+  }
+
+  /**
    * @param bool $includeDisabled
    *   Include permissions from disabled components/settings.
    * @param bool $returnAssociative
