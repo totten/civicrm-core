@@ -10,8 +10,6 @@
  +--------------------------------------------------------------------+
  */
 
-use Civi\Core\Event\GenericHookEvent;
-
 /**
  * Class CRM_Core_Permission_List
  *
@@ -27,13 +25,12 @@ class CRM_Core_Permission_List {
   /**
    * Enumerate concrete permissions that originate in CiviCRM (core or extension).
    *
-   * @param \Civi\Core\Event\GenericHookEvent $e
    * @see \CRM_Utils_Hook::permissionList
    */
-  public static function findCiviPermissions(GenericHookEvent $e) {
+  public static function findCiviPermissions(array &$permissions): void {
     $allCorePerms = \CRM_Core_Permission::basicPermissions(TRUE, TRUE);
     foreach ($allCorePerms as $permName => $corePerm) {
-      $e->permissions[$permName] = [
+      $permissions[$permName] = [
         'group' => 'civicrm',
         'title' => $corePerm['label'],
         'description' => $corePerm['description'] ?? NULL,
@@ -48,16 +45,15 @@ class CRM_Core_Permission_List {
    * Enumerate permissions that originate in the CMS (core or module/plugin),
    * excluding any Civi permissions.
    *
-   * @param \Civi\Core\Event\GenericHookEvent $e
    * @see \CRM_Utils_Hook::permissionList
    */
-  public static function findCmsPermissions(GenericHookEvent $e) {
+  public static function findCmsPermissions(array &$permissions): void {
     $config = \CRM_Core_Config::singleton();
 
     $ufPerms = $config->userPermissionClass->getAvailablePermissions();
 
     foreach ($ufPerms as $permName => $cmsPerm) {
-      $e->permissions[$permName] = [
+      $permissions[$permName] = [
         'group' => 'cms',
         'title' => $cmsPerm['title'] ?? $permName,
         'description' => $cmsPerm['description'] ?? NULL,
@@ -67,18 +63,17 @@ class CRM_Core_Permission_List {
   }
 
   /**
-   * @param \Civi\Core\Event\GenericHookEvent $e
    * @see \CRM_Utils_Hook::permissionList
    */
-  public static function findConstPermissions(GenericHookEvent $e) {
+  public static function findConstPermissions(array &$permissions): void {
     // There are a handful of special permissions defined in CRM/Core/Permission.
     // Enforcement of them is handled in `CRM_Core_Permission_*::check()`
-    $e->permissions[\CRM_Core_Permission::ALWAYS_DENY_PERMISSION] = [
+    $permissions[\CRM_Core_Permission::ALWAYS_DENY_PERMISSION] = [
       'group' => 'const',
       'title' => ts('Generic: Deny all users'),
       'is_synthetic' => TRUE,
     ];
-    $e->permissions[\CRM_Core_Permission::ALWAYS_ALLOW_PERMISSION] = [
+    $permissions[\CRM_Core_Permission::ALWAYS_ALLOW_PERMISSION] = [
       'group' => 'const',
       'title' => ts('Generic: Allow all users (including anonymous)'),
       'is_synthetic' => TRUE,
@@ -86,7 +81,7 @@ class CRM_Core_Permission_List {
       // The functionality that actually handles this pseudo-permission is in `CRM_Core_Permission_*::check()`
       'implies' => ['*'],
     ];
-    $e->permissions[\CRM_Core_Permission::ANY_AUTHENTICATED_CONTACT] = [
+    $permissions[\CRM_Core_Permission::ANY_AUTHENTICATED_CONTACT] = [
       'group' => 'const',
       'title' => ts('Generic: Allow any authenticated contact'),
       'is_synthetic' => TRUE,
