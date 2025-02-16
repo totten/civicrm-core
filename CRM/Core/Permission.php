@@ -610,7 +610,11 @@ class CRM_Core_Permission {
    * @throws RuntimeException
    */
   public static function basicPermissions($includeDisabled = FALSE, $returnAssociative = FALSE): array {
-    $permissions = Civi::$statics[__CLASS__][__FUNCTION__] ??= self::assembleBasicPermissions();
+    $permissions = Civi::$statics[__CLASS__][__FUNCTION__] ??= static::normalizePermissions(array_merge(
+      self::getCorePermissions(),
+      self::getComponentPermissions(),
+      CRM_Core_Config::singleton()->userPermissionClass->getAllModulePermissions()
+    ));
     if (!$includeDisabled) {
       $permissions = array_filter($permissions, fn($permission) => empty($permission['disabled']));
     }
@@ -618,16 +622,6 @@ class CRM_Core_Permission {
       return $permissions;
     }
     return array_combine(array_keys($permissions), array_column($permissions, 'label'));
-  }
-
-  /**
-   * @return array
-   * @throws RuntimeException
-   */
-  protected static function assembleBasicPermissions(): array {
-    $permissions = self::getCoreAndComponentPermissions();
-    $module_permissions = CRM_Core_Config::singleton()->userPermissionClass->getAllModulePermissions();
-    return static::normalizePermissions(array_merge($permissions, $module_permissions));
   }
 
   protected static function normalizePermissions(array $perms): array {
@@ -1895,17 +1889,6 @@ class CRM_Core_Permission {
         }
       }
     }
-    return $permissions;
-  }
-
-  /**
-   * Get permissions for core functionality and for that of core components.
-   *
-   * @return array
-   */
-  protected static function getCoreAndComponentPermissions(): array {
-    $permissions = self::getCorePermissions();
-    $permissions = array_merge($permissions, self::getComponentPermissions());
     return $permissions;
   }
 
