@@ -584,6 +584,9 @@ class CRM_Core_Permission {
    * Get a list of all discoverable permissions, including core, components, extensions,
    * CMS, synthetic, disabled, ad nauseam.
    *
+   * NOTE: The schema for basicPermissions, allPermissions, and Civi\Api4\Permission
+   * are mostly the same, except in the handling of 'title' (APIv4+all) vs 'label' (basic).
+   *
    * @return array
    * @internal
    */

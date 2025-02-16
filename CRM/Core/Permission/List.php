@@ -32,7 +32,7 @@ class CRM_Core_Permission_List {
     foreach ($allCorePerms as $permName => $corePerm) {
       $permissions[$permName] = [
         'group' => 'civicrm',
-        'title' => $corePerm['label'],
+        'title' => $corePerm['label'], /* Awesome */
         'description' => $corePerm['description'] ?? NULL,
         'is_active' => empty($corePerm['disabled']),
         'implies' => $corePerm['implies'] ?? NULL,
