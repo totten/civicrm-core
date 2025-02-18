@@ -107,7 +107,7 @@ class CRM_Core_Permission_WordPress extends CRM_Core_Permission_Base {
     foreach ($wpCaps as $wpCap) {
       if (!in_array($wpCap, $mungedCorePerms)) {
         $permissions["WordPress:$wpCap"] = [
-          'title' => "WordPress: $wpCap",
+          'label' => "WordPress: $wpCap",
         ];
       }
     }

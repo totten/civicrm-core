@@ -56,7 +56,7 @@ class CRM_Core_Permission_List {
     foreach ($ufPerms as $permName => $cmsPerm) {
       $permissions[$permName] = [
         'group' => 'cms',
-        'title' => $cmsPerm['title'] ?? $permName,
+        'title' => $cmsPerm['label'] ?? $permName,
         'description' => $cmsPerm['description'] ?? NULL,
         'is_synthetic' => $cmsPerm['is_synthetic'] ?? FALSE,
         'implied_by' => $cmsPerm['implied_by'] ?? NULL,

@@ -114,7 +114,7 @@ class CRM_Core_Permission_Drupal extends CRM_Core_Permission_DrupalBase {
         }
 
         $permissions["Drupal:$permName"] = [
-          'title' => $prefix . strip_tags($perm['title']),
+          'label' => $prefix . strip_tags($perm['title']),
           'description' => $perm['description'] ?? NULL,
         ];
       }

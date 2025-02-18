@@ -70,7 +70,7 @@ class CRM_Core_Permission_Drupal8 extends CRM_Core_Permission_DrupalBase {
       $module = $modules[$dperm['provider']] ?? [];
       $prefix = isset($module['name']) ? ($module['name'] . ': ') : '';
       $permissions["Drupal:$permName"] = [
-        'title' => $prefix . strip_tags($dperm['title']),
+        'label' => $prefix . strip_tags($dperm['title']),
         'description' => $perm['description'] ?? NULL,
       ];
     }
