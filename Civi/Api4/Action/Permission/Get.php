@@ -32,7 +32,15 @@ class Get extends BasicGetAction {
    * @return array[]
    */
   protected function getRecords() {
-    return \CRM_Core_Permission::allPermissions();
+    $result = \CRM_Core_Permission::allPermissions();
+    foreach ($result as &$perm) {
+      // Per \Civi\Api4\Permission::getFields(), we present 'title'.
+      if (isset($perm['label']) && !isset($perm['title'])) {
+        $perm['title'] = $perm['label'];
+        unset($perm['label']);
+      }
+    }
+    return $result;
   }
 
 }

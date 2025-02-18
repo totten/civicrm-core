@@ -2360,7 +2360,8 @@ abstract class CRM_Utils_Hook {
    * @param array $permissions
    *   Array of permissions, keyed by symbolic name. Each is an array with fields:
    *     - group: string (ex: "civicrm", "cms")
-   *     - title: string (ex: "CiviEvent: Register for events")
+   *     - label: string (ex: "CiviEvent: Register for events")
+   *     - title: string (ex: "CiviEvent: Register for events") (DEPRECATED, prefer 'label' in v6.1+)
    *     - description: string (ex: "Register for events online")
    *     - is_synthetic: bool (TRUE for synthetic permissions with a bespoke evaluation. FALSE for concrete permissions that registered+granted in the UF user-management layer.
    *        Default TRUE iff name begins with '@')
@@ -2372,10 +2373,25 @@ abstract class CRM_Utils_Hook {
    */
   public static function permissionList(&$permissions) {
     $null = NULL;
-    return self::singleton()->invoke(['permissions'], $permissions,
+    self::singleton()->invoke(['permissions'], $permissions,
       $null, $null, $null, $null, $null,
       'civicrm_permissionList'
     );
+    $deprecatedTitles = [];
+    foreach ($permissions as $permName => &$perm) {
+      if (isset($perm['title']) && !isset($perm['label'])) {
+        $perm['label'] = $perm['title'];
+        unset($perm['title']);
+        $deprecatedTitles[] = $permName;
+        // NOTE: We don't complain if both are set. Only complain if listeners are relying on us to provide fallback.
+      }
+    }
+    if (!empty($deprecatedTitles)) {
+      \Civi::log()->debug('Some permissions defined with deprecated property "title". Use "label" instead.', [
+        'names' => $deprecatedTitles,
+      ]);
+    }
+    return NULL;
   }
 
   /**
