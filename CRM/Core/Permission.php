@@ -603,6 +603,12 @@ class CRM_Core_Permission {
   }
 
   /**
+   * This function is deprecated for contrib. Use APIv4 (Permission.get) instead.
+   *
+   * NOTE: At time of writing, the vast majority (~90%) of contrib callers use default args.
+   * A handful use `$includedDisabled=TRUE`. None use `$returnAssociative=TRUE`.
+   * These options are primarily internal/core considerations.
+   *
    * @param bool $includeDisabled
    *   Include permissions from disabled components/settings.
    * @param bool $returnAssociative
@@ -611,6 +617,7 @@ class CRM_Core_Permission {
    *
    * @return array[]|string[]
    * @throws RuntimeException
+   * @see \Civi\Api4\Permission::get()
    */
   public static function basicPermissions($includeDisabled = FALSE, $returnAssociative = FALSE): array {
     $permissions = Civi::$statics[__CLASS__][__FUNCTION__] ??= static::normalizePermissions(array_merge(
