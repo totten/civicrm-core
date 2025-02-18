@@ -24,6 +24,7 @@ use api\v4\Api4TestBase;
 
 /**
  * @group headless
+ * @group permissions
  */
 class PermissionTest extends Api4TestBase {
 
@@ -33,6 +34,8 @@ class PermissionTest extends Api4TestBase {
     $this->assertEquals(['*'], $permissions['*always allow*']['implies']);
     $this->assertEquals(['*'], $permissions['all CiviCRM permissions and ACLs']['implies']);
     $this->assertContains('edit message templates', $permissions['administer CiviCRM data']['implies']);
+    $this->assertStringContainsString('Perform all tasks', $permissions['administer CiviCRM']['description']);
+    $this->assertTrue(isset($permissions['cms:administer users']), '"cms:administer users"  should be available');
   }
 
 }

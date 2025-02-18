@@ -3,6 +3,7 @@
 /**
  * Class CRM_Core_Permission_GenericTest
  * @group headless
+ * @group permissions
  */
 class CRM_Core_Permission_GenericTest extends CiviUnitTestCase {
 

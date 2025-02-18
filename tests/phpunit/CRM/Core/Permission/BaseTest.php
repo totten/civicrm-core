@@ -6,6 +6,7 @@ use Civi\Test\ACLPermissionTrait;
  * Class CRM_Core_Permission_BaseTest
  *
  * @group headless
+ * @group permissions
  */
 class CRM_Core_Permission_BaseTest extends CiviUnitTestCase {
 
