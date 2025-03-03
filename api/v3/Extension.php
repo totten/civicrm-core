@@ -204,6 +204,7 @@ function _civicrm_api3_extension_uninstall_spec(&$fields) {
  *   Input parameters.
  *   - key: string, eg "com.example.myextension"
  *   - url: string eg "http://repo.com/myextension-1.0.zip"
+ *   - deferred: bool
  *
  * @throws CRM_Core_Exception
  * @return array
@@ -211,6 +212,11 @@ function _civicrm_api3_extension_uninstall_spec(&$fields) {
  */
 function civicrm_api3_extension_download($params) {
   $params += ['install' => TRUE];
+
+  if (!empty($params['install']) && !empty($params['deferred'])) {
+    throw new CRM_Core_Exception("Contradictory options: install=>TRUE requires deferred=>FALSE");
+  }
+
   if (!array_key_exists('url', $params)) {
     if (!CRM_Extension_System::singleton()->getBrowser()->isEnabled()) {
       throw new CRM_Core_Exception('Automatic downloading is disabled. Try adding parameter "url"');
@@ -237,16 +243,50 @@ function civicrm_api3_extension_download($params) {
     return civicrm_api3_create_error($requirement['message']);
   }
 
-  if (!CRM_Extension_System::singleton()->getDownloader()->download($params['key'], $params['url'])) {
-    return civicrm_api3_create_error('Download failed - ZIP file is unavailable or malformed');
+  if (!empty($params['deferred'])) {
+    $extracted = CRM_Extension_System::singleton()->getDownloader()->download($params['key'], $params['url'], FALSE);
+    if (empty($GLOBALS['_civicrm_api3_extension_download_todo'])) {
+      $GLOBALS['_civicrm_api3_extension_download_todo'] = [];
+      register_shutdown_function('_civicrm_api3_extension_download_shutdown');
+    }
+    $GLOBALS['_civicrm_api3_extension_download_todo'][] = $extracted;
   }
-  CRM_Extension_System::singleton()->getCache()->flush();
-  CRM_Extension_System::singleton(TRUE);
-  if ($params['install']) {
-    CRM_Extension_System::singleton()->getManager()->install([$params['key']]);
+  else {
+    if (!CRM_Extension_System::singleton()->getDownloader()->download($params['key'], $params['url'])) {
+      return civicrm_api3_create_error('Download failed - ZIP file is unavailable or malformed');
+    }
+    CRM_Extension_System::singleton()->getCache()->flush();
+    CRM_Extension_System::singleton(TRUE);
+    if ($params['install']) {
+      CRM_Extension_System::singleton()->getManager()->install([$params['key']]);
+    }
   }
 
   return civicrm_api3_create_success();
+}
+
+function _civicrm_api3_extension_download_shutdown() {
+  // Do we need to worry that the redirect is issued before the shutdown finishes?
+  // Maybe need some kind of lock?
+
+  global $_civicrm_api3_extension_download_todo;
+  if (empty($_civicrm_api3_extension_download_todo)) {
+    return;
+  }
+
+  foreach ($_civicrm_api3_extension_download_todo as $task) {
+    // if (!CRM_Utils_File::replaceDir($task['src'], $task['dest'])) {
+    //   throw new CRM_Extension_Exception(sprintf("Failed to move %s to %s", $task['src'], $task['dest']));
+    // }
+    // \Civi\Core\ClassScanner::cache('structure')->flush();
+    // \Civi\Core\ClassScanner::cache('index')->flush();
+    CRM_Extension_System::singleton()->getManager()->replace($task);
+  }
+
+  // Delete `CachedCiviContainer.*.php`, `CachedExtLoader.*.php`, and similar.
+  $config = CRM_Core_Config::singleton();
+  // $config->cleanup(1);
+  $config->cleanupCaches(FALSE);
 }
 
 /**
@@ -264,6 +304,12 @@ function _civicrm_api3_extension_download_spec(&$fields) {
     'title' => 'Download URL',
     'type' => CRM_Utils_Type::T_STRING,
     'description' => 'Optional as the system can determine the url automatically for public extensions',
+  ];
+  $fields['deferred'] = [
+    'title' => 'Deferred',
+    'type' => CRM_Utils_Type::T_BOOLEAN,
+    'description' => 'If true, then activation is deferred. Files will be placed at the end of the request, and you will need to coordinate a separate flush.',
+    'api.default' => FALSE,
   ];
   $fields['install'] = [
     'title' => 'Auto-install',

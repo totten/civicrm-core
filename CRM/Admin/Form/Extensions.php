@@ -170,6 +170,7 @@ class CRM_Admin_Form_Extensions extends CRM_Admin_Form {
    * Process the form submission.
    */
   public function postProcess() {
+    $needRebuild = FALSE;
     CRM_Utils_System::flushCache();
 
     if ($this->_action & CRM_Core_Action::DELETE) {
@@ -199,11 +200,14 @@ class CRM_Admin_Form_Extensions extends CRM_Admin_Form {
     }
 
     if ($this->_action & CRM_Core_Action::UPDATE) {
+      $isUpgrade = CRM_Extension_System::singleton()->getManager()->getStatus($this->_key) === CRM_Extension_Manager::STATUS_INSTALLED;
       $result = civicrm_api('Extension', 'download', [
         'version' => 3,
         'key' => $this->_key,
+        'deferred' => $isUpgrade,
       ]);
       if (empty($result['is_error'])) {
+        $needRebuild = $isUpgrade;
         CRM_Core_Session::setStatus("", ts('Extension Upgraded'), "success");
       }
       else {
@@ -211,12 +215,13 @@ class CRM_Admin_Form_Extensions extends CRM_Admin_Form {
       }
     }
 
-    CRM_Utils_System::redirect(
-      CRM_Utils_System::url(
-        'civicrm/admin/extensions',
-        'reset=1&action=browse'
-      )
-    );
+    if ($needRebuild) {
+      $url = CRM_Utils_System::url('civicrm/clearcache', 'triggerRebuild=1&extensionUpgrade=1', FALSE, NULL, FALSE);
+    }
+    else {
+      $url = CRM_Utils_System::url('civicrm/admin/extensions', 'reset=1&action=browse');
+    }
+    CRM_Utils_System::redirect($url);
   }
 
 }
