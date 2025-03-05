@@ -113,13 +113,6 @@ function civicrm_api3_job_delete($params) {
  *   API Result Array
  */
 function civicrm_api3_job_execute($params) {
-  if (\CRM_Utils_System::isMaintenanceMode() && !$params['run_in_maintenance_mode']) {
-    // skip execution
-    return civicrm_api3_create_success(0, $params, 'Job', NULL, $dao, [
-      'skipped' => 'maintenance_mode',
-    ]);
-  }
-
   $facility = new CRM_Core_JobManager();
   $facility->execute(FALSE);
 
