@@ -161,6 +161,12 @@ class CRM_Extension_Manager {
     if (!$this->defaultContainer) {
       throw new CRM_Extension_Exception("Default extension container is not configured");
     }
+    if ($refresh) {
+      // We may be in the middle of a workflow where the caller is mucking around with
+      // code+statuses (like in cv's ExtensionLifecycleTest). The logic in replace()
+      // depends on having accurate statuses. So let's just make sure we have them right.
+      $this->refresh();
+    }
 
     $newInfo = CRM_Extension_Info::loadFromFile($tmpCodeDir . DIRECTORY_SEPARATOR . CRM_Extension_Info::FILENAME);
     $oldStatus = $this->getStatus($newInfo->key);
