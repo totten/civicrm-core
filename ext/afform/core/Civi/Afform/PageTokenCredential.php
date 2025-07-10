@@ -298,7 +298,7 @@ class PageTokenCredential extends AutoService implements EventSubscriberInterfac
         $event->policy['userMode'] = $jwt['userMode'];
       }
       else {
-        $event->policy['userMode'] = 'ignore';
+        $event->policy['userMode'] = 'optional';
       }
     }
   }
