@@ -261,6 +261,18 @@ class PageTokenCredential extends AutoService implements EventSubscriberInterfac
         'allowFields' => ['return', 'savedSearch', 'display', 'sort', 'limit', 'seed', 'filters', 'afform'],
         'checkRequest' => fn($request, $jwt) => ($jwt['afform'] === $request['afform']),
       ],
+      ';^Entity get$;' => [
+        'allowFields' => ['select', 'where'],
+        'checkRequest' => fn($request, $jwt) => TRUE,
+        // The list of entities is not particularly sensitive. If we've granted you access to _some_ form, then we'll allow Entity.get.
+      ],
+      ';^SearchDisplay getSearchTasks$;' => [
+        'allowFields' => ['savedSearch', 'display'],
+        'checkRequest' => fn($request, $jwt) => TRUE,
+        // The list of search-tasks is not particularly sensitive. If we've granted you access to view the list of search-tasks
+        // for any saved search.
+        // The stricter alternative would be to use $jwt['afform'] to identify a specific list of saved-searches and search-displays.
+      ],
       // It's been hypothesized that we'll also need this. Haven't seen it yet.
       // ';^Afform getFields;' => [
       //   'allowFields' => [],
