@@ -21,6 +21,38 @@
 class CRM_Admin_Page_AJAX {
 
   /**
+   * Begin a workflow to set an API key. This will redirect to the appropriate setup screen.
+   *
+   * This would canonically build on OAuthClient.authorizationCode() for an existing OAuthClient, but it could be another variant.
+   *
+   * Usage: /civicrm/ajax/initiator?jwt={JWT(exp: INT_EPOCH, initiator: NAME, initiatorContext: ARRAY)}
+   */
+  public static function initiator(): void {
+    $rawJwt = CRM_Utils_Request::retrieve('jwt', 'String');
+    $jwt = Civi::service('crypto.jwt')->decode($rawJwt);
+    if (empty($jwt['initiator']) || !isset($jwt['initiatorContext'])) {
+      throw new \CRM_Core_Exception("Invalid JWT");
+    }
+
+    // Caste to array
+    $context = json_decode(json_encode($jwt['initiatorContext']), TRUE);
+
+    $initiators = \Civi\Connect\Initiators::create($context);
+    $initiator = $initiators->get($jwt['initiator']);
+    if ($initiator === NULL) {
+      throw new \CRM_Core_Exception('Cannot initialize API key. Unknown initiator.');
+    }
+
+    $result = call_user_func($initiator['callback'], $context, $initiator);
+    if (isset($result['url'])) {
+      CRM_Utils_System::redirect($result['url']);
+    }
+    else {
+      throw new CRM_Core_Exception('Cannot initialize API key. Initiator did not produce a URL.');
+    }
+  }
+
+  /**
    * Outputs menubar data (json format) for the current user.
    */
   public static function navMenu() {
