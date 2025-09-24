@@ -109,7 +109,7 @@ function oauth_client_civicrm_alterMailStore(&$mailSettings) {
  * @see CRM_Utils_Hook::managed()
  */
 function oauth_client_civicrm_managed(array &$entities, ?array $modules = NULL): void {
-  if ($modules !== NULL && !in_array(E::LONG_NAME, $modules)) {
+  if ($modules !== NULL && !in_array(E::LONG_NAME, $modules) || !\Civi\OAuth\CiviConnect::isConfigured()) {
     return;
   }
 
