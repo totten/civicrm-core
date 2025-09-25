@@ -137,3 +137,24 @@ function oauth_client_civicrm_managed(array &$entities, ?array $modules = NULL):
     }
   }
 }
+
+/**
+ * @see CRM_Utils_Hook::check()
+ */
+function oauth_client_civicrm_check(&$messages, $statusNames = [], $includeDisabled = FALSE) {
+  $checkName = __FUNCTION__;
+  if ($statusNames && !in_array($checkName, $statusNames)) {
+    return;
+  }
+  if (!\Civi\OAuth\CiviConnect::isConfigured()) {
+    $message = new \CRM_Utils_Check_Message(
+      $checkName,
+      ts('OAuth services often require pre-registration. To simplify the process, you may enable the CiviConnect bridge.'),
+      ts('OAuth: CiviConnect'),
+      \Psr\Log\LogLevel::NOTICE,
+      'fa-handshake'
+    );
+    $message->addAction(ts('Enable now'), FALSE, 'api4', ['CiviConnect', 'enable']);
+    $messages[] = $message;
+  }
+}
