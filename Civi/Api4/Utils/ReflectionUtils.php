@@ -329,6 +329,20 @@ class ReflectionUtils {
     }
   }
 
+  public static function getStandardProperties(string $class): array {
+    // Thread-local cache of class metadata. Class metadata is immutable at runtime, so this is strictly write-once. It should ideally be reused across varied test-functions.
+    static $caches = [];
+    $cache =& $caches[$class];
+    if ($cache === NULL) {
+      $cache = [];
+      foreach (ReflectionUtils::findStandardProperties($class) as $property) {
+        /** @var \ReflectionProperty $property */
+        $cache[$property->getName()] = TRUE;
+      }
+    }
+    return $cache;
+  }
+
   /**
    * Check if a class method is deprecated
    *
