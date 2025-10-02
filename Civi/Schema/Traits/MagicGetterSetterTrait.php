@@ -73,18 +73,12 @@ trait MagicGetterSetterTrait {
    *   Array(string $propertyName => bool $true).
    */
   protected static function getMagicProperties(): array {
-    // Thread-local cache of class metadata. Class metadata is immutable at runtime, so this is strictly write-once. It should ideally be reused across varied test-functions.
-    static $caches = [];
-    $CLASS = static::CLASS;
-    $cache =& $caches[$CLASS];
-    if ($cache === NULL) {
-      $cache = [];
-      foreach (ReflectionUtils::findStandardProperties(static::CLASS) as $property) {
-        /** @var \ReflectionProperty $property */
-        $cache[$property->getName()] = TRUE;
-      }
+    $props = [];
+    foreach (ReflectionUtils::findStandardProperties(static::CLASS) as $property) {
+      /** @var \ReflectionProperty $property */
+      $props[$property->getName()] = TRUE;
     }
-    return $cache;
+    return $props;
   }
 
 }
