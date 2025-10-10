@@ -8,6 +8,8 @@
  +--------------------------------------------------------------------+
 *}
 {* template for building website block *}
+{declare var="contactId" type="int"}
+{declare var="website" type="array"}
 <div id="crm-website-content" {if $permission EQ 'edit'} class="crm-inline-edit" data-edit-params='{ldelim}"cid": "{$contactId}", "class_name": "CRM_Contact_Form_Inline_Website"{rdelim}'{/if}>
   <div class="crm-clear crm-inline-block-content" {if $permission EQ 'edit'}title="{ts escape='htmlattribute'}Add or edit website{/ts}"{/if}>
     {if $permission EQ 'edit'}
@@ -22,6 +24,8 @@
       </div>
     {else}
     {foreach from=$website item=item}
+      {declare var="item" api4-entity="Website" strict=0}
+      {* Non-strict: In this case, the controller has interjected with some extra fields. But it's still basically a "Website". *}
       {if !empty($item.url)}
       <div class="crm-summary-row">
         <div class="crm-label">{$item.website_type} {ts}Website{/ts}</div>

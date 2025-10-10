@@ -8,6 +8,8 @@
  +--------------------------------------------------------------------+
 *}
 {* Check for Status message for the page (stored in session->getStatus). Status is cleared on retrieval. *}
+{declare var="session" type="CRM_Core_Session"}
+{declare var="urlIsPublic" type="bool"}
 
 {if $session->getStatus(false)}
   {assign var="status" value=$session->getStatus(true)}
