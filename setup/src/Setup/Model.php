@@ -17,6 +17,8 @@ namespace Civi\Setup;
  *   Ex: '/var/www/sites/all/modules/civicrm/setup'.
  * @property string $settingsPath
  *   Ex: '/var/www/sites/default/civicrm.settings.php'.
+ * @property bool $doNotCreateSettingsFile
+ *   Whether to create settings file.
  * @property string $templateCompilePath
  *   Ex: '/var/www/sites/default/files/civicrm/templates_c'.
  * @property string $cms
@@ -192,6 +194,11 @@ class Model {
         'civicrm.mo' => 'https://download.civicrm.org/civicrm-l10n-core/mo/[locale]/civicrm.mo',
       ),
     ));
+    $this->addField([
+      'name' => 'doNotCreateSettingsFile',
+      'type' => 'bool',
+      'value' => FALSE,
+    ]);
   }
 
   /**
