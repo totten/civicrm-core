@@ -17,6 +17,9 @@ namespace Civi\Setup;
  *   Ex: '/var/www/sites/all/modules/civicrm/setup'.
  * @property string $settingsPath
  *   Ex: '/var/www/sites/default/civicrm.settings.php'.
+ * @property string $settingsFilePolicy
+ *   What to do if settings file already exists.
+ *   Ex: 'keep', 'overwrite', 'abort'
  * @property string $templateCompilePath
  *   Ex: '/var/www/sites/default/files/civicrm/templates_c'.
  * @property string $cms
@@ -87,6 +90,18 @@ class Model {
       'name' => 'setupPath',
       'type' => 'string',
     ));
+    $this->addField([
+      'name' => 'settingsFilePolicy',
+      'description' => 'What to do if a settings file already exists',
+      'type' => 'string',
+      'value' => 'overwrite',
+      'options' => [
+        // Not currently presented in UI, so don't care about translation.
+        'abort' => 'Abort installation',
+        'keep' => 'Keep existing settings file',
+        'overwrite' => 'Replace with new settings file',
+      ],
+    ]);
     $this->addField(array(
       'description' => 'Local path to civicrm.settings.php',
       'name' => 'settingsPath',

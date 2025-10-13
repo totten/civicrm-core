@@ -24,6 +24,9 @@ if (!defined('CIVI_SETUP')) {
     if (empty($m->settingsPath)) {
       $e->addError('system', 'settingsPath', sprintf('The settingsPath is undefined.'));
     }
+    elseif ($m->settingsFilePolicy === 'keep' && file_exists($m->settingsPath)) {
+      $e->addInfo('system', 'settingsPath', sprintf('The existing settings file will be re-used.'));
+    }
     else {
       $e->addInfo('system', 'settingsPath', sprintf('The settingsPath is defined.'));
     }
@@ -71,6 +74,14 @@ if (!defined('CIVI_SETUP')) {
      * @var \Civi\Setup\Model $m
      */
     $m = $e->getModel();
+
+    if ($m->settingsFilePolicy === 'keep' && file_exists($m->settingsPath)) {
+      return;
+    }
+    elseif ($m->settingsFilePolicy === 'abort' && file_exists($m->settingsPath)) {
+      throw new \RuntimeException(sprintf("Cannot replace %s", $m->settingsPath));
+    }
+
     $params = \Civi\Setup\SettingsUtil::createParams($m);
 
     $parent = dirname($m->settingsPath);
