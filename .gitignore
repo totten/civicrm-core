@@ -22,6 +22,7 @@
 /ext/greenwich/extern
 !/ext/message_admin
 !/ext/oauth-client
+!/ext/oauth-server
 !/ext/search_kit
 !/ext/search_kit_reports
 !/ext/financialacls
