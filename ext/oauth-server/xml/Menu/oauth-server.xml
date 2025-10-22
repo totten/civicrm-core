@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <!-- FIXME:
+      (1) In standalone's .htaccess, the RewriteRule has an overly broad `/.|` constraint.
+      (2) While OIDC might be ok with a deep .well-known, other RFCs for .well-known insist on top-level.
+      <path>.well-known/openid-configuration</path>
+    -->
+    <path>civicrm/.well-known/openid-configuration</path>
+    <page_callback>Civi\OAuthServer\Page\Discovery</page_callback>
+    <title>OpenID Discovery</title>
+    <access_arguments>*always allow*</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/oauth-server/jwks.json</path>
+    <page_callback>Civi\OAuthServer\Page\JWKs</page_callback>
+    <title>JWKs</title>
+    <access_arguments>*always allow*</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/oauth-server/authorize</path>
+    <page_callback>Civi\OAuthServer\Page\Authorize</page_callback>
+    <title>Authorize</title>
+    <access_arguments>*always allow*</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/oauth-server/token</path>
+    <page_callback>Civi\OAuthServer\Page\Token</page_callback>
+    <title>Token</title>
+    <access_arguments>*always allow*</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/oauth-server/userinfo</path>
+    <page_callback>Civi\OAuthServer\Page\UserInfo</page_callback>
+    <title>UserInfo</title>
+    <access_arguments>*always allow*</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/oauth-server/logout</path>
+    <page_callback>Civi\OAuthServer\Page\Logout</page_callback>
+    <title>Logout</title>
+    <access_arguments>*always allow*</access_arguments>
+  </item>
+</menu>

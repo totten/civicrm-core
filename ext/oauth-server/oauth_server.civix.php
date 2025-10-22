@@ -6,10 +6,10 @@
  * The ExtensionUtil class provides small stubs for accessing resources of this
  * extension.
  */
-class CRM_OauthServer_ExtensionUtil {
+class CRM_OAuthServer_ExtensionUtil {
   const SHORT_NAME = 'oauth_server';
   const LONG_NAME = 'oauth-server';
-  const CLASS_PREFIX = 'CRM_OauthServer';
+  const CLASS_PREFIX = 'CRM_OAuthServer';
 
   /**
    * Translate a string using the extension's domain.
@@ -77,7 +77,7 @@ class CRM_OauthServer_ExtensionUtil {
 
 }
 
-use CRM_OauthServer_ExtensionUtil as E;
+use CRM_OAuthServer_ExtensionUtil as E;
 
 /**
  * (Delegated) Implements hook_civicrm_config().
