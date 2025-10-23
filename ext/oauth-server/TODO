@@ -1,0 +1,23 @@
+[~] Client ID/Secret
+	=> Storage: New table or custom-group attached to Contact (client_id, client_secret)
+	=> Runtime: Authx should validate. If matches, define `$session[authx]['path-filter']`.
+	=> CRM_Core_Invoke should limit by path
+	=> Only accept on `civicrm/oauth-server/token` route
+
+[ ] Signing keys: POC
+	- EDDSA, stored as encrypted setting
+
+[ ] Signing keys: Full
+	- CryptoRegistry: Support for lazy loading keys
+	- CryptoRegistry: Support for civicrm_crypto_keys (or civicrm_jwk or somesuch)
+
+[ ] API Key:
+	=> Storage: New table or custom-group attached to Contact (api_key, expires, scopes)
+	=> Runtime: Authx should validate. Enforce the known scopes.
+
+[~] Route: civicrm/.well-known/openid-configuration
+[ ] Route: /.well-known/openid-configuration (for standalone; update invoker)
+[ ] Route: civicrm/oauth-server/jwks.json
+[ ] Route: civicrm/oauth-server/authorize
+[ ] Route: civicrm/oauth-server/token
+[ ] Route: civicrm/oauth-server/userinfo
