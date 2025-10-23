@@ -1,0 +1,51 @@
+[~] Client ID/Secret
+	[[ Self service clients, attached to orgs ]]
+	=> Storage: New table or custom-group attached to Contact (client_id, client_secret, redirect_url*)
+		=> Allow some authorizatio like (client_id, allowed_user_group)
+	=> Runtime: Authx should validate. If matches, define `$session[authx]['path-filter']`.
+	=> CRM_Core_Invoke should limit by path
+	=> Only accept on `civicrm/oauth-server/token` route
+
+	[[ Flat client list ]]
+	=> Storage: New table (client_id, client_secret, redirect_url*)
+		=> Allow some authorizatio like (client_id, allowed_user_group)
+	=> Runtime: Authx should validate. If matches, define `$session[authx]['path-filter']`.
+	=> CRM_Core_Invoke should limit by path
+	=> Only accept on `civicrm/oauth-server/token` route
+		=> Validated anonymous! (setPrincipal(uid=>0)?)
+
+
+[ ] Signing keys: POC
+	- EDDSA, stored as encrypted setting
+
+[ ] Signing keys: Full
+	- CryptoRegistry: Support for lazy loading keys
+	- CryptoRegistry: Support for civicrm_crypto_keys (or civicrm_jwk or somesuch)
+
+[ ] API Key:
+	=> Storage: New table or custom-group attached to Contact (type=oauth|maunal, api_key=*, expires=*, scopes=*)
+	=> Runtime: Authx should validate. Enforce the known scopes.
+
+[ ] API Key: Scopes Model
+	- Route based: Only allow listed routes
+	- API based: Allowed Entities, Allowed Actions, Mandatoy Params, Allowed Params
+	- Permission based: Within request, withhold all perms but grant XYZ
+
+[ ] Refresh Token
+
+[~] Route: civicrm/.well-known/openid-configuration
+[ ] Route: /.well-known/openid-configuration (for standalone; update invoker)
+[ ] Route: civicrm/oauth-server/jwks.json
+[ ] Route: civicrm/oauth-server/authorize
+[ ] Route: civicrm/oauth-server/token
+[ ] Route: civicrm/oauth-server/userinfo
+
+
+-----------
+
+-- If it was large scale (per org; like Google/Microsoft/etc)
+
+$ cv api4 Contact.create +v contact_type=Organization +v organization_name="CiviCoop"
+==> create Contact #123
+$ cv api4 OAuthClient.create +v contact_id=123 +v client_id=abcd +v client_secret=abcd +v name=NextCloud
+
