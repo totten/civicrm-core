@@ -10,6 +10,7 @@
  */
 
 use Civi\Core\Security\PharLoader;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  *
@@ -35,7 +36,11 @@ class CRM_Core_Invoke {
    */
   public static function invoke($args) {
     try {
-      return self::_invoke($args);
+      $result = self::_invoke($args);
+      if ($result && $result instanceof ResponseInterface) {
+        \CRM_Utils_System::sendResponse($result);
+      }
+      return $result;
     }
     catch (Exception $e) {
       CRM_Core_Config::singleton()->userSystem->handleUnhandledException($e);
@@ -49,7 +54,7 @@ class CRM_Core_Invoke {
    * @param array $args
    *   The parts of the URL which identify the intended CiviCRM page
    *   (e.g. array('civicrm', 'event', 'register')).
-   * @return string
+   * @return string|Psr\Http\Message\ResponseInterface|null
    *   HTML. For non-HTML content, invoke() may call print() and exit().
    */
   public static function _invoke($args) {
@@ -231,54 +236,11 @@ class CRM_Core_Invoke {
         $session->pushUserContext(CRM_Utils_System::url($item['return_url'], $args));
       }
 
-      $result = NULL;
-      // WISHLIST: Refactor this. Instead of pattern-matching on page_callback, lookup
-      // page_callback via Civi\Core\Resolver and check the implemented interfaces. This
-      // would require rethinking the default constructor.
-      if (is_array($item['page_callback']) || strpos($item['page_callback'], ':')) {
-        $result = call_user_func(Civi\Core\Resolver::singleton()->get($item['page_callback']));
+      [$callback, $callbackArgs] = self::findItemCallback($item);
+      if (static::isPsr7Handler($item, $callback)) {
+        array_unshift($callbackArgs, CRM_Utils_System::createRequestFromGlobals());
       }
-      elseif (str_contains($item['page_callback'], '_Form')) {
-        $wrapper = new CRM_Utils_Wrapper();
-        $result = $wrapper->run(
-          $item['page_callback'] ?? NULL,
-          $item['title'] ?? NULL,
-          $pageArgs ?? NULL
-        );
-      }
-      else {
-        $newArgs = explode('/', $_GET[$config->userFrameworkURLVar]);
-        $mode = 'null';
-        if (isset($pageArgs['mode'])) {
-          $mode = $pageArgs['mode'];
-          unset($pageArgs['mode']);
-        }
-        $title = $item['title'] ?? NULL;
-        if (str_contains($item['page_callback'], '_Page') || str_contains($item['page_callback'], '\\Page\\')) {
-          $object = new $item['page_callback']($title, $mode);
-          $object->urlPath = explode('/', $_GET[$config->userFrameworkURLVar]);
-        }
-        elseif (str_contains($item['page_callback'], '_Controller') || str_contains($item['page_callback'], '\\Controller\\')) {
-          $addSequence = 'false';
-          if (isset($pageArgs['addSequence'])) {
-            $addSequence = $pageArgs['addSequence'];
-            $addSequence = $addSequence ? 'true' : 'false';
-            unset($pageArgs['addSequence']);
-          }
-          if ($item['page_callback'] === 'CRM_Import_Controller') {
-            // Let the generic import controller have the page arguments.... so we don't need
-            // one class per import.
-            $object = new CRM_Import_Controller($title, $pageArgs ?? []);
-          }
-          else {
-            $object = new $item['page_callback']($title, TRUE, $mode, NULL, $addSequence);
-          }
-        }
-        else {
-          throw new CRM_Core_Exception('Execute supplied menu action');
-        }
-        $result = $object->run($newArgs, $pageArgs);
-      }
+      $result = call_user_func($callback, $callbackArgs);
 
       CRM_Core_Session::storeSessionObjects();
       return $result;
@@ -287,6 +249,77 @@ class CRM_Core_Invoke {
     CRM_Core_Menu::store();
     CRM_Core_Session::setStatus(ts('Menu has been rebuilt'), ts('Complete'), 'success');
     return CRM_Utils_System::redirect();
+  }
+
+  /**
+   * @param array $item
+   * @return array
+   *   [0 => $callback, 1 => $callbackArgs]
+   * @throws \CRM_Core_Exception
+   */
+  private static function findItemCallback(array $item): array {
+    $config = CRM_Core_Config::singleton();
+
+    $pageArgs = NULL;
+    if (!empty($item['page_arguments'])) {
+      $pageArgs = CRM_Core_Menu::getArrayForPathArgs($item['page_arguments']);
+    }
+
+    if (is_array($item['page_callback']) || strpos($item['page_callback'], ':')) {
+      $callback = Civi\Core\Resolver::singleton()->get($item['page_callback']);
+      $callbackDefaultArgs = [];
+    }
+    elseif (str_contains($item['page_callback'], '_Form')) {
+      $wrapper = new CRM_Utils_Wrapper();
+      $callback = [$wrapper, 'run'];
+      $callbackDefaultArgs = [
+        $item['page_callback'] ?? NULL,
+        $item['title'] ?? NULL,
+        $pageArgs ?? NULL,
+      ];
+    }
+    else {
+      $newArgs = explode('/', $_GET[$config->userFrameworkURLVar]);
+      $mode = 'null';
+      if (isset($pageArgs['mode'])) {
+        $mode = $pageArgs['mode'];
+        unset($pageArgs['mode']);
+      }
+      $title = $item['title'] ?? NULL;
+      if (str_contains($item['page_callback'], '_Page') || str_contains($item['page_callback'], '\\Page\\')) {
+        $object = new $item['page_callback']($title, $mode);
+        $object->urlPath = explode('/', $_GET[$config->userFrameworkURLVar]);
+      }
+      elseif (str_contains($item['page_callback'], '_Controller') || str_contains($item['page_callback'], '\\Controller\\')) {
+        $addSequence = 'false';
+        if (isset($pageArgs['addSequence'])) {
+          $addSequence = $pageArgs['addSequence'];
+          $addSequence = $addSequence ? 'true' : 'false';
+          unset($pageArgs['addSequence']);
+        }
+        if ($item['page_callback'] === 'CRM_Import_Controller') {
+          // Let the generic import controller have the page arguments.... so we don't need
+          // one class per import.
+          $object = new CRM_Import_Controller($title, $pageArgs ?? []);
+        }
+        else {
+          $object = new $item['page_callback']($title, TRUE, $mode, NULL, $addSequence);
+        }
+      }
+      else {
+        throw new CRM_Core_Exception('Execute supplied menu action');
+      }
+      $callback = [$object, 'run'];
+      $callbackDefaultArgs = [$newArgs, $pageArgs];
+    }
+    return [$callback, $callbackDefaultArgs];
+  }
+
+  private static function isPsr7Handler(array $item, $callback) {
+    $resolver = Civi\Core\Resolver::singleton();
+    $reflector = $resolver->getReflector($callback);
+    // TODO: Look at $reflector->getParameters() or $reflector->getDocComment() or $reflector->getAttributes()
+    return FALSE;
   }
 
   /**
