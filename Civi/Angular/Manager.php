@@ -325,7 +325,7 @@ class Manager {
    * @param string|array $moduleNames
    *   List of module names.
    * @param string $resType
-   *   Type of resource ('js', 'css', 'settings').
+   *   Type of resource ('js', 'mjs', 'css', 'settings').
    * @param string $refType
    *   Type of reference to the resource ('cacheUrl', 'rawUrl', 'path', 'settings').
    * @return array

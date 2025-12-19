@@ -209,6 +209,14 @@ class AngularLoader {
         $res->addStyleFile($relUrl['ext'], $relUrl['file'], self::DEFAULT_MODULE_WEIGHT + (++$headOffset), $this->getRegion());
       }
     }
+
+    // For modular JS files, we don't have the sophistication to aggregate. But do we really care?
+    foreach ($moduleNames as $moduleName) {
+      foreach ($this->angular->getResources($moduleName, 'mjs', 'cacheUrl') as $url) {
+        $res->addModuleUrl($url, self::DEFAULT_MODULE_WEIGHT + (++$headOffset), $this->getRegion());
+      }
+    }
+
     // Add bundles
     if (!$this->modulesAlreadyLoaded) {
       foreach ($this->angular->getResources($moduleNames, 'bundles', 'bundles') as $bundles) {

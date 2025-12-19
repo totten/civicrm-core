@@ -2686,6 +2686,7 @@ abstract class CRM_Utils_Hook {
    *   List of modules. Each module defines:
    *    - ext: string, the CiviCRM extension which hosts the files.
    *    - js: array, list of JS files or globs.
+   *    - mjs: array, list of ESM module-files or globs
    *    - css: array, list of CSS files or globs.
    *    - partials: array, list of base-dirs containing HTML.
    *    - partialsCallback: mixed, a callback function which generates a list of HTML
