@@ -315,6 +315,14 @@ class CiviUnitTestCaseCommon extends PHPUnit\Framework\TestCase {
       ->callback(function ($ctx) {
         \Civi\Test::schema()->setAutoIncrement();
       });
+
+    // FIXME: Is this a good place?
+    $b->callback(function() {
+      $v = new \Civi\Core\SqlTrigger\HtmlEntityValidator();
+      $code = $v->getProcedureCode();
+      \Civi\Test::pdo()->exec('DROP PROCEDURE IF EXISTS ' . $v::PROCEDURE);
+      \Civi\Test::pdo()->exec($code);
+    }, 'proc');
     return $b;
   }
 
