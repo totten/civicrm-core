@@ -55,7 +55,7 @@ return CRM_Core_CodeGen_BounceType::create('Invalid')
     ['no one at this address'],
     ['misconfigured forwarding address'],
     ['account is not allowed'],
-    ['Address .<[^>]*>. not known here'],
+    [htmlentities('Address .<[^>]*>. not known here')],
     ['Recipient address rejected: ([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}'],
     ['Non sono riuscito a trovare l.indirizzo e-mail'],
     ['nadie con esta direcci..?n'],
