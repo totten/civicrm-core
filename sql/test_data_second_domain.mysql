@@ -34,7 +34,7 @@ SELECT @locBlockId := id from civicrm_loc_block where phone_id = @phoneId AND em
   SELECT @mailCompId       := max(id) FROM civicrm_component where name = 'CiviMail';
 
 INSERT INTO civicrm_site_email_address (display_name, email, is_default, description, domain_id)
-values ('FIXME', '<info@EXAMPLE.ORG>', '1', 'Default domain email address and from name.', @domainID);
+values ('FIXME', 'info@EXAMPLE.ORG', '1', 'Default domain email address and from name.', @domainID);
 
   INSERT INTO
    `civicrm_option_value` (`option_group_id`, `label`, `value`, `name`, `grouping`, `filter`, `is_default`, `weight`, `description`, `is_optgroup`, `is_reserved`, `is_active`, `component_id`, `domain_id`, `visibility_id`)
