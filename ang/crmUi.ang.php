@@ -4,7 +4,7 @@ $isPretty = \Civi::settings()->get('debug_enabled') && !defined('CIVICRM_KARMA')
 
 return [
   'ext' => 'civicrm',
-  'js' => ['ang/crmUi.js'],
+  'mjs' => ['ang/crmUi.mjs'],
   'partials' => ['ang/crmUi'],
   'css' => ['ang/crmUI.css'],
   'requires' => array_merge(
