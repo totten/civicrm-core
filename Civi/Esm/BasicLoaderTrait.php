@@ -99,7 +99,12 @@ trait BasicLoaderTrait {
   protected function buildImportMap(): array {
     $result = [];
     foreach ($this->importMap->getPrefixes() as $prefix) {
-      $result['imports'][$prefix['prefix']] = Civi::resources()->getUrl($prefix['ext'], $prefix['relPath']);
+      if (isset($prefix['url'])) {
+        $result['imports'][$prefix['prefix']] = $prefix['url'];
+      }
+      else {
+        $result['imports'][$prefix['prefix']] = Civi::resources()->getUrl($prefix['ext'], $prefix['relPath']);
+      }
     }
     return $result;
   }

@@ -50,6 +50,14 @@ class ImportMap extends \Civi\Core\Service\AutoService implements HookInterface 
     return $this;
   }
 
+  public function addPrefixUrl(string $prefix, string $url): ImportMap {
+    $this->prefixes[$prefix] = [
+      'prefix' => $prefix,
+      'url' => $url,
+    ];
+    return $this;
+  }
+
   public function getPrefixes(): array {
     if ($this->prefixes === NULL) {
       $this->load();
