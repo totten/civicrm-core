@@ -1,4 +1,8 @@
 /// crmUi: Sundry UI helpers
+
+import crmUiIframe from './crmUi/iframe.mjs';
+import crmUiDatepicker from './crmUi/datepicker.mjs';
+
 (function (angular, $, _) {
 
   let uidCount = 0,
@@ -68,58 +72,7 @@
       };
     })
 
-    // Simple wrapper around $.crmDatepicker.
-    // example with no time input: <input crm-ui-datepicker="{time: false}" ng-model="myobj.datefield"/>
-    // example with custom date format: <input crm-ui-datepicker="{date: 'm/d/y'}" ng-model="myobj.datefield"/>
-    .directive('crmUiDatepicker', function ($timeout) {
-      return {
-        restrict: 'AE',
-        require: 'ngModel',
-        scope: {
-          crmUiDatepicker: '='
-        },
-        link: function (scope, element, attrs, ngModel) {
-          ngModel.$render = function () {
-            const viewVal = ngModel.$viewValue || '';
-            // Prevent unnecessarily triggering ngChagne
-            if (element.val() != viewVal) {
-              element.val(viewVal).change();
-            }
-          };
-          let settings = angular.copy(scope.crmUiDatepicker || {});
-          // Set defaults to be non-restrictive
-          settings.start_date_years = settings.start_date_years || 100;
-          settings.end_date_years = settings.end_date_years || 100;
-
-          // Wait for interpolated elements like {{placeholder}} to render
-          $timeout(function() {
-            element
-              .crmDatepicker(settings)
-              .on('change', function () {
-                // Because change gets triggered from the $render function we could be either inside or outside the $digest cycle
-                $timeout(function() {
-                  let requiredLength = 19;
-                  if (settings.time === false) {
-                    requiredLength = 10;
-                  }
-                  if (settings.date === false) {
-                    requiredLength = 8;
-                  }
-                  else if (typeof settings.date === 'string') {
-                    const lowerFormat = settings.date.toLowerCase();
-                    // FIXME: parseDate doesn't work with incomplete date formats; skip validation if no month, day or year in format
-                    if (lowerFormat.indexOf('y') < 0 || lowerFormat.indexOf('m') < 0 || lowerFormat.indexOf('d') < 0) {
-                      // skipping the validation by setting the actual length of datepicker value
-                      requiredLength = element.val().length;
-                    }
-                  }
-                  ngModel.$setValidity('incompleteDateTime', !(element.val().length && element.val().length !== requiredLength));
-                });
-              });
-          });
-        }
-      };
-    })
+    .directive('crmUiDatepicker', crmUiDatepicker)
 
     // Display debug information (if available)
     // For richer DX, checkout Batarang/ng-inspector (Chrome/Safari), or AngScope/ng-inspect (Firefox).
@@ -352,53 +305,7 @@
     // Display an HTML blurb inside an IFRAME.
     // example: <iframe crm-ui-iframe="getHtmlContent()"></iframe>
     // example:  <iframe crm-ui-iframe crm-ui-iframe-src="getUrl()"></iframe>
-    .directive('crmUiIframe', function ($parse) {
-      return {
-        scope: {
-          crmUiIframeSrc: '@', // expression which evaluates to a URL
-          crmUiIframe: '@' // expression which evaluates to HTML content
-        },
-        link: function (scope, elm, attrs) {
-          const iframe = $(elm)[0];
-          iframe.setAttribute('width', '100%');
-          iframe.setAttribute('height', '250px');
-          iframe.setAttribute('frameborder', '0');
-
-          const refresh = function () {
-            if (attrs.crmUiIframeSrc) {
-              iframe.setAttribute('src', scope.$parent.$eval(attrs.crmUiIframeSrc));
-            }
-            else {
-              let iframeHtml = scope.$parent.$eval(attrs.crmUiIframe);
-
-              let doc = iframe.document;
-              if (iframe.contentDocument) {
-                doc = iframe.contentDocument;
-              }
-              else if (iframe.contentWindow) {
-                doc = iframe.contentWindow.document;
-              }
-
-              doc.open();
-              doc.writeln(iframeHtml);
-              doc.close();
-            }
-          };
-
-          // If the iframe is in a dialog, respond to resize events
-          $(elm).parent().on('dialogresize dialogopen', function(e, ui) {
-            $(this).css({padding: '0', margin: '0', overflow: 'hidden'});
-            iframe.setAttribute('height', '' + $(this).innerHeight() + 'px');
-          });
-
-          $(elm).parent().on('dialogresize', function(e, ui) {
-            iframe.setAttribute('class', 'resized');
-          });
-
-          scope.$parent.$watch(attrs.crmUiIframe, refresh);
-        }
-      };
-    })
+    .directive('crmUiIframe', crmUiIframe)
 
     // Example:
     //   <a ng-click="$broadcast('my-insert-target', 'some new text')>Insert</a>
