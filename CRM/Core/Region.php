@@ -98,7 +98,9 @@ class CRM_Core_Region implements CRM_Core_Resources_CollectionInterface, CRM_Cor
 
         case 'scriptUrl':
           // ECMAScript Modules (ESMs) are basically Javascript files, but they require a slightly different incantation.
-          if (!empty($snippet['esm'])) {
+          // If the resource doesn't specifically enable or disable ESM, then look to file extension ("js" vs "mjs").
+          $esm = array_key_exists('esm', $snippet) ? $snippet['esm'] : preg_match('/\.mjs(\?|$)/', $snippet['scriptUrl']);
+          if (!empty($esm)) {
             $html .= Civi::service('esm.loader')->renderModule($snippet);
           }
           elseif (!$allowCmsOverride || !$cms->addScriptUrl($snippet['scriptUrl'], $this->_name)) {
