@@ -13,9 +13,9 @@ namespace Civi\Shimmy\Mixins;
 class ElementsV1Test extends \PHPUnit\Framework\Assert {
 
   public function testPreConditions($cv): void {
-    $this->assertFileExists(static::getPath('/element/shimmy-tag-a.js'), 'The shimmy extension must have example file shimmy-tag-a.js.');
-    $this->assertFileExists(static::getPath('/element/shimmy-tag-a.css'), 'The shimmy extension must have example file shimmy-tag-a.css.');
-    $this->assertFileExists(static::getPath('/element/shimmy-tag-b.mjs'), 'The shimmy extension must have example file shimmy-tag-b.mjs.');
+    $this->assertFileExists(static::getPath('/elements/shimmy-tag-a.js'), 'The shimmy extension must have example file shimmy-tag-a.js.');
+    $this->assertFileExists(static::getPath('/elements/shimmy-tag-a.css'), 'The shimmy extension must have example file shimmy-tag-a.css.');
+    $this->assertFileExists(static::getPath('/elements/shimmy-tag-b.mjs'), 'The shimmy extension must have example file shimmy-tag-b.mjs.');
   }
 
   private function getAllElements($cv): array {
@@ -28,9 +28,9 @@ class ElementsV1Test extends \PHPUnit\Framework\Assert {
 
   public function testInstalled($cv): void {
     $items = $this->trimFileNames($this->getAllElements($cv));
-    $this->assertEquals(['shimmy/element/shimmy-tag-a.js'], $items['shimmy-tag-a']['js'] ?? 'MISSING', '<shimmy-tag-a> should have JS file');
-    $this->assertEquals(['shimmy/element/shimmy-tag-a.css'], $items['shimmy-tag-a']['css'] ?? 'MISSING', '<shimmy-tag-a> should have CSS file');
-    $this->assertEquals(['shimmy/element/shimmy-tag-b.mjs'], $items['shimmy-tag-b']['js'] ?? 'MISSING', '<shimmy-tag-b> should have JS file');
+    $this->assertEquals(['shimmy/elements/shimmy-tag-a.js'], $items['shimmy-tag-a']['js'] ?? 'MISSING', '<shimmy-tag-a> should have JS file');
+    $this->assertEquals(['shimmy/elements/shimmy-tag-a.css'], $items['shimmy-tag-a']['css'] ?? 'MISSING', '<shimmy-tag-a> should have CSS file');
+    $this->assertEquals(['shimmy/elements/shimmy-tag-b.mjs'], $items['shimmy-tag-b']['js'] ?? 'MISSING', '<shimmy-tag-b> should have JS file');
     $this->assertTrue(empty($items['shimmy-tag-b']['css']), 'shimmy-tag-b should not have any CSS');
   }
 

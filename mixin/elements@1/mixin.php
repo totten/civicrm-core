@@ -6,8 +6,8 @@
  * Elements are loaded from eponymous files. For example:
  *
  *   <hello-world>
- *      ==> "$EXTENSION/element/hello-world.js"
- *      ==> "$EXTENSION/element/hello-world.css"
+ *      ==> "$EXTENSION/elements/hello-world.js"
+ *      ==> "$EXTENSION/elements/hello-world.css"
  *
  * All [M]JS files are treated as ECMAScript Modules, so they may use `import` statements.
  * (In some deployments, `import`s may work with relative-paths. This is not currently guaranteed.
@@ -37,7 +37,7 @@ class Elements {
 
   const ASSET = 'elements.js';
 
-  const SUBDIR = 'element';
+  const SUBDIR = 'elements';
 
   protected $registered = FALSE;
 
@@ -173,7 +173,7 @@ return function ($mixInfo, $bootCache) {
   }, 500);
 
   /**
-   * Statically register each *.js, *.mjs, *.css file from $EXTENSION/element/.
+   * Statically register each *.js, *.mjs, *.css file from $EXTENSION/elements/.
    */
   Civi::dispatcher()->addListener('&hook_civicrm_elements', function(array &$elements) use ($mixInfo) {
     if ($mixInfo->isActive()) {
