@@ -17,9 +17,9 @@
  *
  * If you're doing funny business (like generating JS files) and need to refresh the index, call:
  *
- *   Civi::service('elements@1')->flush();
+ *   Civi::service('element@1')->flush();
  *
- * @mixinName elements
+ * @mixinName element
  * @mixinVersion 1.0.0
  * @since 6.11
  *
@@ -66,7 +66,7 @@ class Elements {
    * @return void
    */
   public function container(ContainerBuilder $container): void {
-    $container->setDefinition('elements@1', new Definition(static::CLASS))
+    $container->setDefinition('element@1', new Definition(static::CLASS))
       ->setFactory([static::CLASS, 'instance'])
       ->setPublic(TRUE);
   }
@@ -152,7 +152,7 @@ class Elements {
 }
 
 /**
- * As a mixin, we receive a notification for each extension that enables `elements@1`.
+ * As a mixin, we receive a notification for each extension that enables `element@1`.
  *
  * @param \CRM_Extension_MixInfo $mixInfo
  * @param \CRM_Extension_BootCache $bootCache

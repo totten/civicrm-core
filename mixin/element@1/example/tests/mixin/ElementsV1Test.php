@@ -20,7 +20,7 @@ class ElementsV1Test extends \PHPUnit\Framework\Assert {
 
   private function getAllElements($cv): array {
     return $cv->phpEval('
-      $svc = "elements@1";
+      $svc = "element@1";
       $c = \Civi::container();
       return $c->has($svc) ? $c->get($svc)->getAll() : [];
     ');
