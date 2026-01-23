@@ -44,6 +44,11 @@ class CRM_Core_Payment_PayflowProTest extends \PHPUnit\Framework\TestCase implem
   }
 
   public function setUp(): void {
+    $guzzleVersion = \Composer\InstalledVersions::getVersion("guzzlehttp/guzzle");
+    if (version_compare($guzzleVersion, '7', '<') && version_compare(phpversion(), '8.1', '>=')) {
+      $this->markTestSkipped("On PHP 8.1+, testing with Guzzle's MockHandler requries v7+");
+    }
+
     $this->setUpPayflowProcessor();
     $this->processor = \Civi\Payment\System::singleton()->getById($this->ids['PaymentProcessor']['PayflowPro']);
     parent::setUp();
