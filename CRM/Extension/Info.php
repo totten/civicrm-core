@@ -374,7 +374,7 @@ class CRM_Extension_Info {
       }
     }
 
-    if (in_array('mgmt:enable-when-satisfied', $this->tags) && $this->parent && !in_array($this->parent, $this->requires)) {
+    if ($this->parent && !in_array($this->parent, $this->requires)) {
       $this->requires[] = $this->parent;
     }
 
