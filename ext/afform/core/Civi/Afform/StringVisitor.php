@@ -164,7 +164,7 @@ class StringVisitor {
       $parentSel = $subsels[0];
       unset($subsels[0]);
       try {
-        $parentValues = \CRM_Utils_JS::getRawProps($defn[$parentSel]);
+        $parentValues = \CRM_Utils_JS::getRawProps($defn[$parentSel] ?? '');
         // we use '*' to indicate that this is an array of objects so we can loop on the array
         if (isset($subsels[1]) && $subsels[1] == '*' && !empty($defn[$parentSel])) {
           unset($subsels[1]);
