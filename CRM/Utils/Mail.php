@@ -85,7 +85,10 @@ class CRM_Utils_Mail {
       $mailer = self::_createMailer('sendmail', $params);
     }
     elseif ($mailingInfo['outBound_option'] == CRM_Mailing_Config::OUTBOUND_OPTION_MAIL) {
-      $mailer = self::_createMailer('mail', []);
+      $mailer = self::_createMailer('mail', [
+        // Docs for mail() recommend "\r\n" unless the local MTA is qmail.
+        'sep' => static::isQmail(ini_get('sendmail_path')) ? "\n" : NULL,
+      ]);
     }
     elseif ($mailingInfo['outBound_option'] == CRM_Mailing_Config::OUTBOUND_OPTION_MOCK) {
       $mailer = self::_createMailer('mock', $mailingInfo);
@@ -116,7 +119,12 @@ class CRM_Utils_Mail {
       $mailer = new CRM_Mailing_BAO_Spool($params);
     }
     else {
+      $sep = $params['sep'] ?? NULL;
+      unset($params['sep']);
       $mailer = Mail::factory($driver, $params);
+      if ($sep !== NULL) {
+        $mailer->sep = $sep;
+      }
     }
 
     // Previously, CiviCRM bundled patches to change the behavior of 3 specific drivers. Use wrapper/filters to avoid patching.
@@ -157,6 +165,16 @@ class CRM_Utils_Mail {
     }
     // In core, all mailers should have a "$sep". But in contrib, it hasn't been guaranteed.
     return property_exists($mailer, 'sep') ? $mailer->sep : "\r\n";
+  }
+
+  private static function isQmail($command): bool {
+    if (!empty($command)) {
+      [$program] = explode(' ', $command);
+      if ($program && preg_match(';[/\\\]qmail;', $program)) {
+        return TRUE;
+      }
+    }
+    return FALSE;
   }
 
   /**
