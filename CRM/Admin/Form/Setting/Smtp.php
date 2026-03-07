@@ -31,6 +31,7 @@ class CRM_Admin_Form_Setting_Smtp extends CRM_Admin_Form_Generic {
     'smtpUsername',
     'sendmail_args',
     'sendmail_path',
+    'sendmail_eol',
   ];
 
   public function preProcess() {
@@ -64,6 +65,11 @@ class CRM_Admin_Form_Setting_Smtp extends CRM_Admin_Form_Generic {
     $this->setTitle(ts('Settings - Outbound Mail'));
     $this->add('text', 'sendmail_path', ts('Sendmail Path'));
     $this->add('text', 'sendmail_args', ts('Sendmail Argument'));
+    $eolOptions = array_combine(array_column(CRM_Utils_Mail::getLineEndings(), 'name'), array_column(CRM_Utils_Mail::getLineEndings(), 'label'));
+    $this->add('select', 'sendmail_eol', ts('Sendmail Line Ending'),
+      $eolOptions, FALSE, ['placeholder' => FALSE]
+    );
+
     $this->add('text', 'smtpServer', ts('SMTP Server'), $props['smtpServer'] ?? NULL);
     $this->add('text', 'smtpPort', ts('SMTP Port'), $props['smtpPort'] ?? NULL);
     $this->addYesNo('smtpAuth', ts('Authentication?'), empty($props['smtpAuth']['disabled']), FALSE, $props['smtpAuth'] ?? []);
@@ -214,6 +220,10 @@ class CRM_Admin_Form_Setting_Smtp extends CRM_Admin_Form_Generic {
       }
     }
 
+    if (!isset($result['sendmail_eol'])) {
+      $result['sendmail_eol'] = 'php_eol';
+    }
+
     return $result;
   }
 
@@ -283,6 +293,7 @@ class CRM_Admin_Form_Setting_Smtp extends CRM_Admin_Form_Generic {
         $message = "Sendmail settings are correct.";
         $params['sendmail_path'] = $formValues['sendmail_path'];
         $params['sendmail_args'] = $formValues['sendmail_args'];
+        $params['sep'] = CRM_Utils_Mail::getLineEndings()[$formValues['sendmail_eol'] ?? 'php_eol']['value'] ?? NULL;
         $mailerName = 'sendmail';
       }
       elseif ($formValues['outBound_option'] == CRM_Mailing_Config::OUTBOUND_OPTION_MAIL) {

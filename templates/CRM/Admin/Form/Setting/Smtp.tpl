@@ -111,6 +111,10 @@
                         <td class="label">{$form.sendmail_args.label}</td>
                         <td>{$form.sendmail_args.html}</td>
                      </tr>
+                     <tr class="crm-smtp-form-block-sendmail_eol">
+                       <td class="label">{$form.sendmail_eol.label}</td>
+                       <td>{$form.sendmail_eol.html}</td>
+                     </tr>
                     </table>
             </fieldset>
         </div>

@@ -81,6 +81,7 @@ class CRM_Utils_Mail {
       }
       $params['sendmail_path'] = $mailingInfo['sendmail_path'];
       $params['sendmail_args'] = $mailingInfo['sendmail_args'];
+      $params['sep'] = static::getLineEndings()[$mailingInfo['sendmail_eol'] ?? 'php_eol']['value'] ?? NULL;
 
       $mailer = self::_createMailer('sendmail', $params);
     }
@@ -175,6 +176,14 @@ class CRM_Utils_Mail {
       }
     }
     return FALSE;
+  }
+
+  public static function getLineEndings(): array {
+    return [
+      'lf' => ['name' => 'lf', 'label' => 'LF', 'value' => "\n"],
+      'crlf' => ['name' => 'crlf', 'label' => 'CRLF', 'value' => "\r\n"],
+      'php_eol' => ['name' => 'php_eol', 'label' => 'PHP_EOL', 'value' => PHP_EOL],
+    ];
   }
 
   /**
