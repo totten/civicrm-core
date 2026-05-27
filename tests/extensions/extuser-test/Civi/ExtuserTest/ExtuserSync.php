@@ -22,23 +22,30 @@ class ExtuserSync extends AutoService implements EventSubscriberInterface {
     ];
   }
 
-  public function onLoadUser(string $identifier, ?array &$user): void {
-    $row = \Civi::service('extuser_list')->get($identifier);
+  public function onLoadUser(array $cred, ?array &$user): void {
+    $row = \Civi::service('extuser_list')->get($cred['user']);
     if (!$row) {
       return;
     }
 
     if (!$user) {
-      $user = $this->createUser($identifier, $row);
+      $user = $this->createUser($cred['username'], $row);
     }
     elseif ($user && strtotime($user['when_updated']) < strtotime($row['timestamp'])) {
-      $user = $this->updateUser($user, $identifier, $row);
+      $user = $this->updateUser($user, $cred['username'], $row);
+    }
+
+    // This next assertion is NOT required from a general authentication POV.
+    // However, for purposes of E2E testing of the 'civi.standalone.loadUser' contract,
+    // we want to verify that $password is passed through.
+    if (empty($cred['password']) || !str_starts_with($cred['password'], 'exttest_')) {
+      throw new \LogicException("civi.standalone.loadUser should provide access to the submitted password.");
     }
   }
 
-  public function onCheckPassword(array $user, string $password, ?bool &$success): void {
+  public function onCheckPassword(array $cred, array $user, ?bool &$success): void {
     if ($row = \Civi::service('extuser_list')->get($user['username'])) {
-      $success = hash_equals($row['sketch'], hash('sha256', $password));
+      $success = hash_equals($row['sketch'], hash('sha256', $cred['password']));
     }
   }
 
