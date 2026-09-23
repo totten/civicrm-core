@@ -78,7 +78,7 @@ class Admin {
       'functions' => self::getSqlFunctions(),
       'displayTypes' => Display::getDisplayTypes(['id', 'name', 'label', 'description', 'icon', 'grouping']),
       'styles' => \CRM_Utils_Array::makeNonAssociative(self::getStyles()),
-      'skDataModes' => \Civi\Search\AbstractBackend::getDataModes(),
+      'skDataModes' => \Civi\Search\SKEntity\SKEntityUtil::getDataModes(),
       'defaultDisplay' => SearchDisplay::getDefault(FALSE)->setSavedSearch(['id' => NULL])->execute()->first(),
       'defaultDistanceUnit' => \CRM_Utils_Address::getDefaultDistanceUnit(),
       'optionAttributes' => \CRM_Core_SelectValues::optionAttributes(),

@@ -92,7 +92,7 @@ class SKEntitySubscriber extends AutoService implements EventSubscriberInterface
         ->addWhere('id', '=', $event->id)
         ->execute()->single();
       $oldDataMode = $oldDisplay['settings']['data_mode'] ?? 'table';
-      $oldDataModes = \Civi\Search\AbstractBackend::getDataModes();
+      $oldDataModes = \Civi\Search\SKEntity\SKEntityUtil::getDataModes();
       $oldBackendClass = $oldDataModes[$oldDataMode]['backend'] ?? NULL;
 
       if ($oldBackendClass) {
@@ -143,7 +143,7 @@ class SKEntitySubscriber extends AutoService implements EventSubscriberInterface
 
     // Initialize the new backend!
     $dataMode = $event->params['settings']['data_mode'] ?? 'table';
-    $dataModes = \Civi\Search\AbstractBackend::getDataModes();
+    $dataModes = \Civi\Search\SKEntity\SKEntityUtil::getDataModes();
     $backendClass = $dataModes[$dataMode]['backend'] ?? NULL;
 
     if ($backendClass) {

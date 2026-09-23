@@ -33,7 +33,7 @@ class Refresh extends AbstractAction {
       return;
     }
 
-    $dataModes = \Civi\Search\AbstractBackend::getDataModes();
+    $dataModes = \Civi\Search\SKEntity\SKEntityUtil::getDataModes();
     $backendClass = $dataModes[$dataMode]['backend'] ?? NULL;
 
     if ($backendClass) {

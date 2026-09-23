@@ -149,13 +149,13 @@ function _getSearchKitEntityDisplays($name = NULL): array {
 /**
  * Implements hook_civicrm_skDataModes().
  */
-function search_kit_civicrm_skDataModes(array &$backends): void {
-  $backends['table'] = [
+function search_kit_civicrm_skDataModes(array &$dataModes): void {
+  $dataModes['table'] = [
     'label' => \CRM_Search_ExtensionUtil::ts('MySQL Table'),
     'fieldFlags' => [],
     'backend' => '\Civi\Search\TableBackend',
   ];
-  $backends['view'] = [
+  $dataModes['view'] = [
     'label' => \CRM_Search_ExtensionUtil::ts('MySQL View'),
     'fieldFlags' => [],
     'backend' => '\Civi\Search\ViewBackend',

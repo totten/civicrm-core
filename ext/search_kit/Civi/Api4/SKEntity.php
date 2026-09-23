@@ -24,7 +24,7 @@ class SKEntity {
       $settings = json_decode($settings, TRUE);
     }
     $dataMode = $settings['data_mode'] ?? 'table';
-    $dataModes = \Civi\Search\AbstractBackend::getDataModes();
+    $dataModes = \Civi\Search\SKEntity\SKEntityUtil::getDataModes();
 
     if (!empty($dataModes[$dataMode]['api4']['getFields'])) {
       $actionClass = $dataModes[$dataMode]['api4']['getFields'];
@@ -52,7 +52,7 @@ class SKEntity {
       $settings = json_decode($settings, TRUE);
     }
     $dataMode = $settings['data_mode'] ?? 'table';
-    $dataModes = \Civi\Search\AbstractBackend::getDataModes();
+    $dataModes = \Civi\Search\SKEntity\SKEntityUtil::getDataModes();
 
     if (!empty($dataModes[$dataMode]['api4']['get'])) {
       $actionClass = $dataModes[$dataMode]['api4']['get'];

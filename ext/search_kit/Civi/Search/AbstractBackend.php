@@ -52,21 +52,4 @@ abstract class AbstractBackend {
    */
   abstract public function destroy(): void;
 
-  /**
-   * Get all registered data modes / backends.
-   *
-   * @return array
-   */
-  public static function getDataModes(): array {
-    $backends = [];
-    $dummy = NULL;
-    \CRM_Utils_Hook::singleton()->invoke(
-      ['backends'],
-      $backends,
-      $dummy, $dummy, $dummy, $dummy, $dummy,
-      'civicrm_skDataModes'
-    );
-    return $backends;
-  }
-
 }
