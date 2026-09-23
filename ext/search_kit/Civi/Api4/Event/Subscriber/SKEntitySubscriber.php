@@ -86,10 +86,28 @@ class SKEntitySubscriber extends AutoService implements EventSubscriberInterface
     if (!$newSettings && $oldName === $newName && $event->action !== 'delete') {
       return;
     }
-    // Drop the old table if it exists
+    // Drop the old backend if it exists
     if ($oldName) {
-      \CRM_Core_BAO_SchemaHandler::dropTable(_getSearchKitDisplayTableName($oldName));
-      \CRM_Core_DAO::executeQuery(sprintf('DROP VIEW IF EXISTS `%s`', _getSearchKitDisplayTableName($oldName)));
+      $oldDisplay = \Civi\Api4\SearchDisplay::get(FALSE)
+        ->addWhere('id', '=', $event->id)
+        ->execute()->single();
+      $oldDataMode = $oldDisplay['settings']['data_mode'] ?? 'table';
+      $oldDataModes = \Civi\Search\AbstractBackend::getDataModes();
+      $oldBackendClass = $oldDataModes[$oldDataMode]['backend'] ?? NULL;
+
+      if ($oldBackendClass) {
+        $oldSavedSearch = \Civi\Api4\SavedSearch::get(FALSE)
+          ->addWhere('id', '=', $oldDisplay['saved_search_id'])
+          ->execute()->single();
+        /** @var \Civi\Search\AbstractBackend $oldBackend */
+        $oldBackend = new $oldBackendClass(
+          'SK_' . $oldName,
+          $oldSavedSearch['api_entity'],
+          $oldSavedSearch['api_params'],
+          $oldDisplay['settings']
+        );
+        $oldBackend->destroy();
+      }
     }
     if ($event->action === 'delete') {
       // Delete scheduled jobs when deleting entity
@@ -98,15 +116,10 @@ class SKEntitySubscriber extends AutoService implements EventSubscriberInterface
         ->execute();
       return;
     }
-    // Build the new table
+    // Build the new table/view or other backend
     $savedSearchID = $event->params['saved_search_id'] ?? \CRM_Core_DAO::getFieldValue('CRM_Search_DAO_SearchDisplay', $event->id, 'saved_search_id');
     $this->loadSavedSearch($savedSearchID);
-    $table = [
-      'name' => _getSearchKitDisplayTableName($newName),
-      'is_multiple' => FALSE,
-      'attributes' => 'ENGINE=InnoDB',
-      'fields' => [],
-    ];
+
     // Use primary keys from original table, if available
     $primaryKeys = CoreUtil::getInfoItem($this->savedSearch['api_entity'], 'primary_key') ?? [];
     $newSettings['primaryKey'] = [];
@@ -121,7 +134,6 @@ class SKEntitySubscriber extends AutoService implements EventSubscriberInterface
       if ($event->id || empty($column['spec'])) {
         $column['spec'] = Meta::formatFieldSpec($column, $expr);
       }
-      $table['fields'][] = $this->formatSQLSpec($column, $expr);
       if (in_array($column['key'], $primaryKeys)) {
         $newSettings['primaryKey'][] = $column['spec']['name'];
       }
@@ -129,77 +141,21 @@ class SKEntitySubscriber extends AutoService implements EventSubscriberInterface
     // Store new settings with added column spec
     $event->params['settings'] = $newSettings;
 
-    $mode = $event->params['settings']['data_mode'] ?? 'table';
-    switch ($mode) {
-      case 'table':
-      case '':
-        $sql = \CRM_Core_BAO_SchemaHandler::buildTableSQL($table);
-        // do not i18n-rewrite
-        \CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
-        break;
+    // Initialize the new backend!
+    $dataMode = $event->params['settings']['data_mode'] ?? 'table';
+    $dataModes = \Civi\Search\AbstractBackend::getDataModes();
+    $backendClass = $dataModes[$dataMode]['backend'] ?? NULL;
 
-      case 'view':
-        $tableName = _getSearchKitDisplayTableName($newName);
-        $tempSettings = $event->params['settings'];
-        $sql = (new SKEntityGenerator())->createQuery($this->savedSearch['api_entity'], $this->savedSearch['api_params'], $tempSettings);
-        $columnSpecs = array_column($tempSettings['columns'], 'spec');
-        $columns = implode(', ', array_column($columnSpecs, 'name'));
-        $sql = "CREATE VIEW `$tableName` ($columns) AS " . $sql;
-
-        // do not i18n-rewrite
-        \CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
-        break;
-
-      default:
-        throw new \LogicException("Search display $event->id has invalid mode ($mode)");
+    if ($backendClass) {
+      /** @var \Civi\Search\AbstractBackend $backend */
+      $backend = new $backendClass(
+        'SK_' . $newName,
+        $this->savedSearch['api_entity'],
+        $this->savedSearch['api_params'],
+        $event->params['settings']
+      );
+      $backend->initialize();
     }
-  }
-
-  /**
-   * @param array $column
-   * @param array{fields: array, expr: \Civi\Api4\Query\SqlExpression, dataType: string} $expr
-   * @return array
-   */
-  private function formatSQLSpec(array $column, array $expr): array {
-    $field = \CRM_Utils_Array::first($expr['fields']);
-    // Store serialized values as text
-    if ($expr['expr']->getSerialize()) {
-      $type = 'text';
-    }
-    // Try to use the exact sql column type as the original field
-    elseif (!empty($field['column_name']) && !empty($field['table_name']) && $field['data_type'] === $expr['dataType']) {
-      $columns = \CRM_Core_DAO::executeQuery("DESCRIBE `{$field['table_name']}`")
-        ->fetchMap('Field', 'Type');
-      $type = $columns[$field['column_name']] ?? NULL;
-    }
-    // If we can't get the data type from the column, take an educated guess
-    if (empty($type)) {
-      $map = [
-        'Array' => 'text',
-        'Boolean' => 'tinyint',
-        'Date' => 'date',
-        'Float' => 'double',
-        'Integer' => 'int',
-        'String' => 'text',
-        'Text' => 'text',
-        'Timestamp' => 'datetime',
-        'Money' => 'decimal(20,2)',
-      ];
-      $type = $map[$expr['dataType']] ?? 'text';
-    }
-    $defn = [
-      'name' => $column['spec']['name'],
-      'type' => $type,
-      // Adds an index to non-fk fields
-      'searchable' => TRUE,
-    ];
-    // Add FK indexes
-    if ($expr['expr']->getType() === 'SqlField' && !empty($field['fk_entity'])) {
-      $defn['fk_table_name'] = CoreUtil::getTableName($field['fk_entity']);
-      $defn['fk_field_name'] = $field['fk_column'];
-      $defn['fk_attributes'] = ' ON DELETE SET NULL';
-    }
-    return $defn;
   }
 
   /**

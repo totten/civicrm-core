@@ -12,9 +12,26 @@ class SKEntity {
    * @param string $displayEntity
    * @param bool $checkPermissions
    *
-   * @return \Civi\Api4\Generic\DAOGetFieldsAction
+   * @return \Civi\Api4\Generic\AbstractAction
    */
-  public static function getFields(string $displayEntity, bool $checkPermissions = TRUE): Generic\DAOGetFieldsAction {
+  public static function getFields(string $displayEntity, bool $checkPermissions = TRUE): Generic\AbstractAction {
+    $query = \CRM_Utils_SQL_Select::from('civicrm_search_display');
+    $query->select(['settings']);
+    $query->where('type = "entity"');
+    $query->where('name = @name', ['@name' => $displayEntity]);
+    $settings = \CRM_Core_DAO::singleValueQuery($query->toSQL());
+    if ($settings) {
+      $settings = json_decode($settings, TRUE);
+    }
+    $dataMode = $settings['data_mode'] ?? 'table';
+    $dataModes = \Civi\Search\AbstractBackend::getDataModes();
+
+    if (!empty($dataModes[$dataMode]['api4']['getFields'])) {
+      $actionClass = $dataModes[$dataMode]['api4']['getFields'];
+      return (new $actionClass('SK_' . $displayEntity, __FUNCTION__))
+        ->setCheckPermissions($checkPermissions);
+    }
+
     return (new Generic\DAOGetFieldsAction('SK_' . $displayEntity, __FUNCTION__))
       ->setCheckPermissions($checkPermissions);
   }
@@ -22,10 +39,27 @@ class SKEntity {
   /**
    * @param string $displayEntity
    * @param bool $checkPermissions
-   * @return \Civi\Api4\Generic\DAOGetAction
+   * @return \Civi\Api4\Generic\AbstractAction
    * @throws \CRM_Core_Exception
    */
-  public static function get(string $displayEntity, bool $checkPermissions = TRUE): Generic\DAOGetAction {
+  public static function get(string $displayEntity, bool $checkPermissions = TRUE): Generic\AbstractAction {
+    $query = \CRM_Utils_SQL_Select::from('civicrm_search_display');
+    $query->select(['settings']);
+    $query->where('type = "entity"');
+    $query->where('name = @name', ['@name' => $displayEntity]);
+    $settings = \CRM_Core_DAO::singleValueQuery($query->toSQL());
+    if ($settings) {
+      $settings = json_decode($settings, TRUE);
+    }
+    $dataMode = $settings['data_mode'] ?? 'table';
+    $dataModes = \Civi\Search\AbstractBackend::getDataModes();
+
+    if (!empty($dataModes[$dataMode]['api4']['get'])) {
+      $actionClass = $dataModes[$dataMode]['api4']['get'];
+      return (new $actionClass('SK_' . $displayEntity, __FUNCTION__))
+        ->setCheckPermissions($checkPermissions);
+    }
+
     return (new Generic\DAOGetAction('SK_' . $displayEntity, __FUNCTION__))
       ->setCheckPermissions($checkPermissions);
   }

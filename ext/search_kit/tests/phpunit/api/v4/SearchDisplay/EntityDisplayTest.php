@@ -4,6 +4,7 @@ namespace api\v4\SearchDisplay;
 
 // Not sure why this is needed but without it Jenkins crashed
 require_once __DIR__ . '/../../../../../../../tests/phpunit/api/v4/Api4TestBase.php';
+require_once __DIR__ . '/../../../../../Civi/Search/AbstractBackend.php';
 
 use api\v4\Api4TestBase;
 use Civi\API\Exception\UnauthorizedException;
@@ -678,4 +679,131 @@ class EntityDisplayTest extends Api4TestBase {
     $this->assertEquals(['thing 1', 'thing 2'], $result[0][$columnName]);
   }
 
+  public function testExtensibleBackends() {
+    MockBackend::$initializeCalls = [];
+    MockBackend::$destroyCalls = [];
+
+    $backendsHook = function(array &$backends): void {
+      $backends['custom_backend'] = [
+        'label' => 'Custom Backend Label',
+        'fieldFlags' => ['indexed:on', 'facet:off'],
+        'api4' => [
+          'getFields' => 'api\v4\SearchDisplay\MockGetFieldsAction',
+          'get' => 'api\v4\SearchDisplay\MockGetAction',
+        ],
+        'backend' => 'api\v4\SearchDisplay\MockBackend',
+      ];
+    };
+    \CRM_Utils_Hook::singleton()->setHook('civicrm_skDataModes', $backendsHook);
+
+    // Verify metadata loading
+    $adminMeta = \Civi\Search\Admin::getAdminMetadata();
+    $this->assertArrayHasKey('custom_backend', $adminMeta['skDataModes']);
+    $this->assertEquals('Custom Backend Label', $adminMeta['skDataModes']['custom_backend']['label']);
+    $this->assertEquals(['indexed:on', 'facet:off'], $adminMeta['skDataModes']['custom_backend']['fieldFlags']);
+
+    // Create a mock display record that uses our custom_backend
+    $savedSearch = $this->createTestRecord('SavedSearch', [
+      'label' => __FUNCTION__,
+      'api_entity' => 'Contact',
+      'api_params' => [
+        'version' => 4,
+        'select' => ['id'],
+      ],
+    ]);
+
+    $display = $this->createTestRecord('SearchDisplay', [
+      'saved_search_id' => $savedSearch['id'],
+      'type' => 'entity',
+      'label' => 'Custom Entity Display',
+      'name' => 'CustomEntityDisplay',
+      'settings' => [
+        'data_mode' => 'custom_backend',
+        'columns' => [
+          [
+            'key' => 'id',
+            'name' => 'id',
+            'label' => 'ID',
+            'type' => 'field',
+            'flags' => [
+              'indexed' => 'on',
+              'facet' => 'off',
+            ],
+          ],
+        ],
+      ],
+      'acl_bypass' => TRUE,
+    ]);
+
+    // Verify initialize() was called during save
+    $this->assertCount(1, MockBackend::$initializeCalls);
+    $this->assertEquals('SK_CustomEntityDisplay', MockBackend::$initializeCalls[0]);
+
+    // Verify APIv4 get/getFields redirection
+    $getFieldsAction = \Civi\Api4\SKEntity::getFields('CustomEntityDisplay', FALSE);
+    $this->assertInstanceOf('api\v4\SearchDisplay\MockGetFieldsAction', $getFieldsAction);
+
+    $getAction = \Civi\Api4\SKEntity::get('CustomEntityDisplay', FALSE);
+    $this->assertInstanceOf('api\v4\SearchDisplay\MockGetAction', $getAction);
+
+    // Verify Refresh behavior delegates to custom backend
+    MockBackend::$clearDataCalls = [];
+    MockBackend::$fillDataCalls = [];
+
+    \Civi\Api4\SKEntity::refresh('CustomEntityDisplay', FALSE)->execute();
+
+    $this->assertCount(1, MockBackend::$clearDataCalls);
+    $this->assertEquals('SK_CustomEntityDisplay', MockBackend::$clearDataCalls[0]);
+
+    $this->assertCount(1, MockBackend::$fillDataCalls);
+    $this->assertEquals('SK_CustomEntityDisplay', MockBackend::$fillDataCalls[0]['skEntity']);
+    $this->assertEquals('Contact', MockBackend::$fillDataCalls[0]['realEntity']);
+    $this->assertEquals('custom_backend', MockBackend::$fillDataCalls[0]['settings']['data_mode']);
+
+    // Delete the search display and verify destroy() was called
+    $this->assertCount(0, MockBackend::$destroyCalls);
+    \Civi\Api4\SearchDisplay::delete(FALSE)
+      ->addWhere('id', '=', $display['id'])
+      ->execute();
+
+    $this->assertCount(1, MockBackend::$destroyCalls);
+    $this->assertEquals('SK_CustomEntityDisplay', MockBackend::$destroyCalls[0]);
+  }
+
+}
+
+class MockBackend extends \Civi\Search\AbstractBackend {
+  public static $clearDataCalls = [];
+  public static $fillDataCalls = [];
+  public static $initializeCalls = [];
+  public static $destroyCalls = [];
+
+  public function initialize() {
+    self::$initializeCalls[] = $this->skEntity;
+  }
+
+  public function clearData() {
+    self::$clearDataCalls[] = $this->skEntity;
+  }
+
+  public function fillData() {
+    self::$fillDataCalls[] = [
+      'skEntity' => $this->skEntity,
+      'realEntity' => $this->realEntity,
+      'realParams' => $this->realParams,
+      'settings' => $this->settings,
+    ];
+  }
+
+  public function destroy() {
+    self::$destroyCalls[] = $this->skEntity;
+  }
+}
+
+class MockGetFieldsAction extends \Civi\Api4\Generic\AbstractAction {
+  public function _run(\Civi\Api4\Generic\Result $result) {}
+}
+
+class MockGetAction extends \Civi\Api4\Generic\AbstractAction {
+  public function _run(\Civi\Api4\Generic\Result $result) {}
 }

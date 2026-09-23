@@ -18,12 +18,46 @@
       this.createSqlName = searchMeta.createSqlName;
 
       this.permissions = CRM.crmSearchAdmin.permissions;
-      this.dataModes = [
-        {id: 'table', text: ts('MySQL Table')},
-        {id: 'view', text: ts('MySQL View')}
-        // {id: 'cte', text: ts('MySQL Table Expression')}
-      ];
+      this.dataModes = [];
+      angular.forEach(CRM.crmSearchAdmin.skDataModes, function(backend, id) {
+        ctrl.dataModes.push({id: id, text: backend.label});
+      });
       ctrl.isDataMode = (m) => (m == (ctrl.display.settings.data_mode || 'table'));
+
+      this.getFieldFlags = function() {
+        const mode = ctrl.display.settings.data_mode || 'table';
+        const backend = CRM.crmSearchAdmin.skDataModes && CRM.crmSearchAdmin.skDataModes[mode];
+        if (!backend || !backend.fieldFlags) {
+          return [];
+        }
+        return backend.fieldFlags.map(function(flagStr) {
+          const parts = flagStr.split(':');
+          return {
+            name: parts[0],
+            default: parts[1] || 'off',
+            label: _.startCase(parts[0])
+          };
+        });
+      };
+
+      this.initColFlags = function(col) {
+        if (!col.flags) {
+          col.flags = {};
+        }
+        angular.forEach(ctrl.getFieldFlags(), function(flag) {
+          if (col.flags[flag.name] === undefined) {
+            col.flags[flag.name] = flag.default;
+          }
+        });
+      };
+
+      $scope.$watch('$ctrl.display.settings.data_mode', function(newMode, oldMode) {
+        if (newMode !== oldMode && ctrl.display.settings && ctrl.display.settings.columns) {
+          angular.forEach(ctrl.display.settings.columns, function(col) {
+            ctrl.initColFlags(col);
+          });
+        }
+      });
 
       this.$onInit = function () {
         ctrl.jobFrequency = CRM.crmSearchAdmin.jobFrequency;

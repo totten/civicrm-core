@@ -39,6 +39,7 @@
       only accessing a small portion of the data.
     <li>{ts}<strong>MySQL CTE</strong>: Create dynamic MySQL query using Common Table Expression. Better suited to volatile {/ts}</li>
     *}
+    <li>{ts}Other backends (like Solr or Typesense) may also be available if configured on your site.{/ts}</li>
   </ul>
 
 {/htxt}

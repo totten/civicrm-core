@@ -68,6 +68,14 @@
           <i class="crm-i fa-ban" role="img" aria-hidden="true"></i>
         </button>
       </div>
+      <div class="form-inline crm-search-admin-flex-row" ng-if="$ctrl.getFieldFlags().length">
+        <div class="checkbox-inline" ng-repeat="flag in $ctrl.getFieldFlags()">
+          <label>
+            <input type="checkbox" ng-model="col.flags[flag.name]" ng-true-value="'on'" ng-false-value="'off'" ng-init="$ctrl.initColFlags(col)">
+            <span>{{ flag.label }}</span>
+          </label>
+        </div>
+      </div>
     </fieldset>
   </fieldset>
 </fieldset>
