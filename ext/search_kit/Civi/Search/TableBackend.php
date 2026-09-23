@@ -29,7 +29,7 @@ class TableBackend extends AbstractBackend {
     $this->loadSavedSearch();
   }
 
-  public function initialize() {
+  public function initialize(): void {
     [, $displayName] = explode('_', $this->skEntity, 2);
     $tableName = _getSearchKitDisplayTableName($displayName);
 
@@ -53,13 +53,13 @@ class TableBackend extends AbstractBackend {
     \CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
   }
 
-  public function clearData() {
+  public function clearData(): void {
     [, $displayName] = explode('_', $this->skEntity, 2);
     $tableName = _getSearchKitDisplayTableName($displayName);
     \CRM_Core_DAO::executeQuery("TRUNCATE TABLE `$tableName`");
   }
 
-  public function fillData() {
+  public function fillData(): void {
     [, $displayName] = explode('_', $this->skEntity, 2);
     $tableName = _getSearchKitDisplayTableName($displayName);
     $sql = (new SKEntityGenerator())->createQuery($this->realEntity, $this->realParams, $this->settings);
@@ -68,7 +68,7 @@ class TableBackend extends AbstractBackend {
     \CRM_Core_DAO::executeQuery("INSERT INTO `$tableName` ($columns) $sql");
   }
 
-  public function destroy() {
+  public function destroy(): void {
     [, $displayName] = explode('_', $this->skEntity, 2);
     $tableName = _getSearchKitDisplayTableName($displayName);
     \CRM_Core_BAO_SchemaHandler::dropTable($tableName);

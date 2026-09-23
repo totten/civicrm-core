@@ -13,7 +13,7 @@ namespace Civi\Search;
 
 class ViewBackend extends AbstractBackend {
 
-  public function initialize() {
+  public function initialize(): void {
     [, $displayName] = explode('_', $this->skEntity, 2);
     $tableName = _getSearchKitDisplayTableName($displayName);
     $sql = (new SKEntityGenerator())->createQuery($this->realEntity, $this->realParams, $this->settings);
@@ -23,15 +23,15 @@ class ViewBackend extends AbstractBackend {
     \CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
   }
 
-  public function clearData() {
+  public function clearData(): void {
     // Views are dynamic, no materialized data to clear
   }
 
-  public function fillData() {
+  public function fillData(): void {
     // Views are dynamic, no materialized data to fill
   }
 
-  public function destroy() {
+  public function destroy(): void {
     [, $displayName] = explode('_', $this->skEntity, 2);
     $tableName = _getSearchKitDisplayTableName($displayName);
     \CRM_Core_DAO::executeQuery(sprintf('DROP VIEW IF EXISTS `%s`', $tableName));

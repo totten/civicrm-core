@@ -778,15 +778,15 @@ class MockBackend extends \Civi\Search\AbstractBackend {
   public static $initializeCalls = [];
   public static $destroyCalls = [];
 
-  public function initialize() {
+  public function initialize(): void {
     self::$initializeCalls[] = $this->skEntity;
   }
 
-  public function clearData() {
+  public function clearData(): void {
     self::$clearDataCalls[] = $this->skEntity;
   }
 
-  public function fillData() {
+  public function fillData(): void {
     self::$fillDataCalls[] = [
       'skEntity' => $this->skEntity,
       'realEntity' => $this->realEntity,
@@ -795,7 +795,7 @@ class MockBackend extends \Civi\Search\AbstractBackend {
     ];
   }
 
-  public function destroy() {
+  public function destroy(): void {
     self::$destroyCalls[] = $this->skEntity;
   }
 }

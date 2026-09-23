@@ -20,16 +20,37 @@ abstract class AbstractBackend {
     protected array $settings
   ) {}
 
-  // Similar to "CREATE TABLE"
-  abstract public function initialize();
+  /**
+   * Prepare storage space (for this particular SKEntity).
+   *
+   * Ex: If the backend stores a materialized view in SQL, this would run "CREATE TABLE".
+   *
+   * This executes whenever (a) new SKEntity is created or (b) SKEntity changes to a different backend or (c) SKEntity adds or drops columns.
+   */
+  abstract public function initialize(): void;
 
-  // Similar to "TRUNCATE TABLE"
-  abstract public function clearData();
+  /**
+   * Clear all data (for this particular SKEntity).
+   *
+   * Ex: If the backend stores a materialized view in SQL, this would run "TRUNCATE TABLE".
+   */
+  abstract public function clearData(): void;
 
-  abstract public function fillData();
+  /**
+   * Perform the full search and store the data (for this particular SKEntity).
+   *
+   * Ex: If the backend stores a materialized view in SQL, this would run "INSERT INTO ... SELECT ... FROM $realEntity...".
+   */
+  abstract public function fillData(): void;
 
-  // Similar to "DROP TABLE".
-  abstract public function destroy();
+  /**
+   * Destroy all data+metadata (for this particular SKEntity).
+   *
+   * Ex: If the backend stores a materialized view in SQL, this would run "DROP TABLE".
+   *
+   * This executes whenever (a) SKEntity is deleted or (b) SKEntity changes to a different backend or (c) SKEntity adds or drops columns.
+   */
+  abstract public function destroy(): void;
 
   /**
    * Get all registered data modes / backends.
