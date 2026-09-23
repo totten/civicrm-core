@@ -160,4 +160,9 @@ function search_kit_civicrm_skDataModes(array &$backends): void {
     'fieldFlags' => [],
     'backend' => '\Civi\Search\ViewBackend',
   ];
+  // $backends['cte'] = [
+  //   'label' => \CRM_Search_ExtensionUtil::ts('MySQL Table Expression'),
+  //   'fieldFlags' => [],
+  //   'backend' => '\Civi\Search\CTEBackend',
+  // ];
 }
