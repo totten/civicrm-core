@@ -7,23 +7,35 @@
   <ul>
     {* We should probably give some more hints about when to use each. Included draft notes about expected trade-offs. *}
 
+    {* CONCEPTS: As we explore trade-offs, we reference some usage patterns:
+      * "Stable data" vs "Volatile data" -- How frequently do the underlying data-records change?
+        For example, "Country Names" are stable, but "Queue Statuses" are volatile.
+      * "Stable structure" vs "Volatile structure" -- How frequently do we change the columns or filters?
+        For example, when a developer provides a pre-packaged search... that has stable structure.
+        But when a novice user builds a custom search... that has volatile structure.
+      * "Targetted access" -- You typically request 1-4 records at a time.
+      * "Analytics with..." -- You typically synthesize data about all the records.
+    *}
+
     {* TABLE: Expected trade-offs:
-      Strength: Stable data. Stable structure. Analytics with grouping/aggregation/function-evaluation.
-      Weakness: Volatile data. Volatile structure.
+      Strength: Handling stable data and stable structures. Analytics with grouping/aggregation/function-evaluation.
+      Weakness: Handling volatile data and volatile structures.
     *}
     <li>{ts}<strong>MySQL Table</strong>: Create a persistent MySQL table and re-fill it periodically.{/ts}</li>
+
     {* VIEW: Expected trade-offs:
-      Strength: Volatile data. Stable structure. Simple variations on existing entities. Targeted access to subsets of data.
-      Weakness: Volatile structure. Analytics with grouping/aggregation/function-evaluation.
+      Strength: Handling volatile data with stable structures. Simple variations on existing entities. Targeted access to subsets of data.
+      Weakness: Handling volatile structures. Analytics with grouping/aggregation/function-evaluation.
     *}
     <li>{ts}<strong>MySQL View</strong>: Create a persistent MySQL view. Better suited to volatile data with a stable data-structure. Better suited to targeted data-access but not to analytics.{/ts}</li>
+
     {* CTE: Expected trade-offs:
-      Strength: Volatile data. Volatile structure.
+      Strength: Handling volatile data and volatile structures.
       Moderate: Analytics with grouping/aggregation/function-evaluation.
       Weakness: Targeted access to subsets of data.
 
       Compared to VIEWs, a key difference is CTEs are likely to build an on-demand temporary table to cache intermediate
-      results. This is good if you need to full-table operations like grouping/aggregating. But it may be bad if you're
+      results. This is good if you need full-table operations like grouping/aggregating. But it may be heavy-handed if you're
       only accessing a small portion of the data.
     <li>{ts}<strong>MySQL CTE</strong>: Create dynamic MySQL query using Common Table Expression. Better suited to volatile {/ts}</li>
     *}
