@@ -772,7 +772,11 @@ class EntityDisplayTest extends Api4TestBase {
 
 }
 
+/**
+ * Dummy backend which tallies the calls to the contracted methods.
+ */
 class MockBackend extends \Civi\Search\SKEntity\AbstractBackend {
+
   public static $clearDataCalls = [];
   public static $fillDataCalls = [];
   public static $initializeCalls = [];
@@ -798,12 +802,17 @@ class MockBackend extends \Civi\Search\SKEntity\AbstractBackend {
   public function destroy(): void {
     self::$destroyCalls[] = $this->skEntity;
   }
+
 }
 
 class MockGetFieldsAction extends \Civi\Api4\Generic\AbstractAction {
+
   public function _run(\Civi\Api4\Generic\Result $result) {}
+
 }
 
 class MockGetAction extends \Civi\Api4\Generic\AbstractAction {
+
   public function _run(\Civi\Api4\Generic\Result $result) {}
+
 }
