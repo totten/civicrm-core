@@ -4,7 +4,7 @@ namespace api\v4\SearchDisplay;
 
 // Not sure why this is needed but without it Jenkins crashed
 require_once __DIR__ . '/../../../../../../../tests/phpunit/api/v4/Api4TestBase.php';
-require_once __DIR__ . '/../../../../../Civi/Search/AbstractBackend.php';
+require_once __DIR__ . '/../../../../../Civi/Search/SKEntity/AbstractBackend.php';
 
 use api\v4\Api4TestBase;
 use Civi\API\Exception\UnauthorizedException;
@@ -772,7 +772,7 @@ class EntityDisplayTest extends Api4TestBase {
 
 }
 
-class MockBackend extends \Civi\Search\AbstractBackend {
+class MockBackend extends \Civi\Search\SKEntity\AbstractBackend {
   public static $clearDataCalls = [];
   public static $fillDataCalls = [];
   public static $initializeCalls = [];

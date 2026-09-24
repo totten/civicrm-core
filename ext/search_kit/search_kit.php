@@ -1,6 +1,7 @@
 <?php
 
 require_once 'search_kit.civix.php';
+
 use CRM_Search_ExtensionUtil as E;
 
 /**
@@ -153,12 +154,12 @@ function search_kit_civicrm_skDataModes(array &$dataModes): void {
   $dataModes['table'] = [
     'label' => \CRM_Search_ExtensionUtil::ts('MySQL Table'),
     'fieldFlags' => [],
-    'backend' => '\Civi\Search\TableBackend',
+    'backend' => '\Civi\Search\SKEntity\TableBackend',
   ];
   $dataModes['view'] = [
     'label' => \CRM_Search_ExtensionUtil::ts('MySQL View'),
     'fieldFlags' => [],
-    'backend' => '\Civi\Search\ViewBackend',
+    'backend' => '\Civi\Search\SKEntity\ViewBackend',
   ];
   // $backends['cte'] = [
   //   'label' => \CRM_Search_ExtensionUtil::ts('MySQL Table Expression'),

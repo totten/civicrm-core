@@ -20,7 +20,6 @@ use Civi\Core\Event\PostEvent;
 use Civi\Core\Event\PreEvent;
 use Civi\Core\Service\AutoService;
 use Civi\Search\Meta;
-use Civi\Search\SKEntityGenerator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -99,7 +98,7 @@ class SKEntitySubscriber extends AutoService implements EventSubscriberInterface
         $oldSavedSearch = \Civi\Api4\SavedSearch::get(FALSE)
           ->addWhere('id', '=', $oldDisplay['saved_search_id'])
           ->execute()->single();
-        /** @var \Civi\Search\AbstractBackend $oldBackend */
+        /** @var \Civi\Search\SKEntity\AbstractBackend $oldBackend */
         $oldBackend = new $oldBackendClass(
           'SK_' . $oldName,
           $oldSavedSearch['api_entity'],
@@ -147,7 +146,7 @@ class SKEntitySubscriber extends AutoService implements EventSubscriberInterface
     $backendClass = $dataModes[$dataMode]['backend'] ?? NULL;
 
     if ($backendClass) {
-      /** @var \Civi\Search\AbstractBackend $backend */
+      /** @var \Civi\Search\SKEntity\AbstractBackend $backend */
       $backend = new $backendClass(
         'SK_' . $newName,
         $this->savedSearch['api_entity'],

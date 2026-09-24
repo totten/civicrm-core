@@ -9,7 +9,9 @@
  +--------------------------------------------------------------------+
  */
 
-namespace Civi\Search;
+namespace Civi\Search\SKEntity;
+
+use Civi\Search\SKEntityGenerator;
 
 class ViewBackend extends AbstractBackend {
 

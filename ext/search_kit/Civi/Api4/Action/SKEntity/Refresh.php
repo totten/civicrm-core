@@ -4,7 +4,6 @@ namespace Civi\Api4\Action\SKEntity;
 
 use Civi\Api4\Generic\AbstractAction;
 use Civi\Api4\Generic\Result;
-use Civi\Search\SKEntityGenerator;
 
 /**
  * Store the results of a SearchDisplay as a SQL table.
@@ -44,7 +43,7 @@ class Refresh extends AbstractAction {
       }
       $releaseLock = \CRM_Utils_AutoClean::with([$lock, 'release']);
 
-      /** @var \Civi\Search\AbstractBackend $backend */
+      /** @var \Civi\Search\SKEntity\AbstractBackend $backend */
       $backend = new $backendClass(
         $this->getEntityName(),
         $display['saved_search_id.api_entity'],

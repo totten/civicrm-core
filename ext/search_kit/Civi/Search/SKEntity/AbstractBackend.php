@@ -9,7 +9,7 @@
  +--------------------------------------------------------------------+
  */
 
-namespace Civi\Search;
+namespace Civi\Search\SKEntity;
 
 abstract class AbstractBackend {
 
