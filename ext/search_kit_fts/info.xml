@@ -45,11 +45,13 @@
     <namespace>CRM/SearchKitFts</namespace>
     <format>25.10.2</format>
     <angularModule>crmSearchKitFts</angularModule>
+    <setting-page-title>Full Text Search</setting-page-title>
   </civix>
   <mixins>
     <mixin>mgd-php@2.0.0</mixin>
     <mixin>scan-classes@1.0.0</mixin>
     <mixin>setting-php@1.0.0</mixin>
     <mixin>smarty@1.0.3</mixin>
+    <mixin>setting-admin@1.0.1</mixin>
   </mixins>
 </extension>
