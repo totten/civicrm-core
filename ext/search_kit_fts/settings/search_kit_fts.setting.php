@@ -1,0 +1,43 @@
+<?php
+
+return [
+  'fts_solr_url' => [
+    'group_name' => 'FTS Settings',
+    'group' => 'fts',
+    'name' => 'fts_solr_url',
+    'type' => 'String',
+    'html_type' => 'Text',
+    'quick_form_type' => 'Element',
+    'default' => NULL,
+    'add' => '5.0',
+    'title' => 'Solr Server URL',
+    'is_ssl' => FALSE,
+    'settings_pages' => ['fts' => ['weight' => 10]],
+  ],
+  'fts_typesense_url' => [
+    'group_name' => 'FTS Settings',
+    'group' => 'fts',
+    'name' => 'fts_typesense_url',
+    'type' => 'String',
+    'html_type' => 'Text',
+    'quick_form_type' => 'Element',
+    'default' => NULL,
+    'add' => '5.0',
+    'title' => 'TypeSense Server URL',
+    'is_ssl' => FALSE,
+    'settings_pages' => ['fts' => ['weight' => 20]],
+  ],
+  'fts_elastic_url' => [
+    'group_name' => 'FTS Settings',
+    'group' => 'fts',
+    'name' => 'fts_elastic_url',
+    'type' => 'String',
+    'html_type' => 'Text',
+    'quick_form_type' => 'Element',
+    'default' => NULL,
+    'add' => '5.0',
+    'title' => 'ElasticSearch Server URL',
+    'is_ssl' => FALSE,
+    'settings_pages' => ['fts' => ['weight' => 30]],
+  ],
+];
