@@ -88,7 +88,7 @@ class MySQLFTS extends AbstractFTS {
 
     foreach ($columns as $column) {
       $colName = $column['spec']['name'] ?? $column['key'] ?? NULL;
-      if ($colName) {
+      if ($colName && strtolower($colName) !== 'id') {
         $dataType = $column['spec']['data_type'] ?? 'String';
         $sqlType = match ($dataType) {
           'Integer', 'Boolean' => 'INT',
