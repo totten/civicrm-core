@@ -1,0 +1,44 @@
+## Prompt
+##
+# For `ext/search_kit_fts`, we will be developing drivers that optionally connect to several backends (eg Solr v10.0, ElasticSearch v9.5, TypeSense v30.1).
+#
+# Before we can write and execute tests for these drivers, we need a docker-compose file that can start all three services at the same time.
+#
+# All services should start with empty data and accept connections from localhost (unauthenticated).
+#
+# Create `ext/search_kit_fts/tests/docker-compose.yml` and verify that services are accessible.
+
+services:
+
+  solr:
+    image: solr:10.0.0
+    ports:
+      - "127.0.0.1:8983:8983"
+    command:
+      - solr-precreate
+      - gettingstarted
+    tmpfs:
+      - /var/solr:uid=8983,gid=8983,mode=777
+
+  typesense:
+    image: typesense/typesense:30.1
+    ports:
+      - "127.0.0.1:8108:8108"
+    environment:
+      TYPESENSE_DATA_DIR: "/data"
+      TYPESENSE_API_KEY: "xyz"
+      TYPESENSE_ENABLE_CORS: "true"
+    tmpfs:
+      - /data
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.4
+    ports:
+      - "127.0.0.1:9200:9200"
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      xpack.security.enrollment.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    tmpfs:
+      - /usr/share/elasticsearch/data
