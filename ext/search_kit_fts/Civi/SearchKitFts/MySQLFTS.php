@@ -3,12 +3,72 @@
 namespace Civi\SearchKitFts;
 
 use Civi\Api4\Generic\AbstractAction;
+use PDO;
 
 class MySQLFTS extends AbstractFTS {
+
+  protected ?PDO $pdo = NULL;
+
+  /**
+   * Get a separate, non-transactional PDO connection to MySQL.
+   *
+   * @return \PDO
+   */
+  public function getDriver(): PDO {
+    if ($this->pdo === NULL) {
+      require_once 'DB.php';
+      $dsn = \CRM_Utils_SQL::autoSwitchDSN(\CIVICRM_DSN);
+      $dsninfo = \DB::parseDSN($dsn);
+      $host = $dsninfo['hostspec'];
+      $port = @$dsninfo['port'];
+      $database = $dsninfo['database'];
+      $bufferedQuery = defined('Pdo\Mysql::ATTR_USE_BUFFERED_QUERY') ? \Pdo\Mysql::ATTR_USE_BUFFERED_QUERY : PDO::MYSQL_ATTR_USE_BUFFERED_QUERY;
+
+      $this->pdo = new PDO(
+        "mysql:host={$host}" . ($port ? ";port=$port" : "") . ($database ? ";dbname=$database" : "") . ";charset=utf8mb4",
+        $dsninfo['username'],
+        $dsninfo['password'],
+        [
+          $bufferedQuery => TRUE,
+          PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+          PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+      );
+    }
+    return $this->pdo;
+  }
 
   public function getTableName(): string {
     $cleanName = strtolower(preg_replace('/[^a-zA-Z0-9_]/', '', $this->searchDisplay['name']));
     return 'civicrm_fts_' . $cleanName;
+  }
+
+  /**
+   * Get text/string column names for the fulltext index.
+   *
+   * @return array
+   */
+  public function getFtsColumns(): array {
+    $columns = $this->searchDisplay['settings']['columns'] ?? [];
+    $ftsCols = [];
+    foreach ($columns as $column) {
+      $colName = $column['spec']['name'] ?? $column['key'] ?? NULL;
+      if ($colName) {
+        $dataType = $column['spec']['data_type'] ?? 'String';
+        if (in_array($dataType, ['String', 'Text', 'Array'], TRUE) || !isset($column['spec']['data_type'])) {
+          $ftsCols[] = $colName;
+        }
+      }
+    }
+    if (empty($ftsCols)) {
+      foreach ($columns as $column) {
+        $colName = $column['spec']['name'] ?? $column['key'] ?? NULL;
+        if ($colName) {
+          $ftsCols[] = $colName;
+        }
+      }
+    }
+    return $ftsCols;
   }
 
   public function createApi4Action(string $action): AbstractAction {
@@ -19,8 +79,9 @@ class MySQLFTS extends AbstractFTS {
   }
 
   public function initialize(): void {
+    $pdo = $this->getDriver();
     $tableName = $this->getTableName();
-    \CRM_Core_DAO::executeQuery("DROP TABLE IF EXISTS `$tableName`");
+    $pdo->exec("DROP TABLE IF EXISTS `$tableName`");
 
     $columnDefs = ["`id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY"];
     $columns = $this->searchDisplay['settings']['columns'] ?? [];
@@ -39,27 +100,30 @@ class MySQLFTS extends AbstractFTS {
       }
     }
 
-    $columnDefs[] = "`fts` LONGTEXT NULL";
-    $columnDefs[] = "FULLTEXT INDEX `fts_idx` (`fts`)";
+    $ftsCols = $this->getFtsColumns();
+    if (!empty($ftsCols)) {
+      $columnDefs[] = "FULLTEXT INDEX `fts_idx` (`" . implode('`, `', $ftsCols) . "`)";
+    }
 
     $sql = "CREATE TABLE `$tableName` (\n  " . implode(",\n  ", $columnDefs) . "\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-    \CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
+    $pdo->exec($sql);
   }
 
   public function truncate(): void {
+    $pdo = $this->getDriver();
     $tableName = $this->getTableName();
     try {
-      \CRM_Core_DAO::executeQuery("TRUNCATE TABLE `$tableName`", [], TRUE, NULL, FALSE, FALSE);
+      $pdo->exec("TRUNCATE TABLE `$tableName`");
     }
     catch (\Exception $e) {
-      // Fallback to delete if truncate fails
-      \CRM_Core_DAO::executeQuery("DELETE FROM `$tableName`", [], TRUE, NULL, FALSE, FALSE);
+      $pdo->exec("DELETE FROM `$tableName`");
     }
   }
 
   public function destroy(): void {
+    $pdo = $this->getDriver();
     $tableName = $this->getTableName();
-    \CRM_Core_DAO::executeQuery("DROP TABLE IF EXISTS `$tableName`", [], TRUE, NULL, FALSE, FALSE);
+    $pdo->exec("DROP TABLE IF EXISTS `$tableName`");
   }
 
   public function convertRecords(array $records): array {
@@ -68,8 +132,6 @@ class MySQLFTS extends AbstractFTS {
 
     foreach ($records as $record) {
       $row = [];
-      $ftsTextParts = [];
-
       foreach ($columns as $col) {
         $key = $col['key'] ?? NULL;
         $colName = $col['spec']['name'] ?? $key;
@@ -82,13 +144,7 @@ class MySQLFTS extends AbstractFTS {
           $val = implode(', ', $val);
         }
         $row[$colName] = $val;
-
-        if ($val !== NULL && $val !== '') {
-          $ftsTextParts[] = (string) $val;
-        }
       }
-
-      $row['fts'] = implode(' ', $ftsTextParts);
       $converted[] = $row;
     }
 
@@ -100,6 +156,7 @@ class MySQLFTS extends AbstractFTS {
       return;
     }
 
+    $pdo = $this->getDriver();
     $tableName = $this->getTableName();
     $cols = array_keys($records[0]);
     $quotedCols = array_map(fn($c) => "`$c`", $cols);
@@ -113,7 +170,7 @@ class MySQLFTS extends AbstractFTS {
           $escapedVals[] = 'NULL';
         }
         else {
-          $escapedVals[] = "'" . \CRM_Core_DAO::escapeString((string) $val) . "'";
+          $escapedVals[] = $pdo->quote((string) $val);
         }
       }
       $valueRows[] = '(' . implode(', ', $escapedVals) . ')';
@@ -126,10 +183,11 @@ class MySQLFTS extends AbstractFTS {
       implode(",\n", $valueRows)
     );
 
-    \CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
+    $pdo->exec($sql);
   }
 
   public function getRecordsFromSql(MySQLGetAction $action): array {
+    $pdo = $this->getDriver();
     $tableName = $this->getTableName();
     $whereClauses = [];
 
@@ -138,19 +196,39 @@ class MySQLFTS extends AbstractFTS {
         continue;
       }
       [$field, $op, $val] = $clause;
+
+      if ($field === 'fts') {
+        if ($op === 'CONTAINS' || $op === 'LIKE') {
+          $ftsCols = $this->getFtsColumns();
+          if (empty($ftsCols)) {
+            throw new \CRM_Core_Exception("No text columns available for 'fts' search in MySQLFTS");
+          }
+          $ftsColsSql = implode('`, `', $ftsCols);
+          $valQuoted = $pdo->quote((string) $val);
+          $whereClauses[] = "MATCH(`$ftsColsSql`) AGAINST($valQuoted IN NATURAL LANGUAGE MODE)";
+        }
+        elseif ($op === '=' || $op === '!=') {
+          throw new \CRM_Core_Exception("Operator '$op' is not supported for 'fts' field in MySQLFTS. Use 'CONTAINS' instead.");
+        }
+        else {
+          throw new \CRM_Core_Exception("Unsupported operator '$op' for 'fts' field in MySQLFTS");
+        }
+        continue;
+      }
+
       $fieldSql = "`" . preg_replace('/[^a-zA-Z0-9_]/', '', $field) . "`";
 
       if ($op === 'CONTAINS' || $op === 'LIKE') {
-        $valEscaped = \CRM_Core_DAO::escapeString((string) $val);
-        $whereClauses[] = "$fieldSql LIKE '%$valEscaped%'";
+        $valEscaped = addcslashes((string) $val, '%_\\');
+        $valQuoted = $pdo->quote("%{$valEscaped}%");
+        $whereClauses[] = "$fieldSql LIKE $valQuoted";
       }
       elseif ($op === '=') {
         if ($val === NULL) {
           $whereClauses[] = "$fieldSql IS NULL";
         }
         else {
-          $valEscaped = \CRM_Core_DAO::escapeString((string) $val);
-          $whereClauses[] = "$fieldSql = '$valEscaped'";
+          $whereClauses[] = "$fieldSql = " . $pdo->quote((string) $val);
         }
       }
       elseif ($op === '!=') {
@@ -158,8 +236,7 @@ class MySQLFTS extends AbstractFTS {
           $whereClauses[] = "$fieldSql IS NOT NULL";
         }
         else {
-          $valEscaped = \CRM_Core_DAO::escapeString((string) $val);
-          $whereClauses[] = "$fieldSql != '$valEscaped'";
+          $whereClauses[] = "$fieldSql != " . $pdo->quote((string) $val);
         }
       }
     }
@@ -178,12 +255,10 @@ class MySQLFTS extends AbstractFTS {
       }
     }
 
-    $dao = \CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
-    $rows = [];
-    while ($dao->fetch()) {
-      $row = $dao->toArray();
-      unset($row['id']); /* internal autoincrement primary key */
-      $rows[] = $row;
+    $stmt = $pdo->query($sql);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($rows as &$row) {
+      unset($row['id']);
     }
 
     return $rows;

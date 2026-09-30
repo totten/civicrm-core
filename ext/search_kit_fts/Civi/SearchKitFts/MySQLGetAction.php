@@ -19,7 +19,7 @@ class MySQLGetAction extends BasicGetAction {
 
   public function _run(Result $result) {
     $values = $this->getRecords();
-    $this->queryArray($values, $result);
+    $result->exchangeArray($values);
   }
 
   protected function getRecords(): array {

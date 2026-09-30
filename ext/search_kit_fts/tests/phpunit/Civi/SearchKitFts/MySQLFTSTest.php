@@ -4,11 +4,12 @@ namespace Civi\SearchKitFts;
 
 use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group headless
  */
-class MySQLFTSTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface {
+class MySQLFTSTest extends TestCase implements HeadlessInterface, HookInterface {
 
   public function setUpHeadless() {
     return \Civi\Test::headless()
@@ -32,27 +33,30 @@ class MySQLFTSTest extends \PHPUnit\Framework\TestCase implements HeadlessInterf
 
     $fts = new MySQLFTS($connection, $savedSearch, $searchDisplay);
 
-    // 1. Initialize storage table
+    // 1. Check getDriver returns PDO
+    $this->assertInstanceOf(\PDO::class, $fts->getDriver());
+
+    // 2. Initialize storage table
     $fts->initialize();
     $tableName = $fts->getTableName();
     $this->assertTrue(\CRM_Core_DAO::checkTableExists($tableName));
 
-    // 2. Insert records
+    // 3. Insert records
     $records = [
       ['contact_id' => 101, 'display_name' => 'Bob Builder', 'primary_email' => 'bob@example.com'],
       ['contact_id' => 102, 'display_name' => 'Alice Cooper', 'primary_email' => 'alice@example.org'],
     ];
     $converted = $fts->convertRecords($records);
-    $this->assertEquals('101 Bob Builder bob@example.com', $converted[0]['fts']);
+    $this->assertArrayNotHasKey('fts', $converted[0]);
     $fts->insertRecords($converted);
 
-    // 3. Query via MySQLGetAction
+    // 4. Query via MySQLGetAction
     $getAction = $fts->createApi4Action('get');
     $this->assertInstanceOf(MySQLGetAction::class, $getAction);
 
-    // Search globally on fts column
+    // Search globally on fts column using CONTAINS (MATCH AGAINST)
     $getAction->setCheckPermissions(FALSE);
-    $getAction->setWhere([['fts', 'CONTAINS', 'bob']]);
+    $getAction->setWhere([['fts', 'CONTAINS', 'Builder']]);
     $results = $getAction->execute();
     $this->assertCount(1, $results);
     $this->assertEquals('Bob Builder', $results[0]['display_name']);
@@ -65,7 +69,19 @@ class MySQLFTSTest extends \PHPUnit\Framework\TestCase implements HeadlessInterf
     $this->assertCount(1, $results2);
     $this->assertEquals(102, $results2[0]['contact_id']);
 
-    // 4. Truncate & Destroy
+    // Check error thrown when = or != used on fts field
+    try {
+      $getActionErr = $fts->createApi4Action('get');
+      $getActionErr->setCheckPermissions(FALSE);
+      $getActionErr->setWhere([['fts', '=', 'Bob']]);
+      $getActionErr->execute();
+      $this->fail('Expected CRM_Core_Exception when using = on fts field');
+    }
+    catch (\CRM_Core_Exception $e) {
+      $this->assertStringContainsString("Operator '=' is not supported for 'fts' field", $e->getMessage());
+    }
+
+    // 5. Truncate & Destroy
     $fts->truncate();
     $getAction3 = $fts->createApi4Action('get');
     $getAction3->setCheckPermissions(FALSE);
