@@ -61,11 +61,10 @@ class SolrFTS extends AbstractFTS {
   }
 
   public function initialize(): void {
-    $client = $this->http();
     $coreName = $this->getCoreName();
 
     try {
-      $response = $client->get("solr/{$coreName}/select", [
+      $response = $this->http()->get("solr/{$coreName}/select", [
         'query' => ['q' => '*:*', 'rows' => 0, 'wt' => 'json'],
       ]);
       if ($response->getStatusCode() === 200) {
@@ -79,7 +78,7 @@ class SolrFTS extends AbstractFTS {
 
     // Core is not healthy/ready, attempt to create via Solr Admin API
     try {
-      $createRes = $client->get("solr/admin/cores", [
+      $createRes = $this->http()->get("solr/admin/cores", [
         'query' => ['action' => 'CREATE', 'name' => $coreName, 'wt' => 'json'],
       ]);
       if ($createRes->getStatusCode() === 200) {
@@ -93,7 +92,7 @@ class SolrFTS extends AbstractFTS {
 
     // Fallback to gettingstarted core if standalone server without default configsets
     try {
-      $fallbackCheck = $client->get("solr/gettingstarted/select", [
+      $fallbackCheck = $this->http()->get("solr/gettingstarted/select", [
         'query' => ['q' => '*:*', 'rows' => 0, 'wt' => 'json'],
       ]);
       if ($fallbackCheck->getStatusCode() === 200) {
@@ -109,9 +108,8 @@ class SolrFTS extends AbstractFTS {
   }
 
   public function truncate(): void {
-    $client = $this->http();
     $path = $this->getCorePath('update');
-    $client->post($path, [
+    $this->http()->post($path, [
       'query' => ['commit' => 'true'],
       'json' => ['delete' => ['query' => '*:*']],
     ]);
@@ -126,8 +124,7 @@ class SolrFTS extends AbstractFTS {
     }
 
     try {
-      $client = $this->http();
-      $client->get("solr/admin/cores", [
+      $this->http()->get("solr/admin/cores", [
         'query' => [
           'action' => 'UNLOAD',
           'core' => $this->getCoreName(),
@@ -183,16 +180,14 @@ class SolrFTS extends AbstractFTS {
       return;
     }
 
-    $client = $this->http();
     $path = $this->getCorePath('update');
-    $client->post($path, [
+    $this->http()->post($path, [
       'query' => ['commit' => 'true'],
       'json' => $records,
     ]);
   }
 
   public function getRecordsFromSolr(SolrGetAction $action): array {
-    $client = $this->http();
     $queryParams = SolrQueryBuilder::buildQueryParams(
       $action->getWhere(),
       $action->getLimit(),
@@ -200,7 +195,7 @@ class SolrFTS extends AbstractFTS {
     );
 
     $path = $this->getCorePath('select');
-    $response = $client->get($path, [
+    $response = $this->http()->get($path, [
       'query' => $queryParams,
     ]);
 
