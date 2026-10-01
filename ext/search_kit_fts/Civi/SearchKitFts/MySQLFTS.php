@@ -53,7 +53,7 @@ class MySQLFTS extends AbstractFTS {
     $ftsCols = [];
     foreach ($columns as $column) {
       $colName = $column['spec']['name'] ?? $column['key'] ?? NULL;
-      if ($colName) {
+      if ($colName && $colName !== 'id') {
         $dataType = $column['spec']['data_type'] ?? 'String';
         if (in_array($dataType, ['String', 'Text', 'Array'], TRUE) || !isset($column['spec']['data_type'])) {
           $ftsCols[] = $colName;
