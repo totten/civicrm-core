@@ -4,17 +4,33 @@ namespace Civi\SearchKitFts;
 
 use Civi\Api4\Generic\AbstractAction;
 use Civi\SearchKitFts\Exception\NoConnectionException;
+use GuzzleHttp\Client;
 
 class SolrFTS extends AbstractFTS {
 
-  protected ?string $activeCoreUrl = NULL;
+  protected ?Client $httpClient = NULL;
+  protected ?string $activeCoreName = NULL;
 
-  public function getSolrBaseUrl(): string {
-    $url = \Civi::settings()->get('fts_solr_url');
-    if (empty($url)) {
-      throw new NoConnectionException("fts_solr_url setting is not configured.");
+  /**
+   * Get pre-configured Guzzle 7 HTTP client for Solr instance root URL.
+   *
+   * @return \GuzzleHttp\Client
+   * @throws \Civi\SearchKitFts\Exception\NoConnectionException
+   */
+  public function http(): Client {
+    if ($this->httpClient === NULL) {
+      $url = \Civi::settings()->get('fts_solr_url');
+      if (empty($url)) {
+        throw new NoConnectionException("fts_solr_url setting is not configured.");
+      }
+      $baseUrl = rtrim($url, '/') . '/';
+      $this->httpClient = new Client([
+        'base_uri' => $baseUrl,
+        'http_errors' => FALSE,
+        'timeout' => 5,
+      ]);
     }
-    return rtrim($url, '/');
+    return $this->httpClient;
   }
 
   public function getCoreName(): string {
@@ -22,31 +38,19 @@ class SolrFTS extends AbstractFTS {
     return 'fts_' . $cleanName;
   }
 
-  public function getCoreUrl(string $path = ''): string {
-    if ($this->activeCoreUrl !== NULL) {
-      $coreUrl = $this->activeCoreUrl;
-    }
-    else {
-      $baseUrl = $this->getSolrBaseUrl();
-      $parsed = parse_url($baseUrl);
-      $pathParts = array_values(array_filter(explode('/', $parsed['path'] ?? '')));
-
-      if (count($pathParts) >= 2 && $pathParts[0] === 'solr') {
-        $coreUrl = $baseUrl;
-      }
-      else {
-        if (!str_contains($baseUrl, '/solr')) {
-          $baseUrl .= '/solr';
-        }
-        $coreUrl = $baseUrl . '/' . $this->getCoreName();
-      }
-      $this->activeCoreUrl = $coreUrl;
-    }
-
+  /**
+   * Get active core path or specific core path.
+   *
+   * @param string $path
+   * @return string
+   */
+  public function getCorePath(string $path = ''): string {
+    $core = $this->activeCoreName ?? $this->getCoreName();
+    $corePath = "solr/{$core}";
     if ($path) {
-      return $coreUrl . '/' . ltrim($path, '/');
+      return $corePath . '/' . ltrim($path, '/');
     }
-    return $coreUrl;
+    return $corePath;
   }
 
   public function createApi4Action(string $action): AbstractAction {
@@ -57,49 +61,84 @@ class SolrFTS extends AbstractFTS {
   }
 
   public function initialize(): void {
-    $selectCheckUrl = $this->getCoreUrl('select?q=*:*&rows=0&wt=json');
-    $response = $this->httpRequest('GET', $selectCheckUrl);
+    $client = $this->http();
+    $coreName = $this->getCoreName();
 
-    if ($response['code'] !== 200) {
-      // Core is not healthy/ready (returns 404, 400, or 500), attempt to create via Solr Admin API
-      $baseUrl = $this->getSolrBaseUrl();
-      if (!str_contains($baseUrl, '/solr')) {
-        $baseUrl .= '/solr';
-      }
-      $adminUrl = $baseUrl . '/admin/cores?action=CREATE&name=' . $this->getCoreName() . '&wt=json';
-      $createRes = $this->httpRequest('GET', $adminUrl);
-
-      if ($createRes['code'] !== 200) {
-        // Fallback to gettingstarted core if standalone server without default configsets
-        $fallbackUrl = $baseUrl . '/gettingstarted';
-        $fallbackCheck = $this->httpRequest('GET', $fallbackUrl . '/select?q=*:*&rows=0&wt=json');
-        if ($fallbackCheck['code'] === 200) {
-          $this->activeCoreUrl = $fallbackUrl;
-        }
-        else {
-          throw new NoConnectionException("Unable to initialize Solr core at " . $this->getCoreUrl() . " and fallback failed.");
-        }
+    try {
+      $response = $client->get("solr/{$coreName}/select", [
+        'query' => ['q' => '*:*', 'rows' => 0, 'wt' => 'json'],
+      ]);
+      if ($response->getStatusCode() === 200) {
+        $this->activeCoreName = $coreName;
+        return;
       }
     }
+    catch (\Exception $e) {
+      // Core check failed, attempt creation
+    }
+
+    // Core is not healthy/ready, attempt to create via Solr Admin API
+    try {
+      $createRes = $client->get("solr/admin/cores", [
+        'query' => ['action' => 'CREATE', 'name' => $coreName, 'wt' => 'json'],
+      ]);
+      if ($createRes->getStatusCode() === 200) {
+        $this->activeCoreName = $coreName;
+        return;
+      }
+    }
+    catch (\Exception $e) {
+      // Admin core create failed
+    }
+
+    // Fallback to gettingstarted core if standalone server without default configsets
+    try {
+      $fallbackCheck = $client->get("solr/gettingstarted/select", [
+        'query' => ['q' => '*:*', 'rows' => 0, 'wt' => 'json'],
+      ]);
+      if ($fallbackCheck->getStatusCode() === 200) {
+        $this->activeCoreName = 'gettingstarted';
+        return;
+      }
+    }
+    catch (\Exception $e) {
+      // Fallback failed
+    }
+
+    throw new NoConnectionException("Unable to initialize Solr core '$coreName' and fallback failed.");
   }
 
   public function truncate(): void {
-    $updateUrl = $this->getCoreUrl('update?commit=true');
-    $this->httpRequest('POST', $updateUrl, ['delete' => ['query' => '*:*']]);
+    $client = $this->http();
+    $path = $this->getCorePath('update');
+    $client->post($path, [
+      'query' => ['commit' => 'true'],
+      'json' => ['delete' => ['query' => '*:*']],
+    ]);
   }
 
   public function destroy(): void {
     try {
       $this->truncate();
-      $baseUrl = $this->getSolrBaseUrl();
-      if (!str_contains($baseUrl, '/solr')) {
-        $baseUrl .= '/solr';
-      }
-      $adminUrl = $baseUrl . '/admin/cores?action=UNLOAD&core=' . $this->getCoreName() . '&deleteIndex=true&deleteDataDir=true&wt=json';
-      $this->httpRequest('GET', $adminUrl);
     }
     catch (\Exception $e) {
-      // Ignore unload errors if core was shared or already dropped
+      // Ignore
+    }
+
+    try {
+      $client = $this->http();
+      $client->get("solr/admin/cores", [
+        'query' => [
+          'action' => 'UNLOAD',
+          'core' => $this->getCoreName(),
+          'deleteIndex' => 'true',
+          'deleteDataDir' => 'true',
+          'wt' => 'json',
+        ],
+      ]);
+    }
+    catch (\Exception $e) {
+      // Ignore unload errors
     }
   }
 
@@ -144,25 +183,35 @@ class SolrFTS extends AbstractFTS {
       return;
     }
 
-    $updateUrl = $this->getCoreUrl('update?commit=true');
-    $this->httpRequest('POST', $updateUrl, $records);
+    $client = $this->http();
+    $path = $this->getCorePath('update');
+    $client->post($path, [
+      'query' => ['commit' => 'true'],
+      'json' => $records,
+    ]);
   }
 
   public function getRecordsFromSolr(SolrGetAction $action): array {
+    $client = $this->http();
     $queryParams = SolrQueryBuilder::buildQueryParams(
       $action->getWhere(),
       $action->getLimit(),
       $action->getOffset()
     );
 
-    $selectUrl = $this->getCoreUrl('select?' . http_build_query($queryParams));
+    $path = $this->getCorePath('select');
+    $response = $client->get($path, [
+      'query' => $queryParams,
+    ]);
 
-    $response = $this->httpRequest('GET', $selectUrl);
-    if ($response['code'] !== 200) {
-      throw new \CRM_Core_Exception("Solr query failed for URL '$selectUrl' with HTTP code {$response['code']}: {$response['body']}");
+    $statusCode = $response->getStatusCode();
+    $body = (string) $response->getBody();
+
+    if ($statusCode !== 200) {
+      throw new \CRM_Core_Exception("Solr query failed for path '$path' with HTTP code {$statusCode}: {$body}");
     }
 
-    $data = json_decode($response['body'], TRUE);
+    $data = json_decode($body, TRUE);
     $docs = $data['response']['docs'] ?? [];
 
     foreach ($docs as &$doc) {
@@ -175,32 +224,6 @@ class SolrFTS extends AbstractFTS {
     }
 
     return $docs;
-  }
-
-  /**
-   * Helper to perform HTTP requests to Solr.
-   */
-  protected function httpRequest(string $method, string $url, ?array $postData = NULL): array {
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-
-    if ($method === 'POST') {
-      curl_setopt($ch, CURLOPT_POST, TRUE);
-      curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-      curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData ?? []));
-    }
-
-    $body = curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-    curl_close($ch);
-
-    if ($body === FALSE) {
-      throw new NoConnectionException("Failed to connect to Solr server at $url: $error");
-    }
-
-    return ['code' => $code, 'body' => $body];
   }
 
 }
