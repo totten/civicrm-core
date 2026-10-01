@@ -1,0 +1,55 @@
+<div class="form-inline">
+  <label for="crm-search-admin-display-label">{{:: ts('Label') }} <span class="crm-marker">*</span></label>
+  <input id="crm-search-admin-display-label" type="text" class="form-control" ng-model="$ctrl.display.label" required placeholder="{{:: ts('Untitled') }}"/>
+</div>
+<div>
+  <textarea class="form-control" placeholder="{{:: ts('Description') }}" ng-model="$ctrl.display.settings.description"></textarea>
+</div>
+<div class="form-inline">
+  <label for="crm-search-admin-display-api">{{:: ts('API Name') }} <span class="crm-marker">*</span></label>
+  <div class="input-group">
+    <span class="input-group-addon">FTS_</span>
+    <input id="crm-search-admin-display-api" type="text" class="form-control" ng-model="$ctrl.display.name" required />
+  </div>
+</div>
+<div class="form-inline">
+  <label for="display_preferred_engines">{{:: ts('Preferred Engines') }}</label>
+  <input id="display_preferred_engines" class="form-control" crm-ui-select="{data: $ctrl.availableEngines, multiple: true, placeholder: ts('Select engines in order of priority')}" ng-model="$ctrl.display.settings.preferred_engines" ng-list>
+</div>
+<div class="form-inline">
+  <label for="display_entity_permission">{{:: ts('API Permission') }}</label>
+  <input id="display_entity_permission" class="form-control" crm-ui-select="{data: $ctrl.permissions, multiple: true, placeholder: ts('administer CiviCRM')}" ng-model="$ctrl.display.settings.entity_permission" ng-list ng-change="$ctrl.onChangeEntityPermission()">
+  <select ng-if="$ctrl.display.settings.entity_permission.length > 1" title="{{:: ts('Permission operator') }}" ng-model="$ctrl.display.settings.entity_permission_operator">
+    <option value="AND">{{:: ts('And') }}</option>
+    <option value="OR">{{:: ts('Or') }}</option>
+  </select>
+</div>
+<fieldset ng-include="'~/crmSearchAdmin/crmSearchAdminDisplaySort.html'"></fieldset>
+
+<fieldset class="crm-search-admin-edit-columns-wrapper">
+  <legend>
+    {{:: ts('Indexed Columns') }}
+  </legend>
+  <div ng-include="'~/crmSearchAdmin/displays/common/addColMenu.html'"></div>
+  <fieldset class="crm-search-admin-edit-columns" ng-model="$ctrl.display.settings.columns" ui-sortable="$ctrl.parent.sortableOptions">
+    <fieldset ng-repeat="col in $ctrl.display.settings.columns" class="crm-draggable">
+      <legend>
+        <i class="crm-i fa-arrows crm-search-move-icon" role="img" aria-hidden="true"></i>
+        {{ $ctrl.parent.getColLabel(col) }}
+      </legend>
+      <div class="form-inline crm-search-admin-flex-row">
+        <label for="crm-search-admin-edit-col-{{ $index }}-name">{{:: ts('Name') }}</label>
+        <input id="crm-search-admin-edit-col-{{ $index }}-name" class="form-control crm-flex-1" type="text"
+               placeholder="{{$ctrl.createSqlName(col.key)}}"
+               ng-model="col.name"
+               maxlength="58"
+               ng-change="col.name && (col.name=$ctrl.createSqlName(col.name))">
+        <label for="crm-search-admin-edit-col-{{ $index }}">{{:: ts('Label') }}</label>
+        <input id="crm-search-admin-edit-col-{{ $index }}" class="form-control crm-flex-1" type="text" ng-model="col.label" >
+        <button type="button" class="btn-xs" ng-click="$ctrl.parent.removeCol($index)" title="{{:: ts('Remove') }}">
+          <i class="crm-i fa-ban" role="img" aria-hidden="true"></i>
+        </button>
+      </div>
+    </fieldset>
+  </fieldset>
+</fieldset>
