@@ -149,54 +149,13 @@ class SolrFTS extends AbstractFTS {
   }
 
   public function getRecordsFromSolr(SolrGetAction $action): array {
-    $queryParts = [];
+    $queryParams = SolrQueryBuilder::buildQueryParams(
+      $action->getWhere(),
+      $action->getLimit(),
+      $action->getOffset()
+    );
 
-    foreach ($action->getWhere() as $clause) {
-      if (!is_array($clause) || count($clause) < 3) {
-        continue;
-      }
-      [$field, $op, $val] = $clause;
-
-      if ($field === 'fts') {
-        if ($op === 'CONTAINS' || $op === 'LIKE') {
-          $valClean = trim((string) $val, '* ');
-          $queryParts[] = "fts:*$valClean*";
-        }
-        elseif ($op === '=' || $op === '!=') {
-          throw new \CRM_Core_Exception("Operator '$op' is not supported for 'fts' field in SolrFTS. Use 'CONTAINS' instead.");
-        }
-        else {
-          throw new \CRM_Core_Exception("Unsupported operator '$op' for 'fts' field in SolrFTS");
-        }
-        continue;
-      }
-
-      $fieldClean = preg_replace('/[^a-zA-Z0-9_]/', '', $field);
-
-      if ($op === 'CONTAINS' || $op === 'LIKE') {
-        $valClean = trim((string) $val, '* ');
-        $queryParts[] = "$fieldClean:*$valClean*";
-      }
-      elseif ($op === '=') {
-        $valClean = addcslashes((string) $val, '"+-&|!(){}[]^~*?:\\/');
-        $queryParts[] = "$fieldClean:\"$valClean\"";
-      }
-      elseif ($op === '!=') {
-        $valClean = addcslashes((string) $val, '"+-&|!(){}[]^~*?:\\/');
-        $queryParts[] = "*:* AND -$fieldClean:\"$valClean\"";
-      }
-    }
-
-    $q = $queryParts ? implode(' AND ', $queryParts) : '*:*';
-    $limit = $action->getLimit() ?: 100;
-    $offset = $action->getOffset() ?: 0;
-
-    $selectUrl = $this->getCoreUrl('select?' . http_build_query([
-      'q' => $q,
-      'rows' => $limit,
-      'start' => $offset,
-      'wt' => 'json',
-    ]));
+    $selectUrl = $this->getCoreUrl('select?' . http_build_query($queryParams));
 
     $response = $this->httpRequest('GET', $selectUrl);
     if ($response['code'] !== 200) {
