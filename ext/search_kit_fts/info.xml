@@ -2,7 +2,7 @@
 <extension key="search_kit_fts" type="module">
   <file>search_kit_fts</file>
   <name>search_kit_fts</name>
-  <description>FIXME</description>
+  <description>SearchKit Full-Text Search Extension</description>
   <license>AGPL-3.0</license>
   <authors>
     <author>
@@ -12,9 +12,9 @@
     </author>
   </authors>
   <urls>
-    <url desc="Main Extension Page">https://FIXME</url>
-    <url desc="Documentation">https://FIXME</url>
-    <url desc="Support">https://FIXME</url>
+    <url desc="Main Extension Page">https://civicrm.org</url>
+    <url desc="Documentation">https://civicrm.org</url>
+    <url desc="Support">https://civicrm.org</url>
     <url desc="Licensing">https://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
   <releaseDate>2026-09-28</releaseDate>
@@ -36,7 +36,7 @@
     <comments>Listed versions. For example, specify both "4" and "5".</comments>
     <ver>5</ver>
   </smarty_compatibility>
-  <comments>This is a new, undeveloped module</comments>
+  <comments>SearchKit FTS extension exporting displays as FTS entities</comments>
   <classloader>
     <psr0 prefix="CRM_" path="."/>
     <psr4 prefix="Civi\" path="Civi"/>
@@ -48,6 +48,7 @@
     <setting-page-title>Full Text Search</setting-page-title>
   </civix>
   <mixins>
+    <mixin>ang-php@1.0.0</mixin>
     <mixin>mgd-php@2.0.0</mixin>
     <mixin>scan-classes@1.0.0</mixin>
     <mixin>setting-php@1.0.0</mixin>
