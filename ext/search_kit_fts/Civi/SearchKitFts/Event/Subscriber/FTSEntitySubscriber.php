@@ -26,7 +26,7 @@ class FTSEntitySubscriber extends AutoService implements EventSubscriberInterfac
   }
 
   /**
-   * Register APIv4 entities for SearchDisplays of type fts_*
+   * Register APIv4 entities for SearchDisplays of type fts
    */
   public static function on_civi_api4_entityTypes(GenericHookEvent $event): void {
     foreach (self::getFtsDisplays() as $display) {
@@ -148,15 +148,15 @@ class FTSEntitySubscriber extends AutoService implements EventSubscriberInterfac
       return FALSE;
     }
     $type = $event->params['type'] ?? $event->object->type ?? \CRM_Core_DAO::getFieldValue('CRM_Search_DAO_SearchDisplay', $event->id ?? NULL, 'type');
-    return is_string($type) && str_starts_with($type, 'fts');
+    return $type === 'fts';
   }
 
   /**
-   * Helper to retrieve all SearchDisplays with type starting with fts
+   * Helper to retrieve all SearchDisplays of type fts
    */
   public static function getFtsDisplays(): array {
     try {
-      $displays = \CRM_Core_DAO::executeQuery("SELECT sd.id, sd.name, sd.label, sd.type, sd.settings, sd.saved_search_id FROM civicrm_search_display sd WHERE sd.type LIKE 'fts%'");
+      $displays = \CRM_Core_DAO::executeQuery("SELECT sd.id, sd.name, sd.label, sd.type, sd.settings, sd.saved_search_id FROM civicrm_search_display sd WHERE sd.type = 'fts'");
       $results = [];
       while ($displays->fetch()) {
         $results[] = [

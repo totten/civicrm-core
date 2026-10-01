@@ -37,13 +37,14 @@ class FTSEntityTest extends TestCase implements HeadlessInterface, HookInterface
       ->execute()
       ->first();
 
-    // 2. Create SearchDisplay of type fts_mysql
+    // 2. Create SearchDisplay of type fts
     $searchDisplay = SearchDisplay::create(FALSE)
       ->addValue('name', $displayName)
       ->addValue('label', 'Test Contact FTS Entity')
       ->addValue('saved_search_id', $savedSearch['id'])
-      ->addValue('type', 'fts_mysql')
+      ->addValue('type', 'fts')
       ->addValue('settings', [
+        'preferred_engines' => ['mysql'],
         'columns' => [
           ['key' => 'id', 'spec' => ['name' => 'id', 'label' => 'ID', 'data_type' => 'Integer']],
           ['key' => 'display_name', 'spec' => ['name' => 'display_name', 'label' => 'Display Name', 'data_type' => 'String']],

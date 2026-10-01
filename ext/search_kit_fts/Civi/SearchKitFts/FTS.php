@@ -30,7 +30,7 @@ class FTS extends AutoService {
     $display = \Civi\Api4\SearchDisplay::get(FALSE)
       ->addSelect('id', 'name', 'label', 'type', 'settings', 'saved_search_id', 'saved_search_id.name', 'saved_search_id.api_entity', 'saved_search_id.api_params')
       ->addWhere('name', '=', $displayName)
-      ->addWhere('type', 'LIKE', 'fts%')
+      ->addWhere('type', '=', 'fts')
       ->execute()
       ->first();
 
@@ -45,14 +45,7 @@ class FTS extends AutoService {
       'api_params' => $display['saved_search_id.api_params'],
     ];
 
-    if ($display['type'] !== 'fts' && str_starts_with($display['type'], 'fts_')) {
-      $engine = str_replace('fts_', '', $display['type']);
-      $preferred = [$engine];
-    }
-    else {
-      $preferred = $display['settings']['preferred_engines'] ?? $display['settings']['preferredConnections'] ?? ['mysql'];
-    }
-
+    $preferred = $display['settings']['preferred_engines'] ?? $display['settings']['preferredConnections'] ?? ['mysql'];
     $connection = $this->pickConnection((array) $preferred);
 
     if (!$connection) {
