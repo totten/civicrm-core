@@ -125,19 +125,18 @@ class SolrFTS extends AbstractFTS {
    * @return void
    */
   public function applySchema(array $schema, bool $overwrite = FALSE): void {
-    $client = $this->http();
     $index = $this->getIndex();
     $schemaUrl = "solr/{$index}/schema";
 
     foreach ($schema as $field) {
       $action = $overwrite ? 'replace-field' : 'add-field';
-      $res = $client->post($schemaUrl, [
+      $res = $this->http()->post($schemaUrl, [
         'json' => [$action => $field],
       ]);
 
       if ($res->getStatusCode() >= 400) {
         $altAction = $overwrite ? 'add-field' : 'replace-field';
-        $client->post($schemaUrl, [
+        $this->http()->post($schemaUrl, [
           'json' => [$altAction => $field],
         ]);
       }
@@ -152,17 +151,16 @@ class SolrFTS extends AbstractFTS {
   }
 
   public function initialize(): void {
-    $client = $this->http();
     $index = $this->getIndex();
 
     // Check if index/collection exists
-    $res = $client->get("solr/{$index}/select", [
+    $res = $this->http()->get("solr/{$index}/select", [
       'query' => ['q' => '*:*', 'rows' => 0, 'wt' => 'json'],
     ]);
 
     if ($res->getStatusCode() !== 200) {
       // Auto-create Collection using SolrCloud APIs (based on _default configset)
-      $createRes = $client->get("solr/admin/collections", [
+      $createRes = $this->http()->get("solr/admin/collections", [
         'query' => [
           'action' => 'CREATE',
           'name' => $index,
@@ -174,7 +172,7 @@ class SolrFTS extends AbstractFTS {
 
       if ($createRes->getStatusCode() !== 200) {
         // Fallback to core CREATE if standalone Solr instance
-        $coreRes = $client->get("solr/admin/cores", [
+        $coreRes = $this->http()->get("solr/admin/cores", [
           'query' => ['action' => 'CREATE', 'name' => $index, 'wt' => 'json'],
         ]);
         if ($coreRes->getStatusCode() !== 200) {
@@ -191,12 +189,11 @@ class SolrFTS extends AbstractFTS {
   }
 
   public function truncate(): void {
-    $client = $this->http();
     $index = $this->getIndex();
     $name = $this->searchDisplay['name'];
     $path = "solr/{$index}/update";
 
-    $client->post($path, [
+    $this->http()->post($path, [
       'query' => ['commit' => 'true'],
       'json' => [
         'delete' => [
@@ -258,18 +255,16 @@ class SolrFTS extends AbstractFTS {
       return;
     }
 
-    $client = $this->http();
     $index = $this->getIndex();
     $path = "solr/{$index}/update";
 
-    $client->post($path, [
+    $this->http()->post($path, [
       'query' => ['commit' => 'true'],
       'json' => $records,
     ]);
   }
 
   public function getRecordsFromSolr(SolrGetAction $action): array {
-    $client = $this->http();
     $index = $this->getIndex();
     $name = $this->searchDisplay['name'];
 
@@ -281,7 +276,7 @@ class SolrFTS extends AbstractFTS {
     );
 
     $path = "solr/{$index}/select";
-    $response = $client->get($path, [
+    $response = $this->http()->get($path, [
       'query' => $queryParams,
     ]);
 
