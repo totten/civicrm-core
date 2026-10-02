@@ -33,3 +33,25 @@ function search_kit_fts_civicrm_install(): void {
 function search_kit_fts_civicrm_enable(): void {
   _search_kit_fts_civix_civicrm_enable();
 }
+
+function _search_kit_fts_displays(): array {
+  try {
+    $displays = \CRM_Core_DAO::executeQuery("SELECT sd.id, sd.name, sd.label, sd.type, sd.settings, sd.saved_search_id FROM civicrm_search_display sd WHERE sd.type = 'fts'");
+    $results = [];
+    while ($displays->fetch()) {
+      $results[] = [
+        'id' => $displays->id,
+        'name' => $displays->name,
+        'entityName' => 'FTS_' . $displays->name,
+        'label' => $displays->label ?: ('FTS ' . $displays->name),
+        'type' => $displays->type,
+        'settings' => json_decode($displays->settings, TRUE) ?: [],
+        'saved_search_id' => $displays->saved_search_id,
+      ];
+    }
+    return $results;
+  }
+  catch (\Exception $e) {
+    return [];
+  }
+}

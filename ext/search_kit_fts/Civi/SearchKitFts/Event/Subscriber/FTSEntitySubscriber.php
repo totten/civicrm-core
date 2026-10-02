@@ -7,6 +7,7 @@ use Civi\Core\Event\GenericHookEvent;
 use Civi\Core\Event\PostEvent;
 use Civi\Core\Event\PreEvent;
 use Civi\Core\Service\AutoService;
+use Civi\Search\Meta;
 use Civi\SearchKitFts\FTSEntity;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -29,7 +30,7 @@ class FTSEntitySubscriber extends AutoService implements EventSubscriberInterfac
    * Register APIv4 entities for SearchDisplays of type fts
    */
   public static function on_civi_api4_entityTypes(GenericHookEvent $event): void {
-    foreach (self::getFtsDisplays() as $display) {
+    foreach (\_search_kit_fts_displays() as $display) {
       $event->entities[$display['entityName']] = [
         'name' => $display['entityName'],
         'title' => $display['label'],
@@ -57,7 +58,7 @@ class FTSEntitySubscriber extends AutoService implements EventSubscriberInterfac
     }
 
     $displayName = substr($event->getEntityName(), 4);
-    $displays = self::getFtsDisplays();
+    $displays = \_search_kit_fts_displays();
 
     $display = NULL;
     foreach ($displays as $d) {
@@ -149,31 +150,6 @@ class FTSEntitySubscriber extends AutoService implements EventSubscriberInterfac
     }
     $type = $event->params['type'] ?? $event->object->type ?? \CRM_Core_DAO::getFieldValue('CRM_Search_DAO_SearchDisplay', $event->id ?? NULL, 'type');
     return $type === 'fts';
-  }
-
-  /**
-   * Helper to retrieve all SearchDisplays of type fts
-   */
-  public static function getFtsDisplays(): array {
-    try {
-      $displays = \CRM_Core_DAO::executeQuery("SELECT sd.id, sd.name, sd.label, sd.type, sd.settings, sd.saved_search_id FROM civicrm_search_display sd WHERE sd.type = 'fts'");
-      $results = [];
-      while ($displays->fetch()) {
-        $results[] = [
-          'id' => $displays->id,
-          'name' => $displays->name,
-          'entityName' => 'FTS_' . $displays->name,
-          'label' => $displays->label ?: ('FTS ' . $displays->name),
-          'type' => $displays->type,
-          'settings' => json_decode($displays->settings, TRUE) ?: [],
-          'saved_search_id' => $displays->saved_search_id,
-        ];
-      }
-      return $results;
-    }
-    catch (\Exception $e) {
-      return [];
-    }
   }
 
 }
