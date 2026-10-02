@@ -27,12 +27,12 @@ class SolrFTSTest extends TestCase implements HeadlessInterface, HookInterface {
     $savedSearch = ['name' => 'TestSearch'];
     $connection = ['name' => 'solr', 'label' => 'Solr', 'backend' => SolrFTS::class];
 
-    $fts = new SolrFTS($connection, $savedSearch, $searchDisplay);
-
     \Civi::settings()->set('fts_solr_index', 'custom_[search_display.name]_[search_display.id]');
+    $fts = new SolrFTS($connection, $savedSearch, $searchDisplay);
     $this->assertEquals('custom_mycustomsearch_88', $fts->getIndex());
 
     \Civi::settings()->set('fts_solr_index', 'literal_collection_1');
+    $fts = new SolrFTS($connection, $savedSearch, $searchDisplay);
     $this->assertEquals('literal_collection_1', $fts->getIndex());
   }
 
