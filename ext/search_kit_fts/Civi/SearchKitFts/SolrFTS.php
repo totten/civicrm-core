@@ -171,13 +171,7 @@ class SolrFTS extends AbstractFTS {
       ]);
 
       if ($createRes->getStatusCode() !== 200) {
-        // Fallback to core CREATE if standalone Solr instance
-        $coreRes = $this->http()->get("solr/admin/cores", [
-          'query' => ['action' => 'CREATE', 'name' => $index, 'wt' => 'json'],
-        ]);
-        if ($coreRes->getStatusCode() !== 200) {
-          throw new NoConnectionException("Unable to create Solr collection or core '$index'");
-        }
+        throw new NoConnectionException("Unable to create Solr collection '$index'");
       }
     }
 
