@@ -20,7 +20,7 @@ class FTSGetFieldsAction extends BasicGetFieldsAction {
       ],
     ];
 
-    $displays = \Civi\SearchKitFts\Event\Subscriber\FTSEntitySubscriber::getFtsDisplays();
+    $displays = \_search_kit_fts_displays();
     foreach ($displays as $d) {
       if ($d['name'] === $displayName) {
         foreach ($d['settings']['columns'] ?? [] as $col) {
