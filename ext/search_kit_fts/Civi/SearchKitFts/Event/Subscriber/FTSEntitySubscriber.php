@@ -2,7 +2,6 @@
 
 namespace Civi\SearchKitFts\Event\Subscriber;
 
-use Civi\Api4\Event\GetFieldsEvent;
 use Civi\Core\Event\GenericHookEvent;
 use Civi\Core\Event\PostEvent;
 use Civi\Core\Event\PreEvent;
@@ -20,7 +19,6 @@ class FTSEntitySubscriber extends AutoService implements EventSubscriberInterfac
   public static function getSubscribedEvents(): array {
     return [
       'civi.api4.entityTypes' => 'on_civi_api4_entityTypes',
-      'civi.api4.getFields' => 'on_civi_api4_getFields',
       'hook_civicrm_pre::SearchDisplay' => 'onPreSaveDisplay',
       'hook_civicrm_post::SearchDisplay' => 'onPostSaveDisplay',
     ];
@@ -46,41 +44,6 @@ class FTSEntitySubscriber extends AutoService implements EventSubscriberInterfac
       foreach ($display['settings']['columns'] ?? [] as $column) {
         $event->entities[$display['entityName']]['search_fields'][] = $column['spec']['name'] ?? Meta::createSqlName($column['key'])[0];
       }
-    }
-  }
-
-  /**
-   * Provide fields for FTS_* entities
-   */
-  public static function on_civi_api4_getFields(GetFieldsEvent $event): void {
-    $display = \_search_kit_fts_display($event->getEntityName());
-    if (!$display) {
-      return;
-    }
-
-    // Add fulltext 'fts' field spec
-    $event->fields[] = [
-      'name' => 'fts',
-      'title' => 'Fulltext Search',
-      'description' => 'Fulltext search across indexed columns',
-      'type' => 'Field',
-      'data_type' => 'String',
-      'operators' => ['CONTAINS'],
-    ];
-
-    // Add individual column specs
-    foreach ($display['settings']['columns'] ?? [] as $col) {
-      $colName = $col['spec']['name'] ?? Meta::createSqlName($col['key'])[0] ?? NULL;
-      if (!$colName) {
-        continue;
-      }
-      $event->fields[] = [
-        'name' => $colName,
-        'title' => $col['spec']['label'] ?? $colName,
-        'type' => 'Field',
-        'data_type' => $col['spec']['data_type'] ?? 'String',
-        'operators' => ['=', '!=', 'CONTAINS', 'LIKE'],
-      ];
     }
   }
 
