@@ -10,6 +10,8 @@ class SolrFTS extends AbstractFTS {
 
   protected ?Client $httpClient = NULL;
 
+  protected ?string $index = NULL;
+
   /**
    * Get pre-configured Guzzle 7 HTTP client for Solr instance root URL.
    *
@@ -38,31 +40,23 @@ class SolrFTS extends AbstractFTS {
    * @return string
    */
   public function getIndex(): string {
-    $pattern = \Civi::settings()->get('fts_solr_index');
-    if (empty($pattern)) {
-      $pattern = '[mysql.db]';
-    }
+    if ($this->index === NULL) {
+      $pattern = \Civi::settings()->get('fts_solr_index');
 
-    $dbName = 'civicrm';
-    if (defined('CIVICRM_DSN') && CIVICRM_DSN) {
-      $parsed = parse_url(CIVICRM_DSN);
-      if (!empty($parsed['path'])) {
-        $dbName = trim($parsed['path'], '/');
+      $variables = [];
+      $variables['[search_display.id]'] = (string) ($this->searchDisplay['id'] ?? '');
+      $variables['[search_display.name]'] = (string) ($this->searchDisplay['name'] ?? '');
+
+      $parsedDsn = parse_url(CIVICRM_DSN);
+      if (!empty($parsedDsn['path'])) {
+        $variables['[mysql.db]'] = trim($parsedDsn['path'], '/');
       }
+
+      $indexName = strtr($pattern, $variables);
+      $cleanIndex = mb_strtolower(preg_replace('/[^a-zA-Z0-9_-]/', '', $indexName));
+      $this->index = $cleanIndex ?: 'civicrm';
     }
-
-    $displayId = (string) ($this->searchDisplay['id'] ?? '');
-    $displayName = (string) ($this->searchDisplay['name'] ?? '');
-
-    $replacements = [
-      '[mysql.db]' => $dbName,
-      '[search_display.id]' => $displayId,
-      '[search_display.name]' => $displayName,
-    ];
-
-    $indexName = strtr($pattern, $replacements);
-    $cleanIndex = strtolower(preg_replace('/[^a-zA-Z0-9_-]/', '', $indexName));
-    return $cleanIndex ?: 'civicrm';
+    return $this->index;
   }
 
   /**
