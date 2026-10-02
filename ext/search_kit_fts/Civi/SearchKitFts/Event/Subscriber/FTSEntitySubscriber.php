@@ -53,21 +53,7 @@ class FTSEntitySubscriber extends AutoService implements EventSubscriberInterfac
    * Provide fields for FTS_* entities
    */
   public static function on_civi_api4_getFields(GetFieldsEvent $event): void {
-    if (!str_starts_with($event->getEntityName(), 'FTS_')) {
-      return;
-    }
-
-    $displayName = substr($event->getEntityName(), 4);
-    $displays = \_search_kit_fts_displays();
-
-    $display = NULL;
-    foreach ($displays as $d) {
-      if ($d['name'] === $displayName) {
-        $display = $d;
-        break;
-      }
-    }
-
+    $display = \_search_kit_fts_display($event->getEntityName());
     if (!$display) {
       return;
     }

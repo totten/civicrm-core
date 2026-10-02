@@ -19,21 +19,7 @@ class FTSEntitySpecProvider extends AutoService implements SpecProviderInterface
    */
   public function modifySpec(RequestSpec $spec): void {
     $entityName = $spec->getEntity();
-    if (!str_starts_with($entityName, 'FTS_')) {
-      return;
-    }
-
-    $displayName = substr($entityName, 4);
-    $displays = \_search_kit_fts_displays();
-
-    $display = NULL;
-    foreach ($displays as $d) {
-      if ($d['name'] === $displayName) {
-        $display = $d;
-        break;
-      }
-    }
-
+    $display = \_search_kit_fts_display($entityName);
     if (!$display) {
       return;
     }

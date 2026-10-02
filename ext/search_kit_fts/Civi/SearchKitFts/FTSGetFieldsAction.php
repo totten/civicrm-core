@@ -8,9 +8,7 @@ use Civi\Search\Meta;
 class FTSGetFieldsAction extends BasicGetFieldsAction {
 
   public function getRecords() {
-    $display = array_find(\_search_kit_fts_displays(),
-      fn($d) => $d['entityName'] === $this->_entityName
-    );
+    $display = \_search_kit_fts_display($this->_entityName);
 
     $fields = [
       [
