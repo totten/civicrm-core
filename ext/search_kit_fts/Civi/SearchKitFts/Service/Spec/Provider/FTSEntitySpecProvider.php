@@ -6,7 +6,7 @@ use Civi\Api4\Service\Spec\FieldSpec;
 use Civi\Api4\Service\Spec\Provider\Generic\SpecProviderInterface;
 use Civi\Api4\Service\Spec\RequestSpec;
 use Civi\Core\Service\AutoService;
-use Civi\SearchKitFts\Event\Subscriber\FTSEntitySubscriber;
+use Civi\Search\Meta;
 
 /**
  * @service
@@ -47,7 +47,7 @@ class FTSEntitySpecProvider extends AutoService implements SpecProviderInterface
 
     // Add search column fields
     foreach ($display['settings']['columns'] ?? [] as $col) {
-      $colName = $col['spec']['name'] ?? $col['key'] ?? NULL;
+      $colName = $col['spec']['name'] ?? Meta::createSqlName($col['key'])[0] ?? NULL;
       if (!$colName) {
         continue;
       }

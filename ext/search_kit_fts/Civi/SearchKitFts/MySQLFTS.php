@@ -3,6 +3,7 @@
 namespace Civi\SearchKitFts;
 
 use Civi\Api4\Generic\AbstractAction;
+use Civi\Search\Meta;
 use PDO;
 
 class MySQLFTS extends AbstractFTS {
@@ -52,7 +53,7 @@ class MySQLFTS extends AbstractFTS {
     $columns = $this->searchDisplay['settings']['columns'] ?? [];
     $ftsCols = [];
     foreach ($columns as $column) {
-      $colName = $column['spec']['name'] ?? $column['key'] ?? NULL;
+      $colName = $column['spec']['name'] ?? Meta::createSqlName($column['key'])[0] ?? NULL;
       if ($colName && $colName !== 'id') {
         $dataType = $column['spec']['data_type'] ?? 'String';
         if (in_array($dataType, ['String', 'Text', 'Array'], TRUE) || !isset($column['spec']['data_type'])) {
@@ -62,7 +63,7 @@ class MySQLFTS extends AbstractFTS {
     }
     if (empty($ftsCols)) {
       foreach ($columns as $column) {
-        $colName = $column['spec']['name'] ?? $column['key'] ?? NULL;
+        $colName = $column['spec']['name'] ?? Meta::createSqlName($column['key'])[0] ?? NULL;
         if ($colName) {
           $ftsCols[] = $colName;
         }
@@ -87,7 +88,7 @@ class MySQLFTS extends AbstractFTS {
     $columns = $this->searchDisplay['settings']['columns'] ?? [];
 
     foreach ($columns as $column) {
-      $colName = $column['spec']['name'] ?? $column['key'] ?? NULL;
+      $colName = $column['spec']['name'] ?? Meta::createSqlName($column['key'])[0] ?? NULL;
       if ($colName && strtolower($colName) !== 'id') {
         $dataType = $column['spec']['data_type'] ?? 'String';
         $sqlType = match ($dataType) {
@@ -133,7 +134,7 @@ class MySQLFTS extends AbstractFTS {
     foreach ($records as $record) {
       $row = [];
       foreach ($columns as $col) {
-        $key = $col['key'] ?? NULL;
+        $key = Meta::createSqlName($col['key'])[0];
         $colName = $col['spec']['name'] ?? $key;
         if (!$colName) {
           continue;
