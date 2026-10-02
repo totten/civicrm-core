@@ -2,6 +2,7 @@
 
 namespace Civi\SearchKitFts;
 
+use Civi\Api4\Action\GetLinks;
 use Civi\Api4\Generic\AbstractAction;
 
 /**
@@ -70,6 +71,17 @@ class FTSEntity {
    */
   public static function getActions(string $displayName, bool $checkPermissions = TRUE) {
     return (new \Civi\Api4\Action\GetActions('FTS_' . $displayName, __FUNCTION__))
+      ->setCheckPermissions($checkPermissions);
+  }
+
+  /**
+   * @param string $displayEntity
+   * @param bool $checkPermissions
+   * @return \Civi\Api4\Action\GetLinks
+   */
+  public static function getLinks(string $displayEntity, bool $checkPermissions = TRUE): GetLinks {
+    // TODO: Is this right?
+    return (new GetLinks('FTS_' . $displayEntity, __FUNCTION__))
       ->setCheckPermissions($checkPermissions);
   }
 
