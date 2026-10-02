@@ -7,7 +7,9 @@ use Civi\Api4\Generic\BasicGetFieldsAction;
 class FTSGetFieldsAction extends BasicGetFieldsAction {
 
   public function getRecords() {
-    $displayName = preg_replace('/^FTS_/', '', $this->_entityName);
+    $display = array_find(\_search_kit_fts_displays(),
+      fn($d) => $d['entityName'] === $this->_entityName
+    );
 
     $fields = [
       [
@@ -20,22 +22,16 @@ class FTSGetFieldsAction extends BasicGetFieldsAction {
       ],
     ];
 
-    $displays = \_search_kit_fts_displays();
-    foreach ($displays as $d) {
-      if ($d['name'] === $displayName) {
-        foreach ($d['settings']['columns'] ?? [] as $col) {
-          $colName = $col['spec']['name'] ?? $col['key'] ?? NULL;
-          if ($colName) {
-            $fields[] = [
-              'name' => $colName,
-              'title' => $col['spec']['label'] ?? $colName,
-              'type' => 'Field',
-              'data_type' => $col['spec']['data_type'] ?? 'String',
-              'operators' => ['=', '!=', 'CONTAINS', 'LIKE'],
-            ];
-          }
-        }
-        break;
+    foreach ($display['settings']['columns'] ?? [] as $col) {
+      $colName = $col['spec']['name'] ?? $col['key'] ?? NULL;
+      if ($colName) {
+        $fields[] = [
+          'name' => $colName,
+          'title' => $col['spec']['label'] ?? $colName,
+          'type' => 'Field',
+          'data_type' => $col['spec']['data_type'] ?? 'String',
+          'operators' => ['=', '!=', 'CONTAINS', 'LIKE'],
+        ];
       }
     }
 
