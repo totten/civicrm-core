@@ -55,3 +55,17 @@ function _search_kit_fts_displays(): array {
     return [];
   }
 }
+
+/**
+ * Lookup the search-display for a particular FTS Entity.
+ *
+ * @param string $entityName
+ *   Ex: 'FTS_MyData'
+ * @return array|null
+ */
+function _search_kit_fts_display(string $entityName): ?array {
+  // Feels like slight overkill since it's not a cached lookup... but this is just a refactor-commit...
+  return array_find(\_search_kit_fts_displays(),
+    fn($d) => $d['entityName'] === $entityName
+  );
+}
