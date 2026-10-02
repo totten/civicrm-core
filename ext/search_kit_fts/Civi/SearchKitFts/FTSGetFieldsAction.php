@@ -9,16 +9,15 @@ class FTSGetFieldsAction extends BasicGetFieldsAction {
 
   public function getRecords() {
     $display = \_search_kit_fts_display($this->_entityName);
+    $fields = [];
 
-    $fields = [
-      [
-        'name' => 'fts',
-        'title' => 'Fulltext Search',
-        'description' => 'Fulltext search query across indexed columns',
-        'type' => 'Field',
-        'data_type' => 'String',
-        'operators' => ['CONTAINS'],
-      ],
+    $fields[] = [
+      'name' => 'fts',
+      'title' => 'Fulltext Search',
+      'description' => 'Fulltext search query across indexed columns',
+      'type' => 'Field',
+      'data_type' => 'String',
+      'operators' => ['CONTAINS'],
     ];
 
     foreach ($display['settings']['columns'] ?? [] as $col) {
