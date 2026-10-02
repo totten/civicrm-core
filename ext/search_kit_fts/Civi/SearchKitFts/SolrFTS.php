@@ -3,6 +3,7 @@
 namespace Civi\SearchKitFts;
 
 use Civi\Api4\Generic\AbstractAction;
+use Civi\Search\Meta;
 use Civi\SearchKitFts\Exception\NoConnectionException;
 use GuzzleHttp\Client;
 
@@ -94,7 +95,7 @@ class SolrFTS extends AbstractFTS {
     ];
 
     foreach ($columns as $col) {
-      $key = $col['key'] ?? NULL;
+      $key = Meta::createSqlName($col['key'])[0];
       $colName = $col['spec']['name'] ?? $key;
       if (!$colName) {
         continue;
@@ -214,7 +215,7 @@ class SolrFTS extends AbstractFTS {
       $doc['searchDisplayName'] = $name;
 
       foreach ($columns as $col) {
-        $key = $col['key'] ?? NULL;
+        $key = Meta::createSqlName($col['key'])[0];
         $colName = $col['spec']['name'] ?? $key;
         if (!$colName) {
           continue;

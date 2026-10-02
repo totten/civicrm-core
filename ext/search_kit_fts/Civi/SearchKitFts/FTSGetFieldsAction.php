@@ -3,6 +3,7 @@
 namespace Civi\SearchKitFts;
 
 use Civi\Api4\Generic\BasicGetFieldsAction;
+use Civi\Search\Meta;
 
 class FTSGetFieldsAction extends BasicGetFieldsAction {
 
@@ -23,7 +24,7 @@ class FTSGetFieldsAction extends BasicGetFieldsAction {
     ];
 
     foreach ($display['settings']['columns'] ?? [] as $col) {
-      $colName = $col['spec']['name'] ?? $col['key'] ?? NULL;
+      $colName = $col['spec']['name'] ?? Meta::createSqlName($col['key'])[0] ?? NULL;
       if ($colName) {
         $fields[] = [
           'name' => $colName,

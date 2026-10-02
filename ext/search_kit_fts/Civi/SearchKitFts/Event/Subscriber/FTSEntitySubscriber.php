@@ -44,7 +44,7 @@ class FTSEntitySubscriber extends AutoService implements EventSubscriberInterfac
         'search_fields' => [],
       ];
       foreach ($display['settings']['columns'] ?? [] as $column) {
-        $event->entities[$display['entityName']]['search_fields'][] = $column['spec']['name'] ?? $column['key'];
+        $event->entities[$display['entityName']]['search_fields'][] = $column['spec']['name'] ?? Meta::createSqlName($column['key'])[0];
       }
     }
   }
@@ -84,7 +84,7 @@ class FTSEntitySubscriber extends AutoService implements EventSubscriberInterfac
 
     // Add individual column specs
     foreach ($display['settings']['columns'] ?? [] as $col) {
-      $colName = $col['spec']['name'] ?? $col['key'] ?? NULL;
+      $colName = $col['spec']['name'] ?? Meta::createSqlName($col['key'])[0] ?? NULL;
       if (!$colName) {
         continue;
       }
