@@ -19,6 +19,16 @@ class SolrQueryBuilderTest extends TestCase {
     $this->assertEquals('fts:*Mozart*', $q);
   }
 
+  public function testBuildQueryWithSearchDisplayName(): void {
+    $where = [
+      ['fts', 'CONTAINS', 'Mozart'],
+      ['display_name', '=', 'Wolfgang Mozart'],
+    ];
+    $q = SolrQueryBuilder::buildQuery($where, 'MyDisplay');
+    $expected = 'searchDisplayName:"MyDisplay" AND MyDisplay_fts:*Mozart* AND MyDisplay_display_name:"Wolfgang Mozart"';
+    $this->assertEquals($expected, $q);
+  }
+
   public function testBuildQueryFtsEqualsThrowsException(): void {
     $this->expectException(\CRM_Core_Exception::class);
     $this->expectExceptionMessage("Operator '=' is not supported for 'fts' field");
@@ -54,9 +64,9 @@ class SolrQueryBuilderTest extends TestCase {
     $where = [
       ['fts', 'CONTAINS', 'Bach'],
     ];
-    $params = SolrQueryBuilder::buildQueryParams($where, 50, 10);
+    $params = SolrQueryBuilder::buildQueryParams($where, 50, 10, 'ComposerSearch');
     $this->assertEquals([
-      'q' => 'fts:*Bach*',
+      'q' => 'searchDisplayName:"ComposerSearch" AND ComposerSearch_fts:*Bach*',
       'rows' => 50,
       'start' => 10,
       'wt' => 'json',

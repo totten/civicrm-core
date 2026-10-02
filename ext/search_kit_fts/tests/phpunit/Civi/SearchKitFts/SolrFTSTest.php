@@ -18,11 +18,30 @@ class SolrFTSTest extends TestCase implements HeadlessInterface, HookInterface {
       ->apply();
   }
 
+  public function testIndexNameResolution(): void {
+    $searchDisplay = [
+      'id' => 88,
+      'name' => 'MyCustomSearch',
+      'settings' => [],
+    ];
+    $savedSearch = ['name' => 'TestSearch'];
+    $connection = ['name' => 'solr', 'label' => 'Solr', 'backend' => SolrFTS::class];
+
+    $fts = new SolrFTS($connection, $savedSearch, $searchDisplay);
+
+    \Civi::settings()->set('fts_solr_index', 'custom_[search_display.name]_[search_display.id]');
+    $this->assertEquals('custom_mycustomsearch_88', $fts->getIndex());
+
+    \Civi::settings()->set('fts_solr_index', 'literal_collection_1');
+    $this->assertEquals('literal_collection_1', $fts->getIndex());
+  }
+
   public function testSolrFTSLifecycle(): void {
-    $solrUrl = \Civi::settings()->get('fts_solr_url') ?: 'http://localhost:8983/solr/gettingstarted';
+    $solrUrl = \Civi::settings()->get('fts_solr_url') ?: 'http://localhost:8983';
     \Civi::settings()->set('fts_solr_url', $solrUrl);
 
     $searchDisplay = [
+      'id' => 42,
       'name' => 'TestSolrQuickSearch',
       'settings' => [
         'columns' => [
@@ -55,7 +74,9 @@ class SolrFTSTest extends TestCase implements HeadlessInterface, HookInterface {
       ['contact_id' => 202, 'display_name' => 'Daisy Duck', 'primary_email' => 'daisy@example.net'],
     ];
     $converted = $fts->convertRecords($records);
-    $this->assertEquals('201 Charlie Chaplin charlie@example.org', $converted[0]['fts']);
+    $this->assertEquals('TestSolrQuickSearch', $converted[0]['searchDisplayName']);
+    $this->assertEquals('TestSolrQuickSearch:201', $converted[0]['id']);
+    $this->assertEquals('Charlie Chaplin', $converted[0]['TestSolrQuickSearch_display_name']);
     $fts->insertRecords($converted);
 
     // 4. Query via SolrGetAction
@@ -67,6 +88,7 @@ class SolrFTSTest extends TestCase implements HeadlessInterface, HookInterface {
     $getAction->setWhere([['fts', 'CONTAINS', 'Charlie']]);
     $results = $getAction->execute();
     $this->assertCount(1, $results);
+    $this->assertEquals('201', $results[0]['id']);
     $this->assertEquals('Charlie Chaplin', $results[0]['display_name']);
 
     // Field-specific search with =
