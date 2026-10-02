@@ -14,9 +14,9 @@ services:
     image: solr:10.0.0
     ports:
       - "127.0.0.1:8983:8983"
-    command:
-      - solr-precreate
-      - gettingstarted
+#    command:
+#      - solr-fg
+#      - -c
     tmpfs:
       - /var/solr:uid=8983,gid=8983,mode=777
 

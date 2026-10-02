@@ -9,7 +9,6 @@ use GuzzleHttp\Client;
 class SolrFTS extends AbstractFTS {
 
   protected ?Client $httpClient = NULL;
-  protected ?string $activeCoreName = NULL;
 
   /**
    * Get pre-configured Guzzle 7 HTTP client for Solr instance root URL.
@@ -33,24 +32,116 @@ class SolrFTS extends AbstractFTS {
     return $this->httpClient;
   }
 
-  public function getCoreName(): string {
-    $cleanName = strtolower(preg_replace('/[^a-zA-Z0-9_]/', '', $this->searchDisplay['name']));
-    return 'fts_' . $cleanName;
+  /**
+   * Resolve the index/collection name from setting fts_solr_index.
+   *
+   * @return string
+   */
+  public function getIndex(): string {
+    $pattern = \Civi::settings()->get('fts_solr_index');
+    if (empty($pattern)) {
+      $pattern = '[mysql.db]';
+    }
+
+    $dbName = 'civicrm';
+    if (defined('CIVICRM_DSN') && CIVICRM_DSN) {
+      $parsed = parse_url(CIVICRM_DSN);
+      if (!empty($parsed['path'])) {
+        $dbName = trim($parsed['path'], '/');
+      }
+    }
+
+    $displayId = (string) ($this->searchDisplay['id'] ?? '');
+    $displayName = (string) ($this->searchDisplay['name'] ?? '');
+
+    $replacements = [
+      '[mysql.db]' => $dbName,
+      '[search_display.id]' => $displayId,
+      '[search_display.name]' => $displayName,
+    ];
+
+    $indexName = strtr($pattern, $replacements);
+    $cleanIndex = strtolower(preg_replace('/[^a-zA-Z0-9_-]/', '', $indexName));
+    return $cleanIndex ?: 'civicrm';
   }
 
   /**
-   * Get active core path or specific core path.
+   * Return schema fields common to all search displays in the collection.
    *
-   * @param string $path
-   * @return string
+   * @return array
    */
-  public function getCorePath(string $path = ''): string {
-    $core = $this->activeCoreName ?? $this->getCoreName();
-    $corePath = "solr/{$core}";
-    if ($path) {
-      return $corePath . '/' . ltrim($path, '/');
+  public function createCommonSchema(): array {
+    return [
+      [
+        'name' => 'searchDisplayName',
+        'type' => 'string',
+        'stored' => TRUE,
+        'indexed' => TRUE,
+      ],
+    ];
+  }
+
+  /**
+   * Return local schema fields needed by this specific search display.
+   *
+   * @return array
+   */
+  public function createLocalSchema(): array {
+    $name = $this->searchDisplay['name'];
+    $columns = $this->searchDisplay['settings']['columns'] ?? [];
+    $fields = [
+      [
+        'name' => "{$name}_fts",
+        'type' => 'text_general',
+        'stored' => TRUE,
+        'indexed' => TRUE,
+        'multiValued' => FALSE,
+      ],
+    ];
+
+    foreach ($columns as $col) {
+      $key = $col['key'] ?? NULL;
+      $colName = $col['spec']['name'] ?? $key;
+      if (!$colName) {
+        continue;
+      }
+      $fields[] = [
+        'name' => "{$name}_{$colName}",
+        'type' => 'text_general',
+        'stored' => TRUE,
+        'indexed' => TRUE,
+        'multiValued' => FALSE,
+      ];
     }
-    return $corePath;
+
+    return $fields;
+  }
+
+  /**
+   * Apply field definitions to the Solr index schema.
+   *
+   * @param array $schema
+   * @param bool $overwrite
+   * @return void
+   */
+  public function applySchema(array $schema, bool $overwrite = FALSE): void {
+    $client = $this->http();
+    $index = $this->getIndex();
+    $schemaUrl = "solr/{$index}/schema";
+
+    foreach ($schema as $field) {
+      $action = $overwrite ? 'replace-field' : 'add-field';
+      $res = $client->post($schemaUrl, [
+        'json' => [$action => $field],
+      ]);
+
+      if ($res->getStatusCode() >= 400) {
+        $altAction = $overwrite ? 'add-field' : 'replace-field';
+        $client->post($schemaUrl, [
+          'json' => [$altAction => $field],
+        ]);
+      }
+    }
   }
 
   public function createApi4Action(string $action): AbstractAction {
@@ -61,57 +152,57 @@ class SolrFTS extends AbstractFTS {
   }
 
   public function initialize(): void {
-    $coreName = $this->getCoreName();
+    $client = $this->http();
+    $index = $this->getIndex();
 
-    try {
-      $response = $this->http()->get("solr/{$coreName}/select", [
-        'query' => ['q' => '*:*', 'rows' => 0, 'wt' => 'json'],
+    // Check if index/collection exists
+    $res = $client->get("solr/{$index}/select", [
+      'query' => ['q' => '*:*', 'rows' => 0, 'wt' => 'json'],
+    ]);
+
+    if ($res->getStatusCode() !== 200) {
+      // Auto-create Collection using SolrCloud APIs (based on _default configset)
+      $createRes = $client->get("solr/admin/collections", [
+        'query' => [
+          'action' => 'CREATE',
+          'name' => $index,
+          'collection.configName' => '_default',
+          'numShards' => 1,
+          'wt' => 'json',
+        ],
       ]);
-      if ($response->getStatusCode() === 200) {
-        $this->activeCoreName = $coreName;
-        return;
+
+      if ($createRes->getStatusCode() !== 200) {
+        // Fallback to core CREATE if standalone Solr instance
+        $coreRes = $client->get("solr/admin/cores", [
+          'query' => ['action' => 'CREATE', 'name' => $index, 'wt' => 'json'],
+        ]);
+        if ($coreRes->getStatusCode() !== 200) {
+          throw new NoConnectionException("Unable to create Solr collection or core '$index'");
+        }
       }
     }
-    catch (\Exception $e) {
-      // Core check failed, attempt creation
-    }
 
-    // Core is not healthy/ready, attempt to create via Solr Admin API
-    try {
-      $createRes = $this->http()->get("solr/admin/cores", [
-        'query' => ['action' => 'CREATE', 'name' => $coreName, 'wt' => 'json'],
-      ]);
-      if ($createRes->getStatusCode() === 200) {
-        $this->activeCoreName = $coreName;
-        return;
-      }
-    }
-    catch (\Exception $e) {
-      // Admin core create failed
-    }
+    // Apply global schema gently ($overwrite == FALSE)
+    $this->applySchema($this->createCommonSchema(), FALSE);
 
-    // Fallback to gettingstarted core if standalone server without default configsets
-    try {
-      $fallbackCheck = $this->http()->get("solr/gettingstarted/select", [
-        'query' => ['q' => '*:*', 'rows' => 0, 'wt' => 'json'],
-      ]);
-      if ($fallbackCheck->getStatusCode() === 200) {
-        $this->activeCoreName = 'gettingstarted';
-        return;
-      }
-    }
-    catch (\Exception $e) {
-      // Fallback failed
-    }
-
-    throw new NoConnectionException("Unable to initialize Solr core '$coreName' and fallback failed.");
+    // Apply local schema forcefully ($overwrite == TRUE)
+    $this->applySchema($this->createLocalSchema(), TRUE);
   }
 
   public function truncate(): void {
-    $path = $this->getCorePath('update');
-    $this->http()->post($path, [
+    $client = $this->http();
+    $index = $this->getIndex();
+    $name = $this->searchDisplay['name'];
+    $path = "solr/{$index}/update";
+
+    $client->post($path, [
       'query' => ['commit' => 'true'],
-      'json' => ['delete' => ['query' => '*:*']],
+      'json' => [
+        'delete' => [
+          'query' => "searchDisplayName:\"{$name}\"",
+        ],
+      ],
     ]);
   }
 
@@ -122,33 +213,20 @@ class SolrFTS extends AbstractFTS {
     catch (\Exception $e) {
       // Ignore
     }
-
-    try {
-      $this->http()->get("solr/admin/cores", [
-        'query' => [
-          'action' => 'UNLOAD',
-          'core' => $this->getCoreName(),
-          'deleteIndex' => 'true',
-          'deleteDataDir' => 'true',
-          'wt' => 'json',
-        ],
-      ]);
-    }
-    catch (\Exception $e) {
-      // Ignore unload errors
-    }
   }
 
   public function convertRecords(array $records): array {
     $converted = [];
     $columns = $this->searchDisplay['settings']['columns'] ?? [];
+    $name = $this->searchDisplay['name'];
 
     foreach ($records as $index => $record) {
       $doc = [];
       $ftsParts = [];
 
-      // Determine ID
-      $doc['id'] = (string) ($record['id'] ?? $record['contact_id'] ?? ($index + 1));
+      $rawId = (string) ($record['id'] ?? $record['contact_id'] ?? ($index + 1));
+      $doc['id'] = "{$name}:{$rawId}";
+      $doc['searchDisplayName'] = $name;
 
       foreach ($columns as $col) {
         $key = $col['key'] ?? NULL;
@@ -161,14 +239,14 @@ class SolrFTS extends AbstractFTS {
         if (is_array($val)) {
           $val = implode(', ', $val);
         }
-        $doc[$colName] = $val;
+        $doc["{$name}_{$colName}"] = $val;
 
         if ($val !== NULL && $val !== '') {
           $ftsParts[] = (string) $val;
         }
       }
 
-      $doc['fts'] = implode(' ', $ftsParts);
+      $doc["{$name}_fts"] = implode(' ', $ftsParts);
       $converted[] = $doc;
     }
 
@@ -180,22 +258,30 @@ class SolrFTS extends AbstractFTS {
       return;
     }
 
-    $path = $this->getCorePath('update');
-    $this->http()->post($path, [
+    $client = $this->http();
+    $index = $this->getIndex();
+    $path = "solr/{$index}/update";
+
+    $client->post($path, [
       'query' => ['commit' => 'true'],
       'json' => $records,
     ]);
   }
 
   public function getRecordsFromSolr(SolrGetAction $action): array {
+    $client = $this->http();
+    $index = $this->getIndex();
+    $name = $this->searchDisplay['name'];
+
     $queryParams = SolrQueryBuilder::buildQueryParams(
       $action->getWhere(),
       $action->getLimit(),
-      $action->getOffset()
+      $action->getOffset(),
+      $name
     );
 
-    $path = $this->getCorePath('select');
-    $response = $this->http()->get($path, [
+    $path = "solr/{$index}/select";
+    $response = $client->get($path, [
       'query' => $queryParams,
     ]);
 
@@ -208,12 +294,32 @@ class SolrFTS extends AbstractFTS {
 
     $data = json_decode($body, TRUE);
     $docs = $data['response']['docs'] ?? [];
+    $prefix = "{$name}_";
+    $idPrefix = "{$name}:";
 
     foreach ($docs as &$doc) {
-      unset($doc['_version_'], $doc['_root_']);
+      unset($doc['_version_'], $doc['_root_'], $doc['searchDisplayName']);
+
+      if (isset($doc['id'])) {
+        $rawId = is_array($doc['id']) ? $doc['id'][0] : $doc['id'];
+        if (str_starts_with($rawId, $idPrefix)) {
+          $rawId = substr($rawId, strlen($idPrefix));
+        }
+        $doc['id'] = $rawId;
+      }
+
       foreach ($doc as $k => $v) {
-        if (is_array($v) && count($v) === 1) {
-          $doc[$k] = $v[0];
+        if ($k === 'id') {
+          continue;
+        }
+        $val = (is_array($v) && count($v) === 1) ? $v[0] : $v;
+        if (str_starts_with($k, $prefix)) {
+          $cleanKey = substr($k, strlen($prefix));
+          $doc[$cleanKey] = $val;
+          unset($doc[$k]);
+        }
+        else {
+          $doc[$k] = $val;
         }
       }
     }
