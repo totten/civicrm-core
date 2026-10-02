@@ -29,22 +29,28 @@ class FTSEntitySubscriber extends AutoService implements EventSubscriberInterfac
    */
   public static function on_civi_api4_entityTypes(GenericHookEvent $event): void {
     foreach (\_search_kit_fts_displays() as $display) {
-      $event->entities[$display['entityName']] = [
-        'name' => $display['entityName'],
-        'title' => $display['label'],
-        'title_plural' => $display['label'],
-        'description' => $display['settings']['description'] ?? NULL,
-        'type' => ['FTS', 'SavedSearch'],
-        'class' => FTSEntity::class,
-        'class_args' => [$display['name']],
-        'icon' => 'fa-search',
-        'searchable' => 'secondary',
-        'search_fields' => [],
-      ];
-      foreach ($display['settings']['columns'] ?? [] as $column) {
-        $event->entities[$display['entityName']]['search_fields'][] = $column['spec']['name'] ?? Meta::createSqlName($column['key'])[0];
-      }
+      $definition = static::createEntityDefinition($display);
+      $event->entities[$definition['name']] = $definition;
     }
+  }
+
+  public static function createEntityDefinition(array $display): array {
+    $definition = [
+      'name' => $display['entityName'],
+      'title' => $display['label'],
+      'title_plural' => $display['label'],
+      'description' => $display['settings']['description'] ?? NULL,
+      'type' => ['FTS', 'SavedSearch'],
+      'class' => FTSEntity::class,
+      'class_args' => [$display['name']],
+      'icon' => 'fa-search',
+      'searchable' => 'secondary',
+      'search_fields' => [],
+    ];
+    foreach ($display['settings']['columns'] ?? [] as $column) {
+      $definition['search_fields'][] = $column['spec']['name'] ?? Meta::createSqlName($column['key'])[0];
+    }
+    return $definition;
   }
 
   public function onPreSaveDisplay(PreEvent $event): void {
