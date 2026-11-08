@@ -73,7 +73,7 @@ class OAuthTokenFacade {
       $tokenRecord['resource_owner'] = $owner->toArray();
     }
     catch (\Throwable $e) {
-      \Civi::log()->warning("Failed to resolve resource_owner");
+      \Civi::log()->warning("Failed to resolve resource_owner", ['exception' => $e]);
     }
 
     \CRM_OAuth_Hook::oauthToken('init', $options['storage'], $tokenRecord);
