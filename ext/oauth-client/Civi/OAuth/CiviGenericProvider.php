@@ -25,6 +25,9 @@ class CiviGenericProvider extends \League\OAuth2\Client\Provider\GenericProvider
   use ResponseModeTrait;
   use CiviConnectUrlTrait;
 
+  // Add $urlJwks and decodeJwt(string $jwt) for examining JWTs sent by OAuth/OIDC.
+  use JwksTrait;
+
   /**
    * @var string
    */
@@ -39,6 +42,15 @@ class CiviGenericProvider extends \League\OAuth2\Client\Provider\GenericProvider
    * @var string
    */
   protected $realm;
+
+  protected function getConfigurableOptions() {
+    return array_merge(parent::getConfigurableOptions(), [
+      'url',
+      'tenant',
+      'realm',
+      'urlJwks',
+    ]);
+  }
 
   protected function fillProperties(array $options = []) {
     // If this client is generated for CiviConnect bridge, then swap the credentials.
@@ -96,7 +108,10 @@ class CiviGenericProvider extends \League\OAuth2\Client\Provider\GenericProvider
    * @param string $str URL to replace
    * @return string
    */
-  private function replaceUrlToken($str) {
+  protected function replaceUrlToken($str) {
+    if (empty($str)) {
+      return $str;
+    }
     if (str_contains($str, '{{tenant}}')) {
       $tenant = !empty($this->tenant) ? $this->tenant : 'common';
       $str = str_replace('{{tenant}}', $tenant, $str);
@@ -129,6 +144,9 @@ class CiviGenericProvider extends \League\OAuth2\Client\Provider\GenericProvider
     if ($url === '{{use_id_token}}') {
       $tokenData = $token->jsonSerialize();
       if (isset($tokenData['id_token'])) {
+        if (!empty($this->getUrlJwks())) {
+          return $this->decodeJwt($tokenData['id_token']);
+        }
         $idToken = $this->decodeUnauthenticatedJwt($tokenData['id_token']);
 
         // As long as id_token comes from a secure source, we can skip signature check.
