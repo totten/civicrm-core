@@ -28,6 +28,9 @@ class CiviGenericProvider extends \League\OAuth2\Client\Provider\GenericProvider
   // Add $urlJwks and decodeJwt(string $jwt) for examining JWTs sent by OAuth/OIDC.
   use JwksTrait;
 
+  // Add parseIdToken(string $idToken) to help implement OIDC.
+  use IdTokenTrait;
+
   /**
    * @var string
    */
@@ -133,33 +136,13 @@ class CiviGenericProvider extends \League\OAuth2\Client\Provider\GenericProvider
 
     // If there is no resource-owner URL, and if there is an id_token, use it.
     if ($url === '{{use_id_token}}') {
-      $tokenData = $token->jsonSerialize();
-      if (isset($tokenData['id_token'])) {
-        if (!empty($this->getUrlJwks())) {
-          return $this->decodeJwt($tokenData['id_token']);
-        }
-        $idToken = $this->decodeUnauthenticatedJwt($tokenData['id_token']);
-
-        // As long as id_token comes from a secure source, we can skip signature check.
-        // Which is fortunate... because we don't what key to check against...
-        if (!preg_match(';^https:;', $this->getBaseAccessTokenUrl([]))) {
-          throw new \RuntimeException("Cannot decode ID token from insecure source.");
-        }
-
-        return $idToken['payload'];
+      $idToken = $this->parseIdToken($token->jsonSerialize()['id_token'] ?? NULL);
+      if ($idToken !== NULL) {
+        return $idToken;
       }
     }
 
     return parent::fetchResourceOwnerDetails($token);
-  }
-
-  private function decodeUnauthenticatedJwt($t) {
-    [$header, $payload] = explode('.', $t);
-
-    return [
-      'header' => json_decode(base64_decode($header), 1),
-      'payload' => json_decode(base64_decode($payload), 1),
-    ];
   }
 
 }

@@ -4,6 +4,7 @@
     "urlAuthorize": "https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/authorize",
     "urlAccessToken": "https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/token",
     "urlResourceOwnerDetails": "{{use_id_token}}",
+    "urlJwks": "https://login.microsoftonline.com/{{tenant}}/discovery/v2.0/keys",
     "scopeSeparator": " ",
     "scopes": [
       "https://outlook.office.com/IMAP.AccessAsUser.All",
